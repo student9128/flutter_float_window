@@ -10,8 +10,8 @@ class FlutterFloatWindow {
     return version;
   }
 
-  static showFloatWindow() async {
-    await _channel.invokeMethod('showFloatWindow');
+  static showFloatWindow(dynamic url) async {
+    await _channel.invokeMethod('showFloatWindow',url);
   }
 
   static hideFloatWindow() async {

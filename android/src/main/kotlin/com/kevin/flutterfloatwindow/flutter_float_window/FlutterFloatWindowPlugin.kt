@@ -27,6 +27,7 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
     private lateinit var channel: MethodChannel
     private lateinit var activity: Activity
     private lateinit var context: Context
+    var firstUrl = ""
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_float_window")
         channel.setMethodCallHandler(this)
@@ -42,20 +43,25 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
 //        }
         when (call.method) {
             "getPlatformVersion" -> result.success("Android ${android.os.Build.VERSION.RELEASE}")
-            "setMainActivityName"->{}
-            "setVideoUrl"->{
+            "setMainActivityName" -> {}
+            "setVideoUrl" -> {
                 var videoUrl = call.argument<Any>("videoUrl")
                 videoUrl?.let { setVideoUrl(it.toString()) }
             }
-            "showFloatWindow" -> bindFloatWindowService()
+            "showFloatWindow" -> {
+                var videoUrl = call.argument<Any>("videoUrl")
+                videoUrl?.let {firstUrl=it.toString() }
+                bindFloatWindowService()
+            }
+
             "hideFloatWindow" -> unbindFloatWindowService()
-            "play"->{
+            "play" -> {
                 play()
             }
-            "pause"->{
+            "pause" -> {
                 pause()
             }
-            "stop"->{
+            "stop" -> {
                 stop()
             }
             else -> result.notImplemented()
@@ -70,18 +76,19 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
     private var mBinder: FloatWindowService.LocalBinder? = null
     var serviceConnection: ServiceConnection? = null
     var isBind = false
-    private fun initService() {
+    private fun initService(activity: Activity) {
         serviceConnection = object : ServiceConnection {
             override fun onServiceConnected(name: ComponentName, service: IBinder) {
-                Log.e(javaClass.name, "onServiceConnected")
+                Log.e("FloatWindowService", "onServiceConnected,,,$name")
                 bindService = (service as FloatWindowService.LocalBinder).service
-                mBinder=service
+                mBinder = service
+                initFloatWindow(activity)
             }
 
             override fun onServiceDisconnected(name: ComponentName) {
                 Log.e(javaClass.name, "onServiceDisconnected")
                 bindService = null
-                mBinder=null
+                mBinder = null
             }
         }
     }
@@ -90,16 +97,19 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
 
     }
 
-    private fun setVideoUrl(url:String){
+    private fun setVideoUrl(url: String) {
         mBinder?.initMediaSource(url)
     }
-    private fun play(){
+
+    private fun play() {
         mBinder?.startPlay()
     }
-    private fun pause(){
+
+    private fun pause() {
         mBinder?.pausePlay()
     }
-    private fun stop(){
+
+    private fun stop() {
         mBinder?.stopPlay()
     }
 
@@ -116,14 +126,21 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
             isBind = false
             context.unbindService(serviceConnection!!)
             bindService = null
-            mBinder=null
+            mBinder = null
         }
+    }
+
+    private fun initFloatWindow(activity: Activity) {
+        Log.e("FloatWindowService", "initFloatWindow")
+        mBinder?.initFloatWindow(activity)
+        Log.e("FloatWindowService", "initFloatWindow====$firstUrl")
+        setVideoUrl(firstUrl)
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {
         Log.d(javaClass.name, "onAttachedToActivity")
         activity = binding.activity
-        initService()
+        initService(binding.activity)
     }
 
     override fun onDetachedFromActivityForConfigChanges() {

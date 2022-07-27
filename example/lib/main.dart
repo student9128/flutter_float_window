@@ -60,7 +60,11 @@ class _MyAppState extends State<MyApp> {
             ),
             ElevatedButton(
                 onPressed: () {
-                  FlutterFloatWindow.showFloatWindow();
+                  Map<String, String> params = {
+                    "videoUrl":
+                    'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
+                  };
+                  FlutterFloatWindow.showFloatWindow(params);
                 },
                 child: Text("show")),
             ElevatedButton(
@@ -72,7 +76,7 @@ class _MyAppState extends State<MyApp> {
                 onPressed: () {
                   Map<String, String> params = {
                     "videoUrl":
-                        'http://video.chinanews.com/flv/2019/04/23/400/111773_web.mp4'
+                        'http://vfx.mtime.cn/Video/2019/03/19/mp4/190319212559089721.mp4'
                   };
                   FlutterFloatWindow.setVideoUrl(params);
                 },

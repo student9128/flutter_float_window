@@ -13,7 +13,8 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import android.view.*
-import android.widget.*
+import android.widget.FrameLayout
+import android.widget.Toast
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.MediaSource
@@ -31,11 +32,8 @@ class FloatWindowService : Service() {
     private var hasAdded = false
     private var hasRelease = false
     private var currentUrl = ""
+    private var isBig = true
 
-    private var mStartX: Int = 0
-    private var mStartY: Int = 0
-    private var mEndX: Int = 0
-    private var mEndY: Int = 0
     val touchResponseDistance = 10
 
     //声明IBinder接口的一个接口变量mBinder
@@ -48,6 +46,14 @@ class FloatWindowService : Service() {
         val service: FloatWindowService
             get() = this@FloatWindowService
 
+        fun initFloatWindow(context: Context) {
+            initPlayer(context)
+            initWindowParams(context)
+            initView(context)
+            initGestureListener(context)
+            addTestView()
+        }
+
         fun initMediaSource(url: String) {
             currentUrl = url
             val uri = Uri.parse(url)
@@ -55,15 +61,19 @@ class FloatWindowService : Service() {
             player?.setMediaSource(mediaSource!!)
             player?.prepare()
             player?.play()
+            mContainer.requestLayout()
+            Log.d(
+                javaClass.name,
+                "player width height======${playerView!!.width},,${playerView!!.height}"
+            )
         }
 
         fun startPlay() {
+//            Log.d(javaClass.name,"player is playing======${player!!.isPlaying}")
             if (!player!!.isPlaying) {
                 if (hasRelease) {
-                    if (currentUrl != "") {
-                        initMediaSource(currentUrl)
-                    }
-//                    player?.prepare()
+                    player?.prepare()
+                    player?.playWhenReady = true
                 } else {
                     player?.play()
 
@@ -74,6 +84,8 @@ class FloatWindowService : Service() {
         fun stopPlay() {
             if (player!!.isPlaying) {
                 player?.stop()
+                hasRelease = true
+//                player?.clearMediaItems()
             }
         }
 
@@ -94,12 +106,12 @@ class FloatWindowService : Service() {
     }
 
     override fun onCreate() {
-        initPlayer()
-
-        initWindowParams()
-        initView()
-        initGestureListener()
-        addTestView()
+//        initPlayer()
+//
+//        initWindowParams()
+//        initView()
+//        initGestureListener()
+//        addTestView()
         mNM = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         Log.e(javaClass.name, "onCreate")
         showNotification()
@@ -107,20 +119,20 @@ class FloatWindowService : Service() {
 
     var player: ExoPlayer? = null
     var playerView: StyledPlayerView? = null
-    private fun initPlayer() {
-        player = ExoPlayer.Builder(application).build()
+    private fun initPlayer(context: Context) {
+        player = ExoPlayer.Builder(context).build()
 //        val uri = Uri.parse("http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4")
 //        val mediaSource = buildMediaSource(uri)
 //        player?.setMediaSource(mediaSource!!)
 //        player?.prepare()
         playerView = StyledPlayerView(this)
         var tvLayoutParams: FrameLayout.LayoutParams = FrameLayout.LayoutParams(-2, -2)
-        tvLayoutParams.width = 500
-        tvLayoutParams.height = 500
+        tvLayoutParams.width = dip2px(context, 300f)
+        tvLayoutParams.height = dip2px(context, 300 * 3 / 4f)
 //        tvLayoutParams.rightMargin = 100
         playerView?.layoutParams = tvLayoutParams
         playerView?.player = player
-        player?.play()
+//        player?.play()
 
     }
 
@@ -169,7 +181,7 @@ class FloatWindowService : Service() {
         Log.e(javaClass.name, "通知栏已出")
     }
 
-    private fun initWindowParams() {
+    private fun initWindowParams(context: Context) {
         mWindowManager = application.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         wmParams = WindowManager.LayoutParams()
 
@@ -191,8 +203,8 @@ class FloatWindowService : Service() {
         wmParams.height = WindowManager.LayoutParams.WRAP_CONTENT
     }
 
-    private fun initView() {
-        mContainer = FrameLayout(application)
+    private fun initView(context: Context) {
+        mContainer = FrameLayout(context)
         mContainer.setBackgroundColor(Color.parseColor("#2196f3"))
         var flp = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -215,17 +227,22 @@ class FloatWindowService : Service() {
                 if (mContainer.childCount > 0) {
                     mContainer.removeAllViews()
                 }
+                Log.d(
+                    javaClass.name,
+                    "player width height=23=====${playerView!!.width},,${playerView!!.height}"
+                )
                 mContainer.addView(playerView)
                 mWindowManager.addView(mContainer, wmParams)
                 val width = mWindowManager.defaultDisplay.width
                 val height = mWindowManager.defaultDisplay.height
-                wmParams.x = width
-                wmParams.y = height / 2
+                wmParams.x = width - 600
+                wmParams.y = 200
                 hasAdded = true
                 mWindowManager.updateViewLayout(mContainer, wmParams)
             } catch (e: Exception) {
                 hasAdded = false
             }
+            Log.e(javaClass.name, "initFloatWindow12")
         }
     }
 
@@ -262,7 +279,7 @@ class FloatWindowService : Service() {
     }
 
     @SuppressLint("ClickableViewAccessibility")
-    private fun initGestureListener() {
+    private fun initGestureListener(context: Context) {
         var gestureDetector =
             GestureDetector(applicationContext, object : GestureDetector.OnGestureListener {
                 override fun onDown(e: MotionEvent?): Boolean = false
@@ -270,7 +287,7 @@ class FloatWindowService : Service() {
                 override fun onShowPress(e: MotionEvent?) {
                 }
 
-                override fun onSingleTapUp(e: MotionEvent?): Boolean = true
+                override fun onSingleTapUp(e: MotionEvent?): Boolean = false
 
                 override fun onScroll(
                     e1: MotionEvent?,
@@ -310,46 +327,59 @@ class FloatWindowService : Service() {
                 ): Boolean = false
 
             })
+        gestureDetector.setOnDoubleTapListener(object : GestureDetector.OnDoubleTapListener {
+            override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
+                if (player!!.isPlaying) {
+                    player?.pause()
+                } else {
+                    player?.play()
+                }
+                return true
+            }
+
+            override fun onDoubleTap(e: MotionEvent?): Boolean {
+//                Toast.makeText(applicationContext, "双击了", Toast.LENGTH_SHORT).show()
+                if (isBig) {
+                    var tvLayoutParams: FrameLayout.LayoutParams = FrameLayout.LayoutParams(-2, -2)
+                    tvLayoutParams.width = dip2px(context, 200f)
+                    tvLayoutParams.height = dip2px(context, 200 * 3 / 4f)
+                    playerView?.layoutParams = tvLayoutParams
+//                    playerView?.player = player
+                    isBig = false
+                } else {
+                    var tvLayoutParams: FrameLayout.LayoutParams = FrameLayout.LayoutParams(-2, -2)
+                    tvLayoutParams.width = dip2px(context, 300f)
+                    tvLayoutParams.height = dip2px(context, 300 * 3 / 4f)
+                    playerView?.layoutParams = tvLayoutParams
+//                    playerView?.player = player
+                    isBig = true
+                }
+                return true
+            }
+
+            override fun onDoubleTapEvent(e: MotionEvent?): Boolean = false
+
+        })
         playerView?.setOnTouchListener { v, event ->
             gestureDetector.onTouchEvent(event)
             true
         }
-//        playerView?.setOnTouchListener(object : View.OnTouchListener {
-//            override fun onTouch(v: View?, event: MotionEvent): Boolean {
-//                when (event.action) {
-//                    MotionEvent.ACTION_DOWN -> {
-//                        mStartX = event.rawX.toInt()
-//                        mStartY = event.rawY.toInt()
-//                    }
-//                    MotionEvent.ACTION_MOVE -> {
-//                        mEndX = event.rawX.toInt()
-//                        mEndY = event.rawY.toInt()
-//                        var distanceX = abs(mStartX-mEndX)
-//                        var distanceY = abs(mStartY-mEndY)
-//                        if (needIntercept()) {
-//                            wmParams.x = event.rawX.toInt() - mContainer.measuredWidth / 2
-//                            wmParams.y = event.rawY.toInt() - mContainer.measuredHeight / 2
-//                            mWindowManager.updateViewLayout(mContainer, wmParams)
-//                            return true
-//                        }
-//                    }
-//                    MotionEvent.ACTION_UP -> {
-//                        if (needIntercept()) {
-//                            return true
-//                        } else {
-//                        }
-//                    }
-//                    else -> {
-//                        return false
-//                    }
-//                }
-//                return false
-//            }
-//
-//        })
+    }
+    //getTouchSlop
+
+
+    // 根据手机的分辨率从 dp 的单位 转成为 px(像素)
+    fun dip2px(context: Context, dpValue: Float): Int {
+        // 获取当前手机的像素密度（1个dp对应几个px）
+        val scale = context.resources.displayMetrics.density
+        return (dpValue * scale + 0.5f).toInt() // 四舍五入取整
     }
 
-    private fun needIntercept(): Boolean {
-        return abs(mStartX - mEndX) > ViewConfiguration.getTouchSlop() || abs(mStartY - mEndY) > ViewConfiguration.getTouchSlop()
+    // 根据手机的分辨率从 px(像素) 的单位 转成为 dp
+    fun px2dip(context: Context, pxValue: Float): Int {
+        // 获取当前手机的像素密度（1个dp对应几个px）
+        val scale = context.resources.displayMetrics.density
+        return (pxValue / scale + 0.5f).toInt() // 四舍五入取整
     }
+
 }
