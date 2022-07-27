@@ -42,8 +42,22 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
 //        }
         when (call.method) {
             "getPlatformVersion" -> result.success("Android ${android.os.Build.VERSION.RELEASE}")
+            "setMainActivityName"->{}
+            "setVideoUrl"->{
+                var videoUrl = call.argument<Any>("videoUrl")
+                videoUrl?.let { setVideoUrl(it.toString()) }
+            }
             "showFloatWindow" -> bindFloatWindowService()
             "hideFloatWindow" -> unbindFloatWindowService()
+            "play"->{
+                play()
+            }
+            "pause"->{
+                pause()
+            }
+            "stop"->{
+                stop()
+            }
             else -> result.notImplemented()
         }
     }
@@ -53,6 +67,7 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
     }
 
     private var bindService: FloatWindowService? = null
+    private var mBinder: FloatWindowService.LocalBinder? = null
     var serviceConnection: ServiceConnection? = null
     var isBind = false
     private fun initService() {
@@ -60,17 +75,32 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
             override fun onServiceConnected(name: ComponentName, service: IBinder) {
                 Log.e(javaClass.name, "onServiceConnected")
                 bindService = (service as FloatWindowService.LocalBinder).service
+                mBinder=service
             }
 
             override fun onServiceDisconnected(name: ComponentName) {
                 Log.e(javaClass.name, "onServiceDisconnected")
                 bindService = null
+                mBinder=null
             }
         }
     }
 
     fun setupMethodChannel() {
 
+    }
+
+    private fun setVideoUrl(url:String){
+        mBinder?.initMediaSource(url)
+    }
+    private fun play(){
+        mBinder?.startPlay()
+    }
+    private fun pause(){
+        mBinder?.pausePlay()
+    }
+    private fun stop(){
+        mBinder?.stopPlay()
     }
 
     private fun bindFloatWindowService() {
@@ -86,6 +116,7 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
             isBind = false
             context.unbindService(serviceConnection!!)
             bindService = null
+            mBinder=null
         }
     }
 

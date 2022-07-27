@@ -30,8 +30,8 @@ class _MyAppState extends State<MyApp> {
     // Platform messages may fail, so we use a try/catch PlatformException.
     // We also handle the message potentially returning null.
     try {
-      platformVersion =
-          await FlutterFloatWindow.platformVersion ?? 'Unknown platform version';
+      platformVersion = await FlutterFloatWindow.platformVersion ??
+          'Unknown platform version';
     } on PlatformException {
       platformVersion = 'Failed to get platform version.';
     }
@@ -53,20 +53,55 @@ class _MyAppState extends State<MyApp> {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body:Column(
+        body: Column(
           children: [
             Center(
               child: Text('Running on: $_platformVersion\n'),
             ),
-            ElevatedButton(onPressed: (){
-              FlutterFloatWindow.showFloatWindow();
-            }, child: Text("show")),
-            ElevatedButton(onPressed: (){
-              FlutterFloatWindow.hideFloatWindow();
-            }, child: Text("hide"))
+            ElevatedButton(
+                onPressed: () {
+                  FlutterFloatWindow.showFloatWindow();
+                },
+                child: Text("show")),
+            ElevatedButton(
+                onPressed: () {
+                  FlutterFloatWindow.hideFloatWindow();
+                },
+                child: Text("hide")),
+            ElevatedButton(
+                onPressed: () {
+                  Map<String, String> params = {
+                    "videoUrl":
+                        'http://video.chinanews.com/flv/2019/04/23/400/111773_web.mp4'
+                  };
+                  FlutterFloatWindow.setVideoUrl(params);
+                },
+                child: Text("设置url2")),   ElevatedButton(
+                onPressed: () {
+                  Map<String, String> params = {
+                    "videoUrl":
+                        'https://media.w3.org/2010/05/sintel/trailer.mp4'
+                  };
+                  FlutterFloatWindow.setVideoUrl(params);
+                },
+                child: Text("设置url")),
+            ElevatedButton(
+                onPressed: () {
+                  FlutterFloatWindow.play();
+                },
+                child: Text("播放")),
+            ElevatedButton(
+                onPressed: () {
+                  FlutterFloatWindow.pause();
+                },
+                child: Text("暂停")),
+            ElevatedButton(
+                onPressed: () {
+                  FlutterFloatWindow.stop();
+                },
+                child: Text("停止播放"))
           ],
-        )
-        ,
+        ),
       ),
     );
   }

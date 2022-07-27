@@ -29,11 +29,14 @@ class FloatWindowService : Service() {
     private lateinit var mWindowView: View
     private lateinit var mContainer: FrameLayout
     private var hasAdded = false
+    private var hasRelease = false
+    private var currentUrl = ""
 
     private var mStartX: Int = 0
     private var mStartY: Int = 0
     private var mEndX: Int = 0
     private var mEndY: Int = 0
+    val touchResponseDistance = 10
 
     //声明IBinder接口的一个接口变量mBinder
     val mBinder: IBinder = LocalBinder()
@@ -44,7 +47,52 @@ class FloatWindowService : Service() {
     inner class LocalBinder : Binder() {
         val service: FloatWindowService
             get() = this@FloatWindowService
+
+        fun initMediaSource(url: String) {
+            currentUrl = url
+            val uri = Uri.parse(url)
+            val mediaSource = buildMediaSource(uri)
+            player?.setMediaSource(mediaSource!!)
+            player?.prepare()
+            player?.play()
+        }
+
+        fun startPlay() {
+            if (!player!!.isPlaying) {
+                if (hasRelease) {
+                    if (currentUrl != "") {
+                        initMediaSource(currentUrl)
+                    }
+//                    player?.prepare()
+                } else {
+                    player?.play()
+
+                }
+            }
+        }
+
+        fun stopPlay() {
+            if (player!!.isPlaying) {
+                player?.stop()
+            }
+        }
+
+        fun pausePlay() {
+            if (player!!.isPlaying) {
+                player?.pause()
+            }
+        }
+
+        fun addFloatWindow() {
+            addTestView()
+        }
+
+        fun removeFloatWindow() {
+            removeWindowView()
+        }
+
     }
+
     override fun onCreate() {
         initPlayer()
 
@@ -57,20 +105,19 @@ class FloatWindowService : Service() {
         showNotification()
     }
 
-var player:ExoPlayer?=null
-    var playerView:StyledPlayerView?=null
+    var player: ExoPlayer? = null
+    var playerView: StyledPlayerView? = null
     private fun initPlayer() {
         player = ExoPlayer.Builder(application).build()
-        val uri = Uri.parse("http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4")
-        val mediaSource = buildMediaSource(uri)
-        //        player.prepare(mediaSource!!, true, false)
-        player?.setMediaSource(mediaSource!!)
-        player?.prepare()
+//        val uri = Uri.parse("http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4")
+//        val mediaSource = buildMediaSource(uri)
+//        player?.setMediaSource(mediaSource!!)
+//        player?.prepare()
         playerView = StyledPlayerView(this)
         var tvLayoutParams: FrameLayout.LayoutParams = FrameLayout.LayoutParams(-2, -2)
-        tvLayoutParams.width=500
-        tvLayoutParams.height=500
-        tvLayoutParams.rightMargin=100
+        tvLayoutParams.width = 500
+        tvLayoutParams.height = 500
+//        tvLayoutParams.rightMargin = 100
         playerView?.layoutParams = tvLayoutParams
         playerView?.player = player
         player?.play()
@@ -121,6 +168,7 @@ var player:ExoPlayer?=null
 //        mNM!!.notify(101, notification)
         Log.e(javaClass.name, "通知栏已出")
     }
+
     private fun initWindowParams() {
         mWindowManager = application.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         wmParams = WindowManager.LayoutParams()
@@ -160,21 +208,8 @@ var player:ExoPlayer?=null
             wmParams.type = WindowManager.LayoutParams.TYPE_PHONE
         }
     }
-    private fun generateText(): LinearLayout {
-        var tv = LinearLayout(this)
-        tv.setBackgroundColor((Color.parseColor("#FF00FF")))
-        var tvLayoutParams: FrameLayout.LayoutParams = FrameLayout.LayoutParams(-2, -2)
-        tvLayoutParams.width=500
-        tvLayoutParams.height=300
-        tvLayoutParams.rightMargin=100
-        tv.layoutParams = tvLayoutParams
 
-//        tv.text = "请扫描qeubee登录二维码"
-//        tv.setTextSize(16f)
-//        tv.setTextColor(Color.parseColor("#FFECC8"))
-        return tv
-    }
-    private fun addTestView(){
+    private fun addTestView() {
         if (!hasAdded) {
             try {
                 if (mContainer.childCount > 0) {
@@ -228,50 +263,90 @@ var player:ExoPlayer?=null
 
     @SuppressLint("ClickableViewAccessibility")
     private fun initGestureListener() {
-        playerView?.setOnTouchListener(object : View.OnTouchListener {
-            override fun onTouch(v: View?, event: MotionEvent): Boolean {
-                when (event.action) {
-                    MotionEvent.ACTION_DOWN -> {
-//                        startTime = System.currentTimeMillis()
-                        mStartX = event.rawX.toInt()
-                        mStartY = event.rawY.toInt()
-                    }
-                    MotionEvent.ACTION_MOVE -> {
-                        mEndX = event.rawX.toInt()
-                        mEndY = event.rawY.toInt()
-                        var distanceX = abs(mStartX-mEndX)
-                        var distanceY = abs(mStartY-mEndY)
-                        if (needIntercept()) {
-                            wmParams.x = event.rawX.toInt() - mContainer.measuredWidth / 2
-                            wmParams.y = event.rawY.toInt() - mContainer.measuredHeight / 2
-                            mWindowManager.updateViewLayout(mContainer, wmParams)
-                            return true
-                        }
-                    }
-                    MotionEvent.ACTION_UP -> {
-                        if (needIntercept()) {
-//                            startActivity(Intent(this@BindService,ServiceActivity::class.java))
-//                            var isJump = System.currentTimeMillis() - startTime < 200
-//                            if (isJump) {
-//                                jump()
-//                            }
-                            return true
-                        } else {
-//                            var isJump = System.currentTimeMillis() - startTime < 200
-//                            if (isJump) {
-//                                jump()
-//                                return false
-//                            }
-                        }
-                    }
-                    else -> {
-                        return false
-                    }
-                }
-                return false
-            }
+        var gestureDetector =
+            GestureDetector(applicationContext, object : GestureDetector.OnGestureListener {
+                override fun onDown(e: MotionEvent?): Boolean = false
 
-        })
+                override fun onShowPress(e: MotionEvent?) {
+                }
+
+                override fun onSingleTapUp(e: MotionEvent?): Boolean = true
+
+                override fun onScroll(
+                    e1: MotionEvent?,
+                    e2: MotionEvent?,
+                    distanceX: Float,
+                    distanceY: Float
+                ): Boolean {
+                    Log.d(
+                        javaClass.name,
+                        "${e1!!.x - e2!!.x},,${e1.y - e2.y},,$distanceX,,,,$distanceY,,,${mContainer.x}.,,${mContainer.y}"
+                    )
+                    val absX = abs(e1.rawX - e2.rawX)
+                    val absY = abs(e1.rawY - e2.rawY)
+                    if (absX > touchResponseDistance && absY > touchResponseDistance) {
+                        wmParams.x = e2.rawX.toInt() - mContainer.measuredWidth / 2
+                        wmParams.y = e2.rawY.toInt() - mContainer.measuredWidth / 2
+                        mWindowManager.updateViewLayout(mContainer, wmParams)
+                    } else if (absX > touchResponseDistance && absY <= touchResponseDistance) {
+                        wmParams.x = e2.rawX.toInt() - mContainer.measuredWidth / 2
+                        mWindowManager.updateViewLayout(mContainer, wmParams)
+                    } else if (absX < touchResponseDistance && absY > touchResponseDistance) {
+                        wmParams.y = e2.rawY.toInt() - mContainer.measuredWidth / 2
+                        mWindowManager.updateViewLayout(mContainer, wmParams)
+                    }
+
+                    return true
+                }
+
+                override fun onLongPress(e: MotionEvent?) {
+                }
+
+                override fun onFling(
+                    e1: MotionEvent?,
+                    e2: MotionEvent?,
+                    velocityX: Float,
+                    velocityY: Float
+                ): Boolean = false
+
+            })
+        playerView?.setOnTouchListener { v, event ->
+            gestureDetector.onTouchEvent(event)
+            true
+        }
+//        playerView?.setOnTouchListener(object : View.OnTouchListener {
+//            override fun onTouch(v: View?, event: MotionEvent): Boolean {
+//                when (event.action) {
+//                    MotionEvent.ACTION_DOWN -> {
+//                        mStartX = event.rawX.toInt()
+//                        mStartY = event.rawY.toInt()
+//                    }
+//                    MotionEvent.ACTION_MOVE -> {
+//                        mEndX = event.rawX.toInt()
+//                        mEndY = event.rawY.toInt()
+//                        var distanceX = abs(mStartX-mEndX)
+//                        var distanceY = abs(mStartY-mEndY)
+//                        if (needIntercept()) {
+//                            wmParams.x = event.rawX.toInt() - mContainer.measuredWidth / 2
+//                            wmParams.y = event.rawY.toInt() - mContainer.measuredHeight / 2
+//                            mWindowManager.updateViewLayout(mContainer, wmParams)
+//                            return true
+//                        }
+//                    }
+//                    MotionEvent.ACTION_UP -> {
+//                        if (needIntercept()) {
+//                            return true
+//                        } else {
+//                        }
+//                    }
+//                    else -> {
+//                        return false
+//                    }
+//                }
+//                return false
+//            }
+//
+//        })
     }
 
     private fun needIntercept(): Boolean {

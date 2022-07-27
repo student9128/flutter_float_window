@@ -17,4 +17,20 @@ class FlutterFloatWindow {
   static hideFloatWindow() async {
     await _channel.invokeMethod('hideFloatWindow');
   }
+
+  static setVideoUrl(dynamic url) async {
+    await _channel.invokeMethod('setVideoUrl', url);
+  }
+
+  static play() async {
+    await _channel.invokeMethod('play');
+  }
+
+  static pause() async {
+    await _channel.invokeMethod('pause');
+  }
+
+  static stop() async {
+    await _channel.invokeMethod('stop');
+  }
 }
