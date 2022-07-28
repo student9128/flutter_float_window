@@ -14,6 +14,7 @@ import android.os.IBinder
 import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.Toast
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
@@ -29,6 +30,7 @@ class FloatWindowService : Service() {
     private lateinit var mWindowManager: WindowManager
     private lateinit var mWindowView: View
     private lateinit var mContainer: FrameLayout
+    private lateinit var mCloseImage: ImageView
     private var hasAdded = false
     private var hasRelease = false
     private var currentUrl = ""
@@ -148,7 +150,7 @@ class FloatWindowService : Service() {
     override fun onDestroy() {
         Log.e(javaClass.name, "onDestroy")
         mNM!!.cancel(101)
-        Toast.makeText(this, "服务停止", Toast.LENGTH_SHORT).show()
+//        Toast.makeText(this, "服务停止", Toast.LENGTH_SHORT).show()
     }
 
     override fun onBind(intent: Intent): IBinder? {
@@ -211,6 +213,26 @@ class FloatWindowService : Service() {
             FrameLayout.LayoutParams.WRAP_CONTENT
         )
         mContainer.layoutParams = flp
+
+        mCloseImage = initCloseImage(context)
+        mCloseImage.setOnClickListener {
+            removeWindowView() }
+    }
+
+    private fun initCloseImage(context: Context): ImageView {
+        var image = ImageView(context)
+        var imageFl = FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.WRAP_CONTENT,
+            FrameLayout.LayoutParams.WRAP_CONTENT
+        )
+        imageFl.width=dip2px(context,24f)
+        imageFl.height=dip2px(context,24f)
+        imageFl.gravity=Gravity.TOP or Gravity.RIGHT
+        imageFl.topMargin=dip2px(context,5f)
+        imageFl.rightMargin=dip2px(context,5f)
+        image.setImageResource(R.drawable.ic_close)
+        image.layoutParams = imageFl
+        return image
     }
 
     private fun setWMTypeCompat() {
@@ -222,6 +244,7 @@ class FloatWindowService : Service() {
     }
 
     private fun addTestView() {
+
         if (!hasAdded) {
             try {
                 if (mContainer.childCount > 0) {
@@ -232,6 +255,7 @@ class FloatWindowService : Service() {
                     "player width height=23=====${playerView!!.width},,${playerView!!.height}"
                 )
                 mContainer.addView(playerView)
+                mContainer.addView(mCloseImage)
                 mWindowManager.addView(mContainer, wmParams)
                 val width = mWindowManager.defaultDisplay.width
                 val height = mWindowManager.defaultDisplay.height
@@ -253,6 +277,7 @@ class FloatWindowService : Service() {
                     mContainer.removeAllViews()
                 }
                 mContainer.addView(view)
+                mContainer.addView(mCloseImage)
                 mWindowManager.addView(mContainer, wmParams)
                 val width = mWindowManager.defaultDisplay.width
                 val height = mWindowManager.defaultDisplay.height
@@ -272,6 +297,7 @@ class FloatWindowService : Service() {
      */
     private fun removeWindowView() {
         if (hasAdded) {
+            player?.stop()
             //移除悬浮窗口
             mWindowManager.removeView(mContainer)
             hasAdded = false

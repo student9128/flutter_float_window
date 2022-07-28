@@ -115,6 +115,12 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
 
     private fun bindFloatWindowService() {
         Log.e(javaClass.name, "bindFloatWindowService")
+        if(isBind){
+            isBind = false
+            context.unbindService(serviceConnection!!)
+            bindService = null
+            mBinder = null
+        }
         var intent = Intent(context, FloatWindowService::class.java)
         context.bindService(intent, serviceConnection!!, Context.BIND_AUTO_CREATE)
         isBind = true
