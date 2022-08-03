@@ -198,6 +198,7 @@ class FloatWindowService : Service() {
         } else {
             wmParams.type = WindowManager.LayoutParams.TYPE_TOAST
         }
+//        wmParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         wmParams.format = PixelFormat.RGBA_8888
         wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
         wmParams.gravity = Gravity.START or Gravity.TOP
@@ -237,10 +238,12 @@ class FloatWindowService : Service() {
 
     private fun setWMTypeCompat() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            wmParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             wmParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         } else {
             wmParams.type = WindowManager.LayoutParams.TYPE_PHONE
         }
+//        wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
     }
 
     private fun addTestView() {

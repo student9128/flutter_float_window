@@ -49,9 +49,16 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
                 videoUrl?.let { setVideoUrl(it.toString()) }
             }
             "showFloatWindow" -> {
-                var videoUrl = call.argument<Any>("videoUrl")
-                videoUrl?.let {firstUrl=it.toString() }
-                bindFloatWindowService()
+                if (SettingsCompat.canDrawOverlays(context, true, true)) {
+                    var videoUrl = call.argument<Any>("videoUrl")
+                    videoUrl?.let { firstUrl = it.toString() }
+                    bindFloatWindowService()
+                }
+//                var b = FloatWindowManager.getInstance().requestPermission(context)
+//                if (b) {
+//                    FloatWindowManager.getInstance().initManager(context)
+//                    FloatWindowManager.getInstance().showFloatWindow()
+//                }
             }
 
             "hideFloatWindow" -> unbindFloatWindowService()
@@ -115,7 +122,7 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
 
     private fun bindFloatWindowService() {
         Log.e(javaClass.name, "bindFloatWindowService")
-        if(isBind){
+        if (isBind) {
             isBind = false
             context.unbindService(serviceConnection!!)
             bindService = null
