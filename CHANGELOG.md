@@ -1,3 +1,9 @@
+## 0.0.2
+ 
+ add some methods and compat local video file
+
 ## 0.0.1
 
-* TODO: Describe initial release.
+* A flutter pulgin about showing float window published
+
+
