@@ -64,7 +64,22 @@ class _MyAppState extends State<MyApp> {
                     "videoUrl":
                     'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
                   };
-                  FlutterFloatWindow.showFloatWindow(params);
+                  FlutterFloatWindow.initFloatWindow(params);
+                },
+                child: Text("init")),
+            ElevatedButton(
+                onPressed: () async{
+                  // Map<String, String> params = {
+                  //   "videoUrl":
+                  //   'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
+                  // };
+                  // if(FlutterFloatWindow.)
+                  if (await FlutterFloatWindow.canShowFloatWindow()) {
+                    FlutterFloatWindow.showFloatWindow();
+                  } else {
+                    debugPrint('没有悬浮窗权限');
+                    FlutterFloatWindow.openSetting();
+                  }
                 },
                 child: Text("show")),
             ElevatedButton(
@@ -76,15 +91,15 @@ class _MyAppState extends State<MyApp> {
                 onPressed: () {
                   Map<String, String> params = {
                     "videoUrl":
-                        'http://vfx.mtime.cn/Video/2019/03/19/mp4/190319212559089721.mp4'
+                    'http://vfx.mtime.cn/Video/2019/03/19/mp4/190319212559089721.mp4'
                   };
                   FlutterFloatWindow.setVideoUrl(params);
                 },
-                child: Text("设置url2")),   ElevatedButton(
+                child: Text("设置url2")), ElevatedButton(
                 onPressed: () {
                   Map<String, String> params = {
                     "videoUrl":
-                        'https://media.w3.org/2010/05/sintel/trailer.mp4'
+                    'https://media.w3.org/2010/05/sintel/trailer.mp4'
                   };
                   FlutterFloatWindow.setVideoUrl(params);
                 },

@@ -15,12 +15,13 @@ import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.ImageView
-import android.widget.Toast
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.ui.StyledPlayerView
+import com.google.android.exoplayer2.upstream.DataSource
+import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 import kotlin.math.abs
 
@@ -53,16 +54,16 @@ class FloatWindowService : Service() {
             initWindowParams(context)
             initView(context)
             initGestureListener(context)
-            addTestView()
+//            addTestView()
         }
 
-        fun initMediaSource(url: String) {
+        fun initMediaSource(url: String, context: Context) {
             currentUrl = url
             val uri = Uri.parse(url)
-            val mediaSource = buildMediaSource(uri)
+            val mediaSource = buildMediaSource(uri, context)
             player?.setMediaSource(mediaSource!!)
             player?.prepare()
-            player?.play()
+//            player?.play()
             mContainer.requestLayout()
             Log.d(
                 javaClass.name,
@@ -70,12 +71,15 @@ class FloatWindowService : Service() {
             )
         }
 
-        fun startPlay() {
-//            Log.d(javaClass.name,"player is playing======${player!!.isPlaying}")
+        fun startPlay() {//开始播放的时候展示出画面
+            showFloatView()
+            Log.d(javaClass.name,"player is playing======${player!!.isPlaying},,${hasRelease}")
             if (!player!!.isPlaying) {
                 if (hasRelease) {
                     player?.prepare()
                     player?.playWhenReady = true
+                    player?.play()
+                    Log.d(javaClass.name,"player is playing======走了吗")
                 } else {
                     player?.play()
 
@@ -98,7 +102,7 @@ class FloatWindowService : Service() {
         }
 
         fun addFloatWindow() {
-            addTestView()
+//            addTestView()
         }
 
         fun removeFloatWindow() {
@@ -108,12 +112,6 @@ class FloatWindowService : Service() {
     }
 
     override fun onCreate() {
-//        initPlayer()
-//
-//        initWindowParams()
-//        initView()
-//        initGestureListener()
-//        addTestView()
         mNM = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         Log.e(javaClass.name, "onCreate")
         showNotification()
@@ -123,28 +121,36 @@ class FloatWindowService : Service() {
     var playerView: StyledPlayerView? = null
     private fun initPlayer(context: Context) {
         player = ExoPlayer.Builder(context).build()
-//        val uri = Uri.parse("http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4")
-//        val mediaSource = buildMediaSource(uri)
-//        player?.setMediaSource(mediaSource!!)
-//        player?.prepare()
         playerView = StyledPlayerView(this)
         var tvLayoutParams: FrameLayout.LayoutParams = FrameLayout.LayoutParams(-2, -2)
         tvLayoutParams.width = dip2px(context, 300f)
         tvLayoutParams.height = dip2px(context, 300 * 3 / 4f)
-//        tvLayoutParams.rightMargin = 100
         playerView?.layoutParams = tvLayoutParams
         playerView?.player = player
-//        player?.play()
-
     }
 
-    private fun buildMediaSource(uri: Uri): MediaSource? {
-        val httpDataSourceFactory = DefaultHttpDataSource.Factory()
-            .setUserAgent("ExoPlayer")
-            .setAllowCrossProtocolRedirects(true)
-        return ProgressiveMediaSource.Factory(
+    lateinit var dataSourceFactory: DataSource.Factory
+    private fun buildMediaSource(uri: Uri, context: Context): MediaSource? {
+
+        dataSourceFactory = if (isHTTP(uri)) {
+            val httpDataSourceFactory = DefaultHttpDataSource.Factory()
+                .setUserAgent("ExoPlayer")
+                .setAllowCrossProtocolRedirects(true)
             httpDataSourceFactory
+        } else {
+            DefaultDataSource.Factory(context)
+        }
+        return ProgressiveMediaSource.Factory(
+            dataSourceFactory
         ).createMediaSource(MediaItem.fromUri(uri))
+    }
+
+    private fun isHTTP(uri: Uri?): Boolean {
+        if (uri == null || uri.scheme == null) {
+            return false
+        }
+        val scheme = uri.scheme
+        return scheme == "http" || scheme == "https"
     }
 
     override fun onDestroy() {
@@ -208,7 +214,7 @@ class FloatWindowService : Service() {
 
     private fun initView(context: Context) {
         mContainer = FrameLayout(context)
-        mContainer.setBackgroundColor(Color.parseColor("#2196f3"))
+        mContainer.setBackgroundColor(Color.parseColor("#000000"))
         var flp = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.WRAP_CONTENT,
             FrameLayout.LayoutParams.WRAP_CONTENT
@@ -217,7 +223,8 @@ class FloatWindowService : Service() {
 
         mCloseImage = initCloseImage(context)
         mCloseImage.setOnClickListener {
-            removeWindowView() }
+            removeWindowView()
+        }
     }
 
     private fun initCloseImage(context: Context): ImageView {
@@ -226,11 +233,11 @@ class FloatWindowService : Service() {
             FrameLayout.LayoutParams.WRAP_CONTENT,
             FrameLayout.LayoutParams.WRAP_CONTENT
         )
-        imageFl.width=dip2px(context,24f)
-        imageFl.height=dip2px(context,24f)
-        imageFl.gravity=Gravity.TOP or Gravity.RIGHT
-        imageFl.topMargin=dip2px(context,5f)
-        imageFl.rightMargin=dip2px(context,5f)
+        imageFl.width = dip2px(context, 24f)
+        imageFl.height = dip2px(context, 24f)
+        imageFl.gravity = Gravity.TOP or Gravity.RIGHT
+        imageFl.topMargin = dip2px(context, 5f)
+        imageFl.rightMargin = dip2px(context, 5f)
         image.setImageResource(R.drawable.ic_close)
         image.layoutParams = imageFl
         return image
@@ -246,7 +253,7 @@ class FloatWindowService : Service() {
 //        wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
     }
 
-    private fun addTestView() {
+    fun showFloatView() {
 
         if (!hasAdded) {
             try {
@@ -300,7 +307,11 @@ class FloatWindowService : Service() {
      */
     private fun removeWindowView() {
         if (hasAdded) {
-            player?.stop()
+            if (player!!.isPlaying) {
+                player?.stop()
+                hasRelease = true
+            }
+//            player?.stop()
             //移除悬浮窗口
             mWindowManager.removeView(mContainer)
             hasAdded = false
@@ -358,11 +369,17 @@ class FloatWindowService : Service() {
             })
         gestureDetector.setOnDoubleTapListener(object : GestureDetector.OnDoubleTapListener {
             override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
+                var packageName = context.packageName
+                val packageManager = context.packageManager
+                val launchIntentForPackage = packageManager.getLaunchIntentForPackage(packageName)
+                startActivity(launchIntentForPackage)
                 if (player!!.isPlaying) {
                     player?.pause()
-                } else {
-                    player?.play()
                 }
+                removeWindowView()
+//                else {
+//                    player?.play()
+//                }
                 return true
             }
 

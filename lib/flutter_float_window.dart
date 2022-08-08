@@ -10,7 +10,27 @@ class FlutterFloatWindow {
     return version;
   }
 
-  static showFloatWindow(dynamic url) async {
+  ///判断是否具有悬浮窗权限
+  static Future<bool> canShowFloatWindow() async {
+   return await _channel.invokeMethod('canShowFloatWindow');
+  }
+
+  ///打开设置页面
+  static openSetting() async {
+    await _channel.invokeMethod('openSetting');
+  }
+
+  ///初始化相关资源
+  static initFloatWindow(dynamic url) async {
+    await _channel.invokeMethod('initFloatWindow', url);
+  }
+
+  ///展示并播放
+  static showFloatWindow() async {
+    await _channel.invokeMethod('showFloatWindow');
+  }
+
+  static showFloatWindowWithInit(dynamic url) async {
     await _channel.invokeMethod('showFloatWindow',url);
   }
 
@@ -18,6 +38,7 @@ class FlutterFloatWindow {
     await _channel.invokeMethod('hideFloatWindow');
   }
 
+  ///切换url
   static setVideoUrl(dynamic url) async {
     await _channel.invokeMethod('setVideoUrl', url);
   }
