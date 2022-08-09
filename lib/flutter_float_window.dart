@@ -54,4 +54,8 @@ class FlutterFloatWindow {
   static stop() async {
     await _channel.invokeMethod('stop');
   }
+  static seekTo(dynamic position) async{
+    await _channel.invokeMethod('seekTo',position);
+
+  }
 }

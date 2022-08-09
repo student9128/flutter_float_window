@@ -73,13 +73,13 @@ class FloatWindowService : Service() {
 
         fun startPlay() {//开始播放的时候展示出画面
             showFloatView()
-            Log.d(javaClass.name,"player is playing======${player!!.isPlaying},,${hasRelease}")
+            Log.d(javaClass.name, "player is playing======${player!!.isPlaying},,${hasRelease}")
             if (!player!!.isPlaying) {
                 if (hasRelease) {
                     player?.prepare()
                     player?.playWhenReady = true
                     player?.play()
-                    Log.d(javaClass.name,"player is playing======走了吗")
+                    Log.d(javaClass.name, "player is playing======走了吗")
                 } else {
                     player?.play()
 
@@ -99,6 +99,10 @@ class FloatWindowService : Service() {
             if (player!!.isPlaying) {
                 player?.pause()
             }
+        }
+
+        fun seekTo(position: Long) {
+            player?.seekTo(position)
         }
 
         fun addFloatWindow() {

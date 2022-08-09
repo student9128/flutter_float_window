@@ -33,6 +33,7 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
     private lateinit var activity: Activity
     private lateinit var context: Context
     var firstUrl = ""
+    var isFirstShowFloatWindow = true//多次重复show或者hide悬浮窗的话，service连接上的时候播放视频
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_float_window")
         channel.setMethodCallHandler(this)
@@ -73,11 +74,16 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
                     videoUrl?.let { firstUrl = it.toString() }
                     bindFloatWindowService()
                     play()
-                }else{
-                    Toast.makeText(context,"your have no permission about showing float window",Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(
+                        context,
+                        "your have no permission about showing float window",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
-            "hideFloatWindow" -> unbindFloatWindowService()
+//            "hideFloatWindow" -> unbindFloatWindowService()
+            "hideFloatWindow" -> hideFloatWindow()
             "play" -> {
                 play()
             }
@@ -86,6 +92,11 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
             }
             "stop" -> {
                 stop()
+            }
+            "seekTo"->{
+                var position = call.argument<Int>("position")
+                Log.d(javaClass.name,"position=$position")
+                mBinder?.seekTo(position.toString().toLong())
             }
             else -> result.notImplemented()
         }
@@ -182,6 +193,10 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
 
     private fun stop() {
         mBinder?.stopPlay()
+    }
+
+    private fun hideFloatWindow() {
+        mBinder?.removeFloatWindow()
     }
 
     private fun bindFloatWindowService() {

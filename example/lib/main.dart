@@ -12,16 +12,40 @@ class MyApp extends StatefulWidget {
   const MyApp({Key? key}) : super(key: key);
 
   @override
-  State<MyApp> createState() => _MyAppState();
+  _MyAppState createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> {
+class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   String _platformVersion = 'Unknown';
 
   @override
   void initState() {
+    WidgetsBinding.instance?.addObserver(this);
     super.initState();
     initPlatformState();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance?.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    switch (state) {
+      case AppLifecycleState.paused:
+        Map<String, String> params = {
+          "videoUrl":
+          'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
+        };
+        FlutterFloatWindow.showFloatWindowWithInit(params);
+        break;
+      case AppLifecycleState.resumed:
+        FlutterFloatWindow.hideFloatWindow();
+        break;
+      default:
+    }
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
@@ -60,15 +84,23 @@ class _MyAppState extends State<MyApp> {
             ),
             ElevatedButton(
                 onPressed: () {
+                  Map<String, dynamic> params = {
+                    "position":5000
+                  };
+                  FlutterFloatWindow.seekTo(params);
+                },
+                child: Text("测试seekTo")),
+            ElevatedButton(
+                onPressed: () {
                   Map<String, String> params = {
                     "videoUrl":
-                    'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
+                        'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
                   };
                   FlutterFloatWindow.initFloatWindow(params);
                 },
                 child: Text("init")),
             ElevatedButton(
-                onPressed: () async{
+                onPressed: () async {
                   // Map<String, String> params = {
                   //   "videoUrl":
                   //   'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
@@ -91,19 +123,29 @@ class _MyAppState extends State<MyApp> {
                 onPressed: () {
                   Map<String, String> params = {
                     "videoUrl":
-                    'http://vfx.mtime.cn/Video/2019/03/19/mp4/190319212559089721.mp4'
+                        'http://vfx.mtime.cn/Video/2019/03/19/mp4/190319212559089721.mp4'
                   };
                   FlutterFloatWindow.setVideoUrl(params);
                 },
-                child: Text("设置url2")), ElevatedButton(
+                child: Text("设置url2")),
+            ElevatedButton(
                 onPressed: () {
                   Map<String, String> params = {
                     "videoUrl":
-                    'https://media.w3.org/2010/05/sintel/trailer.mp4'
+                        'https://media.w3.org/2010/05/sintel/trailer.mp4'
                   };
                   FlutterFloatWindow.setVideoUrl(params);
                 },
                 child: Text("设置url")),
+            ElevatedButton(
+                onPressed: () {
+                  Map<String, String> params = {
+                    "position":
+                    '1000'
+                  };
+                  FlutterFloatWindow.setVideoUrl(params);
+                },
+                child: Text("视频播放带位置")),
             ElevatedButton(
                 onPressed: () {
                   FlutterFloatWindow.play();
