@@ -83,7 +83,9 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
                 }
             }
 //            "hideFloatWindow" -> unbindFloatWindowService()
-            "hideFloatWindow" -> hideFloatWindow()
+            "hideFloatWindow" ->{
+                result.success(hideFloatWindow())
+            }
             "play" -> {
                 play()
             }
@@ -195,8 +197,8 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
         mBinder?.stopPlay()
     }
 
-    private fun hideFloatWindow() {
-        mBinder?.removeFloatWindow()
+    private fun hideFloatWindow() :Long{
+       return mBinder?.removeFloatWindow()!!
     }
 
     private fun bindFloatWindowService() {

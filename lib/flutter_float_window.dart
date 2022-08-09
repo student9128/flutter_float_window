@@ -34,8 +34,8 @@ class FlutterFloatWindow {
     await _channel.invokeMethod('showFloatWindow',url);
   }
 
-  static hideFloatWindow() async {
-    await _channel.invokeMethod('hideFloatWindow');
+  static Future<int> hideFloatWindow() async {
+   return await _channel.invokeMethod('hideFloatWindow');
   }
 
   ///切换url

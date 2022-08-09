@@ -109,8 +109,9 @@ class FloatWindowService : Service() {
 //            addTestView()
         }
 
-        fun removeFloatWindow() {
+        fun removeFloatWindow(): Long {
             removeWindowView()
+            return player!!.contentPosition
         }
 
     }

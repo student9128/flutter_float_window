@@ -115,8 +115,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 },
                 child: Text("show")),
             ElevatedButton(
-                onPressed: () {
-                  FlutterFloatWindow.hideFloatWindow();
+                onPressed: () async{
+               var x =  await FlutterFloatWindow.hideFloatWindow();
+               debugPrint('current position=$x');
                 },
                 child: Text("hide")),
             ElevatedButton(
