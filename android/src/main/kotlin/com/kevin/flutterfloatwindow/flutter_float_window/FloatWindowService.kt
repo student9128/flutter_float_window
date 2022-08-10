@@ -209,7 +209,6 @@ class FloatWindowService : Service() {
         } else {
             wmParams.type = WindowManager.LayoutParams.TYPE_TOAST
         }
-//        wmParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
         wmParams.format = PixelFormat.RGBA_8888
         wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
         wmParams.gravity = Gravity.START or Gravity.TOP
@@ -323,11 +322,18 @@ class FloatWindowService : Service() {
         }
     }
 
+    var lastX: Int = 0
+    var lastY: Int = 0
+
     @SuppressLint("ClickableViewAccessibility")
     private fun initGestureListener(context: Context) {
         var gestureDetector =
             GestureDetector(applicationContext, object : GestureDetector.OnGestureListener {
-                override fun onDown(e: MotionEvent?): Boolean = false
+                override fun onDown(e: MotionEvent): Boolean {
+                    lastX=e.rawX.toInt()
+                    lastY=e.rawY.toInt()
+                    return false
+                }
 
                 override fun onShowPress(e: MotionEvent?) {
                 }
@@ -335,29 +341,18 @@ class FloatWindowService : Service() {
                 override fun onSingleTapUp(e: MotionEvent?): Boolean = false
 
                 override fun onScroll(
-                    e1: MotionEvent?,
-                    e2: MotionEvent?,
+                    e1: MotionEvent,
+                    e2: MotionEvent,
                     distanceX: Float,
                     distanceY: Float
                 ): Boolean {
-                    Log.d(
-                        javaClass.name,
-                        "${e1!!.x - e2!!.x},,${e1.y - e2.y},,$distanceX,,,,$distanceY,,,${mContainer.x}.,,${mContainer.y}"
-                    )
-                    val absX = abs(e1.rawX - e2.rawX)
-                    val absY = abs(e1.rawY - e2.rawY)
-                    if (absX > touchResponseDistance && absY > touchResponseDistance) {
-                        wmParams.x = e2.rawX.toInt() - mContainer.measuredWidth / 2
-                        wmParams.y = e2.rawY.toInt() - mContainer.measuredWidth / 2
-                        mWindowManager.updateViewLayout(mContainer, wmParams)
-                    } else if (absX > touchResponseDistance && absY <= touchResponseDistance) {
-                        wmParams.x = e2.rawX.toInt() - mContainer.measuredWidth / 2
-                        mWindowManager.updateViewLayout(mContainer, wmParams)
-                    } else if (absX < touchResponseDistance && absY > touchResponseDistance) {
-                        wmParams.y = e2.rawY.toInt() - mContainer.measuredWidth / 2
-                        mWindowManager.updateViewLayout(mContainer, wmParams)
-                    }
-
+                    var distanceX = e2.rawX-lastX
+                    var distanceY =e2.rawY-lastY
+                    lastX = e2.rawX.toInt()
+                    lastY=e2.rawY.toInt()
+                    wmParams.x = wmParams.x+distanceX.toInt()
+                    wmParams.y = wmParams.y+distanceY.toInt()
+                    mWindowManager.updateViewLayout(mContainer, wmParams)
                     return true
                 }
 
@@ -365,11 +360,11 @@ class FloatWindowService : Service() {
                 }
 
                 override fun onFling(
-                    e1: MotionEvent?,
-                    e2: MotionEvent?,
+                    e1: MotionEvent,
+                    e2: MotionEvent,
                     velocityX: Float,
                     velocityY: Float
-                ): Boolean = false
+                ): Boolean =false
 
             })
         gestureDetector.setOnDoubleTapListener(object : GestureDetector.OnDoubleTapListener {

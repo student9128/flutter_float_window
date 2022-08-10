@@ -96,6 +96,8 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
                 stop()
             }
             "seekTo"->{
+                var args=call.arguments
+                Log.d(javaClass.name,"position======$args")
                 var position = call.argument<Int>("position")
                 Log.d(javaClass.name,"position=$position")
                 mBinder?.seekTo(position.toString().toLong())
