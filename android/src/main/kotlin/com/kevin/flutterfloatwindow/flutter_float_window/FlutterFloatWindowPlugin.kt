@@ -33,6 +33,7 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
     private lateinit var activity: Activity
     private lateinit var context: Context
     var firstUrl = ""
+    private var useController = false
     var isFirstShowFloatWindow = true//多次重复show或者hide悬浮窗的话，service连接上的时候播放视频
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_float_window")
@@ -62,6 +63,8 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
             }
             "initFloatWindow" -> {
                 var videoUrl = call.argument<Any>("videoUrl")
+                var uc = call.argument<Boolean>("useController")
+                uc?.let { useController = it }
                 videoUrl?.let { firstUrl = it.toString() }
                 bindFloatWindowService()
             }
@@ -83,7 +86,7 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
                 }
             }
 //            "hideFloatWindow" -> unbindFloatWindowService()
-            "hideFloatWindow" ->{
+            "hideFloatWindow" -> {
                 result.success(hideFloatWindow())
             }
             "play" -> {
@@ -95,11 +98,11 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
             "stop" -> {
                 stop()
             }
-            "seekTo"->{
-                var args=call.arguments
-                Log.d(javaClass.name,"position======$args")
+            "seekTo" -> {
+                var args = call.arguments
+                Log.d(javaClass.name, "position======$args")
                 var position = call.argument<Int>("position")
-                Log.d(javaClass.name,"position=$position")
+                Log.d(javaClass.name, "position=$position")
                 mBinder?.seekTo(position.toString().toLong())
             }
             else -> result.notImplemented()
@@ -199,8 +202,8 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
         mBinder?.stopPlay()
     }
 
-    private fun hideFloatWindow() :Long{
-       return mBinder?.removeFloatWindow()!!
+    private fun hideFloatWindow(): Long {
+        return mBinder?.removeFloatWindow()!!
     }
 
     private fun bindFloatWindowService() {
@@ -228,7 +231,7 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
 
     private fun initFloatWindow(activity: Activity) {
         Log.e("FloatWindowService", "initFloatWindow")
-        mBinder?.initFloatWindow(activity)
+        mBinder?.initFloatWindow(activity, isUserController = useController)
         Log.e("FloatWindowService", "initFloatWindow====$firstUrl")
         setVideoUrl(firstUrl, activity)//初始化的时候不播放，只缓冲
     }
