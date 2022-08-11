@@ -94,7 +94,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 onPressed: () {
                   Map<String, String> params = {
                     "videoUrl":
-                        'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
+                        'https://live.idbhost.com/c7adf405ec28401f97977b83d62b79ca/2768b635d70f4c6ea968f18260fed746-deef987b58a54db78d0a11ef637f487f-sd.mp4'
                   };
                   FlutterFloatWindow.initFloatWindow(params);
                 },

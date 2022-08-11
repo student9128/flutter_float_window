@@ -1,5 +1,6 @@
 package com.kevin.flutterfloatwindow.flutter_float_window
 
+import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.NotificationManager
@@ -11,6 +12,7 @@ import android.graphics.PixelFormat
 import android.net.Uri
 import android.os.Binder
 import android.os.Build
+import android.os.Handler
 import android.os.IBinder
 import android.util.Log
 import android.view.*
@@ -37,6 +39,8 @@ class FloatWindowService : Service() {
     private var hasRelease = false
     private var currentUrl = ""
     private var isBig = false
+    private var isButtonShown = true
+
     //使用exoPlayer自带的播放器样式
     private var useController = false
 
@@ -45,15 +49,20 @@ class FloatWindowService : Service() {
     //声明IBinder接口的一个接口变量mBinder
     val mBinder: IBinder = LocalBinder()
     private var mNM: NotificationManager? = null
+    private val handler = Handler()
+    val runnable = Runnable {
+        ivFullScreen.visibility = View.GONE
+        ivPlay.visibility = View.GONE
+        isButtonShown = false
+    }
 
-    //    private int NOTIFICATION = R.string.local_service_started;
     //LocalBinder是继承Binder的一个内部类
     inner class LocalBinder : Binder() {
         val service: FloatWindowService
             get() = this@FloatWindowService
 
-        fun initFloatWindow(context: Context,isUserController:Boolean=false) {
-            useController=isUserController
+        fun initFloatWindow(context: Context, isUserController: Boolean = false) {
+            useController = isUserController
             initWindowParams()
             initView(context)
             initGestureListener(context)
@@ -109,10 +118,6 @@ class FloatWindowService : Service() {
             player?.seekTo(position)
         }
 
-        fun addFloatWindow() {
-//            addTestView()
-        }
-
         fun removeFloatWindow(): Long {
             removeWindowView()
             return player!!.contentPosition
@@ -134,7 +139,7 @@ class FloatWindowService : Service() {
     lateinit var clContainer: ConstraintLayout
     private fun initView(context: Context) {
         mContainer = FrameLayout(context)
-        mContainer.setBackgroundColor(Color.parseColor("#000000"))
+        mContainer.setBackgroundColor(Color.parseColor("#00000000"))
         var flp = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.WRAP_CONTENT,
             FrameLayout.LayoutParams.WRAP_CONTENT
@@ -154,7 +159,9 @@ class FloatWindowService : Service() {
         if (useController) {
             ivPlay.visibility = View.GONE
             ivFullScreen.visibility = View.GONE
+            isButtonShown = false
         }
+
         ivPlay.setOnClickListener {
             if (player.isPlaying) {
                 player.pause()
@@ -195,7 +202,6 @@ class FloatWindowService : Service() {
     override fun onDestroy() {
         Log.e(javaClass.name, "onDestroy")
         mNM!!.cancel(101)
-//        Toast.makeText(this, "服务停止", Toast.LENGTH_SHORT).show()
     }
 
     override fun onBind(intent: Intent): IBinder? {
@@ -279,6 +285,9 @@ class FloatWindowService : Service() {
                 wmParams.y = 200
                 hasAdded = true
                 mWindowManager.updateViewLayout(mContainer, wmParams)
+                if (!useController) {
+                    handler.postDelayed(runnable, 3000)
+                }
             } catch (e: Exception) {
                 hasAdded = false
             }
@@ -371,6 +380,13 @@ class FloatWindowService : Service() {
             })
         gestureDetector.setOnDoubleTapListener(object : GestureDetector.OnDoubleTapListener {
             override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
+                if (!isButtonShown) {
+                    handler.removeCallbacks(runnable)
+                    ivPlay.visibility = View.VISIBLE
+                    ivFullScreen.visibility = View.VISIBLE
+                    isButtonShown = true
+                    handler.postDelayed(runnable, 2000)
+                }
 //                openApp(context)
 //                else {
 //                    player?.play()
@@ -379,101 +395,19 @@ class FloatWindowService : Service() {
             }
 
             override fun onDoubleTap(e: MotionEvent?): Boolean {
-//                Toast.makeText(applicationContext, "双击了", Toast.LENGTH_SHORT).show()
 
                 if (isBig) {
-                    var temp = 1.0f
                     val layoutParams = spvPlayerView.layoutParams
-                    val layoutParams1 = mContainer.layoutParams
-                    var va = ValueAnimator.ofFloat(1f, 1 / 1.5f)
-                    va.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
-                        override fun onAnimationUpdate(animation: ValueAnimator) {
-                            var value: Float = animation.animatedValue as Float
-                            Log.e(javaClass.name, "animation========$value")
-                            layoutParams.width = (layoutParams.width * value / temp).toInt()
-                            layoutParams.height = (layoutParams.height * value / temp).toInt()
-                            spvPlayerView.layoutParams = layoutParams
-
-                            layoutParams1.width = (layoutParams1.width * value / temp).toInt()
-                            layoutParams1.height = (layoutParams1.height * value / temp).toInt()
-                            mContainer.layoutParams = layoutParams1
-
-                            temp = value
-                        }
-
-                    })
-                    va.duration = 500
-                    va.start()
-//                    var width = layoutParams.width
-//                    var height = layoutParams.height
-//                    var vaX = ValueAnimator.ofFloat(width.toFloat(), width / 1.5f)
-//                    vaX.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
-//                        override fun onAnimationUpdate(animation: ValueAnimator) {
-//                            var value = animation.animatedValue
-//                            Log.e(javaClass.name, "animation========$value")
-//                        }
-//
-//                    })
-//                    var vaY = ValueAnimator.ofFloat(height.toFloat(), height / 1.5f)
-//                    vaY.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
-//                        override fun onAnimationUpdate(animation: ValueAnimator) {
-//                            var value = animation.animatedValue
-//                            Log.e(javaClass.name, "animation========$value")
-//                        }
-//
-//                    })
-
-//                    var oaX = ObjectAnimator.ofFloat(mContainer, "scaleX", 1.3f, 1f)
-//                    var oaY = ObjectAnimator.ofFloat(mContainer, "scaleY", 1.3f, 1f)
-//                    var animatorSet = AnimatorSet()
-//                    animatorSet.duration = 500
-//                    animatorSet.playTogether(vaX, vaY)
-//                    animatorSet.start()
+                    layoutParams.width = layoutParams.width * 2 / 3
+                    layoutParams.height = layoutParams.height * 2 / 3
+                    spvPlayerView.layoutParams = layoutParams
                     isBig = false
                 } else {
-                    var temp = 1.0f
                     val layoutParams = spvPlayerView.layoutParams
-                    val layoutParams1 = mContainer.layoutParams
-                    var width = layoutParams.width
-                    var height = layoutParams.height
-                    var va = ValueAnimator.ofFloat(1f, 1.5f)
-                    va.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
-                        override fun onAnimationUpdate(animation: ValueAnimator) {
-                            var value: Float = animation.animatedValue as Float
-                            Log.e(javaClass.name, "animation========$value")
-                            layoutParams.width = (layoutParams.width * value / temp).toInt()
-                            layoutParams.height = (layoutParams.height * value / temp).toInt()
-                            spvPlayerView.layoutParams = layoutParams
-                            layoutParams1.width = (layoutParams1.width * value / temp).toInt()
-                            layoutParams1.height = (layoutParams1.height * value / temp).toInt()
-                            spvPlayerView.layoutParams = layoutParams1
-                            temp = value
-                        }
+                    layoutParams.width = layoutParams.width * 3 / 2
+                    layoutParams.height = layoutParams.height * 3 / 2
+                    spvPlayerView.layoutParams = layoutParams
 
-                    })
-                    va.duration = 500
-                    va.start()
-//                    var vaY = ValueAnimator.ofFloat(height.toFloat(), height * 1.5f)
-//                    vaY.addUpdateListener(object : ValueAnimator.AnimatorUpdateListener {
-//                        override fun onAnimationUpdate(animation: ValueAnimator) {
-//                            var value = animation.animatedValue
-//                            Log.e(javaClass.name, "animation========$value")
-//                        }
-//
-//                    })
-
-//                    var oaX = ObjectAnimator.ofFloat(mContainer, "scaleX", 1.3f, 1f)
-//                    var oaY = ObjectAnimator.ofFloat(mContainer, "scaleY", 1.3f, 1f)
-//                    var animatorSet = AnimatorSet()
-//                    animatorSet.duration = 500
-//                    animatorSet.playTogether(vaX, vaY)
-//                    animatorSet.start()
-//                    var oaX = ObjectAnimator.ofFloat(mContainer, "scaleX", 1f, 1.3f)
-//                    var oaY = ObjectAnimator.ofFloat(mContainer, "scaleY", 1f, 1.3f)
-//                    var animatorSet = AnimatorSet()
-//                    animatorSet.duration = 500
-//                    animatorSet.playTogether(oaX, oaY)
-//                    animatorSet.start()
                     isBig = true
                 }
                 return true
