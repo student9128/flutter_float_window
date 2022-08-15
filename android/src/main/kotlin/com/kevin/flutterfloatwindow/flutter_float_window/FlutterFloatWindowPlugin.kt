@@ -29,11 +29,12 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
     ///
     /// This local reference serves to register the plugin with the Flutter Engine and unregister it
     /// when the Flutter Engine is detached from the Activity
-    private lateinit var channel: MethodChannel
+    lateinit var channel: MethodChannel
     private lateinit var activity: Activity
     private lateinit var context: Context
     var firstUrl = ""
     private var useController = false
+    private var isPlayWhenScreenOff = true//锁屏情况下是否播放
     var isFirstShowFloatWindow = true//多次重复show或者hide悬浮窗的话，service连接上的时候播放视频
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_float_window")
@@ -51,6 +52,10 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
         when (call.method) {
             "getPlatformVersion" -> result.success("Android ${android.os.Build.VERSION.RELEASE}")
             "setMainActivityName" -> {}
+            "isPlayWhenScreenOff" -> {
+                var temp = call.argument<Boolean>("isPlayWhenScreenOff")
+                temp?.let { isPlayWhenScreenOff = it }
+            }
             "setVideoUrl" -> {
                 var videoUrl = call.argument<Any>("videoUrl")
                 videoUrl?.let { setVideoUrl(it.toString(), context) }
@@ -234,6 +239,27 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
         mBinder?.initFloatWindow(activity, isUserController = useController)
         Log.e("FloatWindowService", "initFloatWindow====$firstUrl")
         setVideoUrl(firstUrl, activity)//初始化的时候不播放，只缓冲
+        ScreenLockListener.getInstance(activity)
+            .beginListen(object : ScreenLockListener.ScreenStateListener {
+                override fun onScreenOn() {
+                    Log.e("FloatWindowService", "initFloatWindow====onScreenOn")
+                }
+
+                override fun onScreenOff() {
+                    Log.e("FloatWindowService", "initFloatWindow====onScreenOff")
+                    if (!isPlayWhenScreenOff) {
+                        mBinder?.pausePlay()
+                    }
+                }
+
+                override fun onScreenPresent() {
+                    if (!isPlayWhenScreenOff) {
+                        mBinder?.startPlay()
+                    }
+                    Log.e("FloatWindowService", "initFloatWindow====onScreenPresent")
+                }
+
+            })
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {

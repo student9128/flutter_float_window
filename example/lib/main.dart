@@ -37,7 +37,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       case AppLifecycleState.paused:
         Map<String, String> params = {
           "videoUrl":
-          'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
+              'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
         };
         FlutterFloatWindow.showFloatWindowWithInit(params);
         break;
@@ -84,9 +84,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             ),
             ElevatedButton(
                 onPressed: () {
-                  Map<String, dynamic> params = {
-                    "position":5000
-                  };
+                  Map<String, dynamic> params = {"position": 5000};
                   FlutterFloatWindow.seekTo(params);
                 },
                 child: Text("测试seekTo")),
@@ -115,9 +113,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 },
                 child: Text("show")),
             ElevatedButton(
-                onPressed: () async{
-               var x =  await FlutterFloatWindow.hideFloatWindow();
-               debugPrint('current position=$x');
+                onPressed: () async {
+                  var x = await FlutterFloatWindow.hideFloatWindow();
+                  debugPrint('current position=$x');
                 },
                 child: Text("hide")),
             ElevatedButton(
@@ -140,10 +138,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 child: Text("设置url")),
             ElevatedButton(
                 onPressed: () {
-                  Map<String, String> params = {
-                    "position":
-                    '1000'
-                  };
+                  Map<String, String> params = {"position": '1000'};
                   FlutterFloatWindow.setVideoUrl(params);
                 },
                 child: Text("视频播放带位置")),
