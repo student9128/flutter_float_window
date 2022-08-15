@@ -156,7 +156,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                 onPressed: () {
                   FlutterFloatWindow.stop();
                 },
-                child: Text("停止播放"))
+                child: Text("停止播放")),
+            ElevatedButton(
+                onPressed: () {
+                  FlutterFloatWindow.isPlayWhenScreenOff(true);
+                },
+                child: Text("isPlayWhenScreenOff-true")),
+            ElevatedButton(
+                onPressed: () {
+                  FlutterFloatWindow.isPlayWhenScreenOff(false);
+                },
+                child: Text("isPlayWhenScreenOff-false"))
           ],
         ),
       ),

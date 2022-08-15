@@ -37,6 +37,10 @@ class FlutterFloatWindow {
   static Future<int> hideFloatWindow() async {
    return await _channel.invokeMethod('hideFloatWindow');
   }
+  ///锁屏的时候是否播放
+  static isPlayWhenScreenOff(bool b) async{
+    return await _channel.invokeMethod('isPlayWhenScreenOff',b);
+  }
 
   ///切换url
   static setVideoUrl(dynamic url) async {

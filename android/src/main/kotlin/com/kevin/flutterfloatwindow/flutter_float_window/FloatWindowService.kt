@@ -77,21 +77,22 @@ class FloatWindowService : Service() {
             player?.prepare()
 //            player?.play()
             mContainer.requestLayout()
-            Log.d(
-                javaClass.name,
-                "player width height======${spvPlayerView.width},,${spvPlayerView.height}"
-            )
+//            Log.d(
+//                javaClass.name,
+//                "player width height======${spvPlayerView.width},,${spvPlayerView.height}"
+//            )
         }
 
         fun startPlay() {//开始播放的时候展示出画面
             showFloatView()
-            Log.d(javaClass.name, "player is playing======${player!!.isPlaying},,${hasRelease}")
+            hasClickClose = false
+//            Log.d(javaClass.name, "player is playing======${player!!.isPlaying},,${hasRelease}")
             if (!player!!.isPlaying) {
                 if (hasRelease) {
                     player?.prepare()
                     player?.playWhenReady = true
                     player?.play()
-                    Log.d(javaClass.name, "player is playing======走了吗")
+//                    Log.d(javaClass.name, "player is playing======走了吗")
                 } else {
                     player?.play()
                 }
@@ -108,9 +109,11 @@ class FloatWindowService : Service() {
         }
 
         fun pausePlay() {
-            if (player!!.isPlaying) {
-                player?.pause()
-                ivPlay.setImageResource(R.drawable.ic_play)
+            player?.let {
+                if (it.isPlaying) {
+                    it.pause()
+                    ivPlay.setImageResource(R.drawable.ic_play)
+                }
             }
         }
 
@@ -120,8 +123,14 @@ class FloatWindowService : Service() {
 
         fun removeFloatWindow(): Long {
             removeWindowView()
-            return player!!.contentPosition
+            return if (player != null) {
+                player.contentPosition
+            } else {
+                0
+            }
         }
+
+        fun hasClickClose(): Boolean = hasClickClose
 
     }
 
@@ -137,6 +146,7 @@ class FloatWindowService : Service() {
     lateinit var ivFullScreen: ImageView
     lateinit var spvPlayerView: StyledPlayerView
     lateinit var clContainer: ConstraintLayout
+    var hasClickClose = false
     private fun initView(context: Context) {
         mContainer = FrameLayout(context)
         mContainer.setBackgroundColor(Color.parseColor("#00000000"))
@@ -171,7 +181,10 @@ class FloatWindowService : Service() {
                 ivPlay.setImageResource(R.drawable.ic_pause)
             }
         }
-        ivClose.setOnClickListener { removeWindowView() }
+        ivClose.setOnClickListener {
+            hasClickClose = true
+            removeWindowView()
+        }
         ivFullScreen.setOnClickListener { openApp(context) }
     }
 

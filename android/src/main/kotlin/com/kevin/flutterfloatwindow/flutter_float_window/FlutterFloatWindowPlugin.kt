@@ -53,8 +53,13 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
             "getPlatformVersion" -> result.success("Android ${android.os.Build.VERSION.RELEASE}")
             "setMainActivityName" -> {}
             "isPlayWhenScreenOff" -> {
-                var temp = call.argument<Boolean>("isPlayWhenScreenOff")
-                temp?.let { isPlayWhenScreenOff = it }
+                Log.d(javaClass.name, "isPlayWhenScreenOff====${call.arguments}")
+//                var temp = call.argument<Boolean>("isPlayWhenScreenOff")
+                var temp = call.arguments
+                temp?.let {
+                    isPlayWhenScreenOff = it.toString() == "true"
+                }
+//                temp?.let { isPlayWhenScreenOff = it }
             }
             "setVideoUrl" -> {
                 var videoUrl = call.argument<Any>("videoUrl")
@@ -254,7 +259,11 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
 
                 override fun onScreenPresent() {
                     if (!isPlayWhenScreenOff) {
-                        mBinder?.startPlay()
+                        mBinder?.let {
+                            if (!it.hasClickClose()) {
+                                it?.startPlay()
+                            }
+                        }
                     }
                     Log.e("FloatWindowService", "initFloatWindow====onScreenPresent")
                 }
