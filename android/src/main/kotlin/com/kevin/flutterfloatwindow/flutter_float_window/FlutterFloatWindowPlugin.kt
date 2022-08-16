@@ -52,6 +52,29 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
         when (call.method) {
             "getPlatformVersion" -> result.success("Android ${android.os.Build.VERSION.RELEASE}")
             "setMainActivityName" -> {}
+            "getScreenOffTimeout" -> {
+                var time = Settings.System.getInt(
+                    context.contentResolver,
+                    Settings.System.SCREEN_OFF_TIMEOUT
+                )
+                result.success(time)
+            }
+            "setScreenOffTimeout" -> {
+                var args = call.arguments
+                args?.let {
+                    setScreenTimeout(it.toString().toInt())
+                }
+            }
+            "setScreenOnForever"->{
+                setScreenTimeout(Int.MAX_VALUE)
+            }
+            "canWriteSettings" -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    result.success(Settings.System.canWrite(context))
+                } else {
+                    result.success(true)
+                }
+            }
             "isPlayWhenScreenOff" -> {
                 Log.d(javaClass.name, "isPlayWhenScreenOff====${call.arguments}")
 //                var temp = call.argument<Boolean>("isPlayWhenScreenOff")
@@ -240,6 +263,9 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
     }
 
     private fun initFloatWindow(activity: Activity) {
+//        val time =
+//            Settings.System.getInt(context.contentResolver, Settings.System.SCREEN_OFF_TIMEOUT)
+//        Log.d("FloatWindowService", "time is $time")
         Log.e("FloatWindowService", "initFloatWindow")
         mBinder?.initFloatWindow(activity, isUserController = useController)
         Log.e("FloatWindowService", "initFloatWindow====$firstUrl")
@@ -269,6 +295,35 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
                 }
 
             })
+    }
+
+    /**
+     * 修改手机锁屏时间
+     * @param timeMilliseconds 毫秒为单位
+     *
+     * 永久亮屏 使用 Int.MAX_VALUE
+     */
+    private fun setScreenTimeout(timeMilliseconds: Int) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!Settings.System.canWrite(context)) {
+                var intent = Intent(Settings.ACTION_MANAGE_WRITE_SETTINGS)
+                intent.data = Uri.parse("package:" + context.packageName)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                context.startActivity(intent)
+            } else {
+                Settings.System.putInt(
+                    context.contentResolver,
+                    Settings.System.SCREEN_OFF_TIMEOUT,
+                    timeMilliseconds
+                )
+            }
+        } else {
+            Settings.System.putInt(
+                context.contentResolver,
+                Settings.System.SCREEN_OFF_TIMEOUT,
+                timeMilliseconds
+            )
+        }
     }
 
     override fun onAttachedToActivity(binding: ActivityPluginBinding) {

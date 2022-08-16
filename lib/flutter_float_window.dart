@@ -10,9 +10,31 @@ class FlutterFloatWindow {
     return version;
   }
 
+  ///获取屏幕锁屏时间
+  ///
+  ///如果在改时间内，没有对手机进行操作，手机会进行锁屏休眠
+  static Future<int> getScreenOffTimeout() async {
+    return await _channel.invokeMethod('getScreenOffTimeout');
+  }
+
+  ///设置屏幕锁屏所需时间
+  static setScreenOffTimeout(int timeout) async {
+    await _channel.invokeMethod("setScreenOffTimeout");
+  }
+
+  ///设置屏幕永久亮屏
+  static setScreenOnForever() async {
+    await _channel.invokeMethod("setScreenOnForever");
+  }
+
+  ///判断是否可以修改系统设置
+  static Future<bool> canWriteSettings() async {
+    return await _channel.invokeMethod('canWriteSettings');
+  }
+
   ///判断是否具有悬浮窗权限
   static Future<bool> canShowFloatWindow() async {
-   return await _channel.invokeMethod('canShowFloatWindow');
+    return await _channel.invokeMethod('canShowFloatWindow');
   }
 
   ///打开设置页面
@@ -30,16 +52,19 @@ class FlutterFloatWindow {
     await _channel.invokeMethod('showFloatWindow');
   }
 
+  ///初始化并播放
   static showFloatWindowWithInit(dynamic url) async {
-    await _channel.invokeMethod('showFloatWindow',url);
+    await _channel.invokeMethod('showFloatWindow', url);
   }
 
+  ///隐藏悬浮窗
   static Future<int> hideFloatWindow() async {
-   return await _channel.invokeMethod('hideFloatWindow');
+    return await _channel.invokeMethod('hideFloatWindow');
   }
+
   ///锁屏的时候是否播放
-  static isPlayWhenScreenOff(bool b) async{
-    return await _channel.invokeMethod('isPlayWhenScreenOff',b);
+  static isPlayWhenScreenOff(bool b) async {
+    return await _channel.invokeMethod('isPlayWhenScreenOff', b);
   }
 
   ///切换url
@@ -47,18 +72,23 @@ class FlutterFloatWindow {
     await _channel.invokeMethod('setVideoUrl', url);
   }
 
+  ///播放
   static play() async {
     await _channel.invokeMethod('play');
   }
 
+  ///暂停
   static pause() async {
     await _channel.invokeMethod('pause');
   }
 
+  ///停止
   static stop() async {
     await _channel.invokeMethod('stop');
   }
-  static seekTo(dynamic position) async{
-    await _channel.invokeMethod('seekTo',position);
+
+  ///跳转到某个进度位置
+  static seekTo(dynamic position) async {
+    await _channel.invokeMethod('seekTo', position);
   }
 }

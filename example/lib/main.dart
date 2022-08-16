@@ -77,7 +77,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
         appBar: AppBar(
           title: const Text('Plugin example app'),
         ),
-        body: Column(
+        body: Wrap(
+          spacing: 10,
           children: [
             Center(
               child: Text('Running on: $_platformVersion\n'),
@@ -87,16 +88,16 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   Map<String, dynamic> params = {"position": 5000};
                   FlutterFloatWindow.seekTo(params);
                 },
-                child: Text("测试seekTo")),
+                child: const Text("test seekTo")),
             ElevatedButton(
                 onPressed: () {
                   Map<String, String> params = {
                     "videoUrl":
-                        'https://live.idbhost.com/c7adf405ec28401f97977b83d62b79ca/2768b635d70f4c6ea968f18260fed746-deef987b58a54db78d0a11ef637f487f-sd.mp4'
+                        'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
                   };
                   FlutterFloatWindow.initFloatWindow(params);
                 },
-                child: Text("init")),
+                child: const Text("init")),
             ElevatedButton(
                 onPressed: () async {
                   // Map<String, String> params = {
@@ -107,17 +108,17 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   if (await FlutterFloatWindow.canShowFloatWindow()) {
                     FlutterFloatWindow.showFloatWindow();
                   } else {
-                    debugPrint('没有悬浮窗权限');
+                    debugPrint('no permission showing float window');
                     FlutterFloatWindow.openSetting();
                   }
                 },
-                child: Text("show")),
+                child: const Text("show")),
             ElevatedButton(
                 onPressed: () async {
                   var x = await FlutterFloatWindow.hideFloatWindow();
                   debugPrint('current position=$x');
                 },
-                child: Text("hide")),
+                child: const Text("hide")),
             ElevatedButton(
                 onPressed: () {
                   Map<String, String> params = {
@@ -126,7 +127,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   };
                   FlutterFloatWindow.setVideoUrl(params);
                 },
-                child: Text("设置url2")),
+                child: const Text("set url2")),
             ElevatedButton(
                 onPressed: () {
                   Map<String, String> params = {
@@ -135,38 +136,58 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   };
                   FlutterFloatWindow.setVideoUrl(params);
                 },
-                child: Text("设置url")),
+                child: const Text("set url")),
             ElevatedButton(
                 onPressed: () {
                   Map<String, String> params = {"position": '1000'};
                   FlutterFloatWindow.setVideoUrl(params);
                 },
-                child: Text("视频播放带位置")),
+                child: const Text("video play with position")),
             ElevatedButton(
                 onPressed: () {
                   FlutterFloatWindow.play();
                 },
-                child: Text("播放")),
+                child: const Text("play")),
             ElevatedButton(
                 onPressed: () {
                   FlutterFloatWindow.pause();
                 },
-                child: Text("暂停")),
+                child: const Text("pause")),
             ElevatedButton(
                 onPressed: () {
                   FlutterFloatWindow.stop();
                 },
-                child: Text("停止播放")),
+                child: const Text("stop")),
             ElevatedButton(
                 onPressed: () {
                   FlutterFloatWindow.isPlayWhenScreenOff(true);
                 },
-                child: Text("isPlayWhenScreenOff-true")),
+                child: const Text("isPlayWhenScreenOff-true")),
             ElevatedButton(
                 onPressed: () {
                   FlutterFloatWindow.isPlayWhenScreenOff(false);
                 },
-                child: Text("isPlayWhenScreenOff-false"))
+                child: const Text("isPlayWhenScreenOff-false")),
+            ElevatedButton(
+                onPressed: () {
+                  FlutterFloatWindow.isPlayWhenScreenOff(false);
+                },
+                child: const Text("canWriteSettings")),
+            ElevatedButton(
+                onPressed: () {
+                  FlutterFloatWindow.isPlayWhenScreenOff(false);
+                },
+                child: const Text("getScreenOffTimeout")),
+            ElevatedButton(
+                onPressed: () {
+                  FlutterFloatWindow.isPlayWhenScreenOff(false);
+                },
+                child: const Text("setScreenOnForever")),
+            ElevatedButton(
+                onPressed: () {
+                  FlutterFloatWindow.isPlayWhenScreenOff(false);
+                },
+                child: const Text("setScreenOffTimeout")),
           ],
         ),
       ),
