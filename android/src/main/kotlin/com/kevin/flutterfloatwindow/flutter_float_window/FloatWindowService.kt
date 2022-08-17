@@ -56,6 +56,7 @@ class FloatWindowService : Service() {
         isButtonShown = false
     }
 
+
     //LocalBinder是继承Binder的一个内部类
     inner class LocalBinder : Binder() {
         val service: FloatWindowService
@@ -66,7 +67,6 @@ class FloatWindowService : Service() {
             initWindowParams()
             initView(context)
             initGestureListener(context)
-//            addTestView()
         }
 
         fun initMediaSource(url: String, context: Context) {
@@ -132,6 +132,8 @@ class FloatWindowService : Service() {
 
         fun hasClickClose(): Boolean = hasClickClose
 
+        fun getFloatService(): FloatWindowService = FloatWindowService()
+
     }
 
     override fun onCreate() {
@@ -176,16 +178,22 @@ class FloatWindowService : Service() {
             if (player.isPlaying) {
                 player.pause()
                 ivPlay.setImageResource(R.drawable.ic_play)
+                listener?.onPlayClick(false)
             } else {
                 player.play()
                 ivPlay.setImageResource(R.drawable.ic_pause)
+                listener?.onPlayClick(true)
             }
         }
         ivClose.setOnClickListener {
             hasClickClose = true
+            listener?.onCloseClick()
             removeWindowView()
         }
-        ivFullScreen.setOnClickListener { openApp(context) }
+        ivFullScreen.setOnClickListener {
+            listener?.onFullScreenClick()
+//            openApp(context)
+        }
     }
 
     lateinit var dataSourceFactory: DataSource.Factory
@@ -460,6 +468,16 @@ class FloatWindowService : Service() {
         // 获取当前手机的像素密度（1个dp对应几个px）
         val scale = context.resources.displayMetrics.density
         return (pxValue / scale + 0.5f).toInt() // 四舍五入取整
+    }
+
+    private var listener: OnClickListener? = null
+    fun setOnClickListener(l: OnClickListener) {
+        listener = l
+    }
+    interface OnClickListener {
+        fun onFullScreenClick()
+        fun onCloseClick()
+        fun onPlayClick(b:Boolean)
     }
 
 }

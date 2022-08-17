@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 
 class FlutterFloatWindow {
   static const MethodChannel _channel = MethodChannel('flutter_float_window');
+  static MethodChannel get channel=>_channel;
 
   static Future<String?> get platformVersion async {
     final String? version = await _channel.invokeMethod('getPlatformVersion');
