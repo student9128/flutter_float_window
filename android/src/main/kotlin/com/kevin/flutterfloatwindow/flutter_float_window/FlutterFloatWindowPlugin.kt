@@ -94,6 +94,14 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
             "openSetting" -> {
                 openOverlaySetting()
             }
+            "launchApp"->{
+                var packageName = context.packageName
+                val packageManager = context.packageManager
+                val launchIntentForPackage = packageManager.getLaunchIntentForPackage(packageName)
+                context.startActivity(launchIntentForPackage)
+                mBinder?.pausePlay()
+                mBinder?.removeFloatWindow()
+            }
             "initFloatWindow" -> {
                 var videoUrl = call.argument<Any>("videoUrl")
                 var uc = call.argument<Boolean>("useController")
@@ -236,6 +244,7 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
     }
 
     private fun hideFloatWindow(): Long {
+        ScreenLockListener.getInstance(context).unregister()
         return mBinder?.removeFloatWindow()!!
     }
 

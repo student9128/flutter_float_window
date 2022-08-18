@@ -31,7 +31,7 @@ if (await FlutterFloatWindow.canShowFloatWindow()) {
 }
 ```
 
-> setVieoUrl
+> setVideoUrl
 
 ```
 Map<String, String> params = {"videoUrl":""};
@@ -41,5 +41,23 @@ FlutterFloatWindow.setVideoUrl(params);
 > isPlayWhenScreenOff
 ```
 FlutterFloatWindow.isPlayWhenScreenOff(true);
+
+```
+> some native actions send to flutter
+```
+ var channel = FlutterFloatWindow.channel;
+    channel.setMethodCallHandler((call) async{
+      switch (call.method) {
+        case "onFullScreenClick":
+          debugPrint('onFullScreenClick');
+          break;
+        case "onCloseClick":
+          debugPrint('onCloseClick');
+         break;
+        case "onPlayClick":
+          debugPrint('onPlayClick,${call.arguments}');
+          break;
+      }
+    });
 
 ```

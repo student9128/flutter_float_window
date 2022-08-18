@@ -1,3 +1,5 @@
+##0.0.5
+add methods `onFullScreenClick`,`onCloseClick`,`onPlayClick`
 ## 0.0.4 
  add `isPlayWhenScreenOff`,
  when click close,float won't show `onScreenPresent`.

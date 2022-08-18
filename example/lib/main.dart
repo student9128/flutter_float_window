@@ -28,14 +28,14 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   initFloatListener() async {
     var channel = FlutterFloatWindow.channel;
-    channel.setMethodCallHandler((call) async {
+    channel.setMethodCallHandler((call) async{
       switch (call.method) {
         case "onFullScreenClick":
           debugPrint('onFullScreenClick');
           break;
         case "onCloseClick":
           debugPrint('onCloseClick');
-          break;
+         break;
         case "onPlayClick":
           debugPrint('onPlayClick,${call.arguments}');
           break;
