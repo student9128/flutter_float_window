@@ -38,6 +38,11 @@ class FlutterFloatWindow {
     return await _channel.invokeMethod('canShowFloatWindow');
   }
 
+  ///launch app
+  static launchApp() async{
+    await _channel.invokeMethod('launchApp');
+  }
+
   ///打开设置页面
   static openSetting() async {
     await _channel.invokeMethod('openSetting');
