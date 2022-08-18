@@ -1,6 +1,6 @@
 name: flutter_float_window
 description: A  Flutter plugin show float window on Android.
-version: 0.0.6
+version: 0.0.7
 homepage: https://github.com/student9128/flutter_float_window
 
 environment:

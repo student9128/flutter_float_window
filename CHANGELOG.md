@@ -1,3 +1,5 @@
+## 0.0.7
+improved code.
 ## 0.0.6
 add `launchApp`,improved code.
 ## 0.0.5
