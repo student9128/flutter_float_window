@@ -1,4 +1,6 @@
-##0.0.5
+## 0.0.6
+add `launchApp`,improved code.
+## 0.0.5
 add methods `onFullScreenClick`,`onCloseClick`,`onPlayClick`
 ## 0.0.4 
  add `isPlayWhenScreenOff`,
