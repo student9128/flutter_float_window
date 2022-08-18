@@ -65,7 +65,7 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
                     setScreenTimeout(it.toString().toInt())
                 }
             }
-            "setScreenOnForever"->{
+            "setScreenOnForever" -> {
                 setScreenTimeout(Int.MAX_VALUE)
             }
             "canWriteSettings" -> {
@@ -94,7 +94,7 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
             "openSetting" -> {
                 openOverlaySetting()
             }
-            "launchApp"->{
+            "launchApp" -> {
                 var packageName = context.packageName
                 val packageManager = context.packageManager
                 val launchIntentForPackage = packageManager.getLaunchIntentForPackage(packageName)
@@ -232,6 +232,31 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
     }
 
     private fun play() {
+        ScreenLockListener.getInstance(activity)
+            .beginListen(object : ScreenLockListener.ScreenStateListener {
+                override fun onScreenOn() {
+                    Log.e("FloatWindowService", "initFloatWindow====onScreenOn")
+                }
+
+                override fun onScreenOff() {
+                    Log.e("FloatWindowService", "initFloatWindow====onScreenOff")
+                    if (!isPlayWhenScreenOff) {
+                        mBinder?.pausePlay()
+                    }
+                }
+
+                override fun onScreenPresent() {
+                    if (!isPlayWhenScreenOff) {
+                        mBinder?.let {
+                            if (!it.hasClickClose()) {
+                                it?.startPlay()
+                            }
+                        }
+                    }
+                    Log.e("FloatWindowService", "initFloatWindow====onScreenPresent")
+                }
+
+            })
         mBinder?.startPlay()
     }
 
@@ -276,20 +301,20 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
         mBinder?.initFloatWindow(activity, isUserController = useController)
         Log.e("FloatWindowService", "initFloatWindow====$firstUrl")
         setVideoUrl(firstUrl, activity)//初始化的时候不播放，只缓冲
-        mBinder?.service?.setOnClickListener(object :FloatWindowService.OnClickListener{
+        mBinder?.service?.setOnClickListener(object : FloatWindowService.OnClickListener {
             override fun onFullScreenClick() {
                 Log.e(javaClass.name, "onFullScreenClick")
                 //在这里判断窗口是在app内还是外
-                channel.invokeMethod("onFullScreenClick",null)
+                channel.invokeMethod("onFullScreenClick", null)
 
             }
 
             override fun onCloseClick() {
-                channel.invokeMethod("onCloseClick",null)
+                channel.invokeMethod("onCloseClick", null)
             }
 
             override fun onPlayClick(isPlay: Boolean) {
-                channel.invokeMethod("onPlayClick",isPlay)
+                channel.invokeMethod("onPlayClick", isPlay)
             }
 
         })
