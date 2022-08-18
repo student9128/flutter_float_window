@@ -56,7 +56,9 @@ class ScreenLockListener constructor(context: Context) {
     }
 
     fun unregister() {
-        mContext.unregisterReceiver(mReceiver)
+        if (mReceiver != null) {
+            mContext.unregisterReceiver(mReceiver)
+        }
     }
 
     interface ScreenStateListener {
