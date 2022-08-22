@@ -58,10 +58,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           "videoUrl":
               'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
         };
-        FlutterFloatWindow.showFloatWindowWithInit(params);
+        // FlutterFloatWindow.showFloatWindowWithInit(params);
         break;
       case AppLifecycleState.resumed:
-        FlutterFloatWindow.hideFloatWindow();
+        // FlutterFloatWindow.hideFloatWindow();
         break;
       default:
     }

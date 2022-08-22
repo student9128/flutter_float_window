@@ -28,6 +28,9 @@ import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 
+enum class FloatWindowGravity {
+    LEFT, TOP, RIGHT, BOTTOM, CENTER,
+}
 
 class FloatWindowService : Service() {
     private lateinit var wmParams: WindowManager.LayoutParams
@@ -38,8 +41,16 @@ class FloatWindowService : Service() {
     private var hasAdded = false
     private var hasRelease = false
     private var currentUrl = ""
-    private var isBig = false
+    private var isBig = false//默认是小屏
     private var isButtonShown = true
+    private var mWidth = 500
+    private var mHeight = 280
+    private var mAspectRatio: Float = (9 / 16).toFloat()
+    private var useAspectRatio = false
+    private var mFloatGravity: FloatWindowGravity = FloatWindowGravity.BOTTOM
+    private lateinit var mContext: Context
+    private var mScreenWidth: Int = 0
+    private var mScreenHeight: Int = 0
 
     //使用exoPlayer自带的播放器样式
     private var useController = false
@@ -63,6 +74,7 @@ class FloatWindowService : Service() {
             get() = this@FloatWindowService
 
         fun initFloatWindow(context: Context, isUserController: Boolean = false) {
+            mContext = context
             useController = isUserController
             initWindowParams()
             initView(context)
@@ -151,7 +163,7 @@ class FloatWindowService : Service() {
     var hasClickClose = false
     private fun initView(context: Context) {
         mContainer = FrameLayout(context)
-        mContainer.setBackgroundColor(Color.parseColor("#00000000"))
+        mContainer.setBackgroundColor(Color.parseColor("#000000"))
         var flp = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.WRAP_CONTENT,
             FrameLayout.LayoutParams.WRAP_CONTENT
@@ -166,6 +178,9 @@ class FloatWindowService : Service() {
         ivPlay = view.findViewById(R.id.iv_play)
         ivFullScreen = view.findViewById(R.id.iv_full_screen)
         spvPlayerView = view.findViewById(R.id.player_view)
+        val layoutParams = spvPlayerView.layoutParams
+        mWidth = layoutParams.width
+        mHeight = layoutParams.height
         spvPlayerView.useController = useController
         spvPlayerView.player = player
         if (useController) {
@@ -257,8 +272,9 @@ class FloatWindowService : Service() {
 
     private fun initWindowParams() {
         mWindowManager = application.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        mScreenWidth = mWindowManager.defaultDisplay.width
+        mScreenHeight = mWindowManager.defaultDisplay.height
         wmParams = WindowManager.LayoutParams()
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
             setWMTypeCompat()
         } else if (RomUtil.isMiui) {
@@ -288,6 +304,107 @@ class FloatWindowService : Service() {
 //        wmParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
     }
 
+    /**
+     * 高宽比
+     * 0.0~1.0
+     */
+    fun setVideoAspectRatio(float: Float) {
+        val layoutParams = spvPlayerView.layoutParams
+        var vWidth = layoutParams.width
+        var vHeight = layoutParams.height
+        vHeight = (vWidth * float).toInt()
+        layoutParams.height = vHeight
+        spvPlayerView.layoutParams = layoutParams
+        mAspectRatio = if (mAspectRatio > 1.0) {
+            1.0f
+        } else {
+            float
+        }
+    }
+
+    /**
+     * 设置视频悬浮窗的宽高
+     */
+    fun setVideoWidthAndHeight(width: Int, height: Int) {
+        var sWidth = mWindowManager.defaultDisplay.width
+        var sHeight = mWindowManager.defaultDisplay.height
+        val layoutParams = spvPlayerView.layoutParams
+        if (width <= sWidth) {
+            sWidth = if (width < 500) {
+                500
+            } else {
+
+                width
+            }
+            sHeight = if (height < 280) {
+                280
+            } else {
+                height
+            }
+        }
+        if (useAspectRatio) {//用高宽比
+            layoutParams.height = (sWidth * mAspectRatio).toInt()
+            spvPlayerView.layoutParams = layoutParams
+            mWidth = sWidth
+            mHeight = (sWidth * mAspectRatio).toInt()
+        } else {
+            layoutParams.width = sWidth
+            layoutParams.height = sHeight
+            spvPlayerView.layoutParams = layoutParams
+            mWidth = sWidth
+            mHeight = sHeight
+        }
+    }
+
+    fun setFloatWindowGravity(gravity: FloatWindowGravity) {
+        mFloatGravity = gravity
+    }
+
+    fun setGravity(gravity: FloatWindowGravity) {
+        val layoutParams = spvPlayerView.layoutParams
+        val lWidth = layoutParams.width
+        val lHeight = layoutParams.height
+        val sWidth = mWindowManager.defaultDisplay.width
+        val sHeight = mWindowManager.defaultDisplay.height
+        when (gravity) {
+            FloatWindowGravity.LEFT -> {
+                if (lWidth < sWidth - dip2px(mContext, 32f)) {
+                    wmParams.x = dip2px(mContext, 16f)
+                    wmParams.y = (sHeight - lHeight) / 2
+                } else {//居中
+                    wmParams.x = (sWidth - lWidth) / 2
+                    wmParams.y = (sHeight - lHeight) / 2
+                }
+                mWindowManager.updateViewLayout(mContainer, wmParams)
+            }
+            FloatWindowGravity.TOP -> {
+                wmParams.x = (sWidth - lWidth) / 2
+                wmParams.y = dip2px(mContext, 60f)
+                mWindowManager.updateViewLayout(mContainer, wmParams)
+            }
+            FloatWindowGravity.RIGHT -> {
+                if (lWidth < sWidth - dip2px(mContext, 32f)) {
+                    wmParams.x = sWidth - lWidth - dip2px(mContext, 16f)
+                    wmParams.y = (sHeight - lHeight) / 2
+                } else {//居中
+                    wmParams.x = (sWidth - lWidth) / 2
+                    wmParams.y = (sHeight - lHeight) / 2
+                }
+                mWindowManager.updateViewLayout(mContainer, wmParams)
+            }
+            FloatWindowGravity.BOTTOM -> {
+                wmParams.x = (sWidth - lWidth) / 2
+                wmParams.y = sHeight - lHeight - dip2px(mContext, 16f)
+                mWindowManager.updateViewLayout(mContainer, wmParams)
+            }
+            FloatWindowGravity.CENTER -> {
+                wmParams.x = (sWidth - lWidth) / 2
+                wmParams.y = (sHeight - lHeight) / 2
+                mWindowManager.updateViewLayout(mContainer, wmParams)
+            }
+        }
+    }
+
     fun showFloatView() {
         if (!hasAdded) {
             try {
@@ -302,17 +419,21 @@ class FloatWindowService : Service() {
                 mWindowManager.addView(mContainer, wmParams)
                 val width = mWindowManager.defaultDisplay.width
                 val height = mWindowManager.defaultDisplay.height
-                wmParams.x = width - 600
-                wmParams.y = 200
+                setGravity(mFloatGravity)//设置窗口位置
+//                wmParams.x = width - 600
+//                wmParams.y = 200
+//                mWindowManager.updateViewLayout(mContainer, wmParams)
                 hasAdded = true
-                mWindowManager.updateViewLayout(mContainer, wmParams)
                 if (!useController) {
                     handler.postDelayed(runnable, 3000)
                 }
             } catch (e: Exception) {
                 hasAdded = false
             }
-            Log.e(javaClass.name, "initFloatWindow12")
+            Log.e(
+                javaClass.name,
+                "initFloatWindow12-------${spvPlayerView.width},,${spvPlayerView.height}"
+            )
         }
     }
 
@@ -416,21 +537,42 @@ class FloatWindowService : Service() {
             }
 
             override fun onDoubleTap(e: MotionEvent?): Boolean {
-
-                if (isBig) {
-                    val layoutParams = spvPlayerView.layoutParams
-                    layoutParams.width = layoutParams.width * 2 / 3
-                    layoutParams.height = layoutParams.height * 2 / 3
+                val layoutParams = spvPlayerView.layoutParams
+                var width = layoutParams.width
+                var height = layoutParams.height
+                val i = mScreenWidth - dip2px(mContext, 16f)
+                var tempWidth = i * 2 / 3
+                    var tempX=wmParams.x
+                var tempY=wmParams.y
+                var tempHeight=0
+                if (width < tempWidth) {//放大
+                    layoutParams.width = layoutParams.width*(i/mWidth)
+                    layoutParams.height = layoutParams.height*(i/mWidth)
                     spvPlayerView.layoutParams = layoutParams
-                    isBig = false
-                } else {
-                    val layoutParams = spvPlayerView.layoutParams
-                    layoutParams.width = layoutParams.width * 3 / 2
-                    layoutParams.height = layoutParams.height * 3 / 2
+                    setGravity(mFloatGravity)
+                } else {//缩小
+                    tempHeight=layoutParams.height*(i/mWidth)
+                    layoutParams.width = mWidth
+                    layoutParams.height = mHeight
                     spvPlayerView.layoutParams = layoutParams
-
-                    isBig = true
+                    wmParams.x=tempX
+                    wmParams.y=tempY
+                Log.i(javaClass.name, "!!!!!!!!===width=$width,i=$i,tempWidth=$tempWidth,,tempY=${tempY},tempHeight=$tempHeight")
+                    mWindowManager.updateViewLayout(mContainer, wmParams)
                 }
+//                if (isBig) {
+//                    layoutParams.width = layoutParams.width * 2 / 3
+//                    layoutParams.height = layoutParams.height * 2 / 3
+//                    spvPlayerView.layoutParams = layoutParams
+//                    isBig = false
+//                } else {
+//                    val layoutParams = spvPlayerView.layoutParams
+//                    layoutParams.width = layoutParams.width * 3 / 2
+//                    layoutParams.height = layoutParams.height * 3 / 2
+//                    spvPlayerView.layoutParams = layoutParams
+//
+//                    isBig = true
+//                }
                 return true
             }
 
@@ -474,10 +616,11 @@ class FloatWindowService : Service() {
     fun setOnClickListener(l: OnClickListener) {
         listener = l
     }
+
     interface OnClickListener {
         fun onFullScreenClick()
         fun onCloseClick()
-        fun onPlayClick(b:Boolean)
+        fun onPlayClick(b: Boolean)
     }
 
 }
