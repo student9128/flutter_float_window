@@ -32,6 +32,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       switch (call.method) {
         case "onFullScreenClick":
           debugPrint('onFullScreenClick');
+          FlutterFloatWindow.launchApp();
           break;
         case "onCloseClick":
           debugPrint('onCloseClick');
