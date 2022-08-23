@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
+enum FloatWindowGravity { LEFT, TOP, RIGHT, BOTTOM, CENTER }
+
 class FlutterFloatWindow {
   static const MethodChannel _channel = MethodChannel('flutter_float_window');
-  static MethodChannel get channel=>_channel;
+
+  static MethodChannel get channel => _channel;
 
   static Future<String?> get platformVersion async {
     final String? version = await _channel.invokeMethod('getPlatformVersion');
@@ -39,7 +42,7 @@ class FlutterFloatWindow {
   }
 
   ///launch app
-  static launchApp() async{
+  static launchApp() async {
     await _channel.invokeMethod('launchApp');
   }
 
@@ -76,6 +79,49 @@ class FlutterFloatWindow {
   ///切换url
   static setVideoUrl(dynamic url) async {
     await _channel.invokeMethod('setVideoUrl', url);
+  }
+
+  ///设置宽高
+  static setWidthAndHeight(dynamic map) async {
+    await _channel.invokeMethod('setWidthAndHeight', map);
+  }
+
+  ///设置高宽比
+  ///0.0~1.0,不能等于0
+  static setAspectRatio(double aspectRatio) async {
+    assert(aspectRatio > 0.0);
+    await _channel.invokeMethod('setAspectRatio', aspectRatio);
+  }
+
+  ///设置位置
+  static setGravity(FloatWindowGravity gravity) async {
+    switch (gravity) {
+      case FloatWindowGravity.LEFT:
+        await _channel.invokeMethod('setGravity', "left");
+        break;
+      case FloatWindowGravity.TOP:
+        await _channel.invokeMethod('setGravity', "top");
+        break;
+      case FloatWindowGravity.RIGHT:
+        await _channel.invokeMethod('setGravity', "right");
+        break;
+      case FloatWindowGravity.BOTTOM:
+        await _channel.invokeMethod('setGravity', "bottom");
+        break;
+      case FloatWindowGravity.CENTER:
+        await _channel.invokeMethod('setGravity', "center");
+        break;
+    }
+  }
+  ///设置背景色
+  static setBackgroundColor(String color) async {
+    if(!color.startsWith("#")){
+      assert(color.length>=6&&color.length<=8);
+      color ="#$color";
+    }else{
+      assert(color.length>=7&&color.length<=9);
+    }
+    await _channel.invokeMethod('setBackgroundColor',color);
   }
 
   ///播放

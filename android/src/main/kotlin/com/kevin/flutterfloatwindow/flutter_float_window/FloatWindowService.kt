@@ -18,6 +18,8 @@ import android.util.Log
 import android.view.*
 import android.widget.FrameLayout
 import android.widget.ImageView
+import androidx.annotation.ColorInt
+import androidx.annotation.ColorRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
@@ -144,7 +146,21 @@ class FloatWindowService : Service() {
 
         fun hasClickClose(): Boolean = hasClickClose
 
-        fun getFloatService(): FloatWindowService = FloatWindowService()
+        fun setFloatVideoAspectRatio(aspectRatio: Float) {
+            setVideoAspectRatio(aspectRatio)
+        }
+
+        fun setFloatVideoWidthAndHeight(width: Int, height: Int) {
+            setVideoWidthAndHeight(width, height)
+        }
+
+        fun setVideoGravity(gravity: FloatWindowGravity) {
+            setGravity(gravity)
+        }
+
+        fun setBackgroundColor(color: String) {
+            mContainer.setBackgroundColor(Color.parseColor(color))
+        }
 
     }
 
@@ -163,7 +179,7 @@ class FloatWindowService : Service() {
     var hasClickClose = false
     private fun initView(context: Context) {
         mContainer = FrameLayout(context)
-        mContainer.setBackgroundColor(Color.parseColor("#000000"))
+        mContainer.setBackgroundColor(Color.parseColor("#00000000"))
         var flp = FrameLayout.LayoutParams(
             FrameLayout.LayoutParams.WRAP_CONTENT,
             FrameLayout.LayoutParams.WRAP_CONTENT
@@ -541,23 +557,31 @@ class FloatWindowService : Service() {
                 var width = layoutParams.width
                 var height = layoutParams.height
                 val i = mScreenWidth - dip2px(mContext, 16f)
-                var tempWidth = i * 2 / 3
-                    var tempX=wmParams.x
-                var tempY=wmParams.y
-                var tempHeight=0
+                var tempWidth = i * 4 / 5
+                var tempX = wmParams.x
+                var tempY = wmParams.y
+                var tempHeight = 0
+                Log.i(
+                    javaClass.name,
+                    "!!!!!!!!===width=$width,i=$i,tempWidth=$tempWidth,,tempY=${tempY},tempHeight=$tempHeight,$mWidth,$mHeight"
+                )
                 if (width < tempWidth) {//放大
-                    layoutParams.width = layoutParams.width*(i/mWidth)
-                    layoutParams.height = layoutParams.height*(i/mWidth)
+                    Log.i(javaClass.name, "走了吗${i / (mWidth * 1.0f)}")
+                    layoutParams.width = (layoutParams.width * (i / (mWidth * 1.0f))).toInt()
+                    layoutParams.height = (layoutParams.height * (i / (mWidth * 1.0f))).toInt()
                     spvPlayerView.layoutParams = layoutParams
                     setGravity(mFloatGravity)
                 } else {//缩小
-                    tempHeight=layoutParams.height*(i/mWidth)
+                    tempHeight = layoutParams.height * (i / mWidth)
                     layoutParams.width = mWidth
                     layoutParams.height = mHeight
                     spvPlayerView.layoutParams = layoutParams
-                    wmParams.x=tempX
-                    wmParams.y=tempY
-                Log.i(javaClass.name, "!!!!!!!!===width=$width,i=$i,tempWidth=$tempWidth,,tempY=${tempY},tempHeight=$tempHeight")
+                    wmParams.x = tempX
+                    wmParams.y = tempY
+                    Log.i(
+                        javaClass.name,
+                        "!!!!!!!!===123width=$width,i=$i,tempWidth=$tempWidth,,tempY=${tempY},tempHeight=$tempHeight"
+                    )
                     mWindowManager.updateViewLayout(mContainer, wmParams)
                 }
 //                if (isBig) {

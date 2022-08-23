@@ -88,6 +88,31 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
                 var videoUrl = call.argument<Any>("videoUrl")
                 videoUrl?.let { setVideoUrl(it.toString(), context) }
             }
+            "setWidthAndHeight"->{
+                val width = call.argument<Int>("width")
+                val height = call.argument<Int>("height")
+                if(width!=null&&height!=null){
+                    mBinder?.setFloatVideoWidthAndHeight(width, height)
+                }
+            }
+            "setAspectRatio"->{
+                val ar = call.arguments
+                ar?.let {
+                    mBinder?.setFloatVideoAspectRatio(it.toString().toFloat())
+                }
+            }
+            "setGravity"->{
+                var gravity = call.arguments
+                gravity?.let {
+                    setGravity(it.toString())
+                }
+            }
+            "setBackgroundColor"->{
+                var color=call.arguments
+                color?.let {
+                    mBinder?.setBackgroundColor(it.toString())
+                }
+            }
             "canShowFloatWindow" -> {
                 result.success(canDrawOverlays())
             }
@@ -224,6 +249,15 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
             if (!SettingsUtils.manageDrawOverlaysForRom(context)) {
                 SettingsUtils.startFloatWindowPermissionErrorToast(context)
             }
+        }
+    }
+    private fun setGravity(gravity:String){
+        when(gravity){
+            "top"->mBinder?.setVideoGravity(FloatWindowGravity.TOP)
+            "left"->mBinder?.setVideoGravity(FloatWindowGravity.LEFT)
+            "right"->mBinder?.setVideoGravity(FloatWindowGravity.RIGHT)
+            "bottom"->mBinder?.setVideoGravity(FloatWindowGravity.BOTTOM)
+            "center"->mBinder?.setVideoGravity(FloatWindowGravity.CENTER)
         }
     }
 

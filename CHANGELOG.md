@@ -1,3 +1,5 @@
+## 0.0.8
+add `setWidthAndHeight`,`setAspectRatio`,`setGravity`,`setBackgroundColor`,add double tap effect.
 ## 0.0.7
 improved code.
 ## 0.0.6
