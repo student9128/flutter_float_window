@@ -21,6 +21,7 @@ FlutterFloatWindow.pause();
 FlutterFloatWindow.stop();
 
 ```
+
 > if you have no permission show flot window
 
 ```
@@ -39,11 +40,14 @@ FlutterFloatWindow.setVideoUrl(params);
 ```
 
 > isPlayWhenScreenOff
+
 ```
 FlutterFloatWindow.isPlayWhenScreenOff(true);
 
 ```
+
 > some native actions send to flutter
+
 ```
  var channel = FlutterFloatWindow.channel;
     channel.setMethodCallHandler((call) async{
@@ -60,4 +64,27 @@ FlutterFloatWindow.isPlayWhenScreenOff(true);
       }
     });
 
+```
+
+> setBackgroundColor
+
+```
+FlutterFloatWindow.setBackgroundColor("#5c3317");
+```
+
+> setGravity
+
+```
+ FlutterFloatWindow.setGravity(FloatWindowGravity.CENTER);
+```
+> setWidthAndHeight
+```
+var map = {
+"width": int.parse(width),
+"height": int.parse(height)};
+FlutterFloatWindow.setWidthAndHeight(map);
+```
+> setAspectRatio
+```
+ FlutterFloatWindow.setAspectRatio(0.7);
 ```
