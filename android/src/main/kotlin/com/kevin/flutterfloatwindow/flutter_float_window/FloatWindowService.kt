@@ -1,6 +1,6 @@
 package com.kevin.flutterfloatwindow.flutter_float_window
 
-import android.animation.ObjectAnimator
+import android.animation.AnimatorSet
 import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.NotificationManager
@@ -16,10 +16,9 @@ import android.os.Handler
 import android.os.IBinder
 import android.util.Log
 import android.view.*
+import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
-import androidx.annotation.ColorInt
-import androidx.annotation.ColorRes
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
@@ -47,6 +46,8 @@ class FloatWindowService : Service() {
     private var isButtonShown = true
     private var mWidth = 500
     private var mHeight = 280
+    private var mLastWidth = mWidth
+    private var mLastHeight = mHeight
     private var mAspectRatio: Float = (9 / 16).toFloat()
     private var useAspectRatio = false
     private var mFloatGravity: FloatWindowGravity = FloatWindowGravity.BOTTOM
@@ -80,7 +81,7 @@ class FloatWindowService : Service() {
             useController = isUserController
             initWindowParams()
             initView(context)
-            initGestureListener(context)
+            initGestureListener()
         }
 
         fun initMediaSource(url: String, context: Context) {
@@ -370,6 +371,8 @@ class FloatWindowService : Service() {
             mWidth = sWidth
             mHeight = sHeight
         }
+        mLastWidth = mWidth
+        mLastWidth = mHeight
     }
 
     fun setFloatWindowGravity(gravity: FloatWindowGravity) {
@@ -380,6 +383,7 @@ class FloatWindowService : Service() {
         val layoutParams = spvPlayerView.layoutParams
         val lWidth = layoutParams.width
         val lHeight = layoutParams.height
+        storeParams(layoutParams)
         val sWidth = mWindowManager.defaultDisplay.width
         val sHeight = mWindowManager.defaultDisplay.height
         when (gravity) {
@@ -410,7 +414,7 @@ class FloatWindowService : Service() {
             }
             FloatWindowGravity.BOTTOM -> {
                 wmParams.x = (sWidth - lWidth) / 2
-                wmParams.y = sHeight - lHeight - dip2px(mContext, 16f)
+                wmParams.y = sHeight - lHeight - dip2px(mContext, 50f)
                 mWindowManager.updateViewLayout(mContainer, wmParams)
             }
             FloatWindowGravity.CENTER -> {
@@ -495,7 +499,7 @@ class FloatWindowService : Service() {
     var lastY: Int = 0
 
     @SuppressLint("ClickableViewAccessibility")
-    private fun initGestureListener(context: Context) {
+    private fun initGestureListener() {
         var gestureDetector =
             GestureDetector(applicationContext, object : GestureDetector.OnGestureListener {
                 override fun onDown(e: MotionEvent): Boolean {
@@ -507,7 +511,7 @@ class FloatWindowService : Service() {
                 override fun onShowPress(e: MotionEvent?) {
                 }
 
-                override fun onSingleTapUp(e: MotionEvent?): Boolean = false
+                override fun onSingleTapUp(e: MotionEvent?): Boolean =false
 
                 override fun onScroll(
                     e1: MotionEvent,
@@ -522,10 +526,17 @@ class FloatWindowService : Service() {
                     wmParams.x = wmParams.x + distanceX.toInt()
                     wmParams.y = wmParams.y + distanceY.toInt()
                     mWindowManager.updateViewLayout(mContainer, wmParams)
+                    Log.i(
+                        javaClass.name,
+                        "!!!!!!!!===distanceX=$distanceX,distanceY = $distanceY,lastX=$lastX," +
+                                "lastY=$lastY,wX=${wmParams.x},wY=${wmParams.y},$mWidth,$mHeight,sW=$mScreenWidth"
+                    )
+                    Log.d(javaClass.name, "e1=====${e1.action},e2===${e2.action}")
                     return true
                 }
 
                 override fun onLongPress(e: MotionEvent?) {
+                    Log.d(javaClass.name, "e1=====onLongPress")
                 }
 
                 override fun onFling(
@@ -556,25 +567,21 @@ class FloatWindowService : Service() {
                 val layoutParams = spvPlayerView.layoutParams
                 var width = layoutParams.width
                 var height = layoutParams.height
-                val i = mScreenWidth - dip2px(mContext, 16f)
+                val i = mScreenWidth - (dip2px(mContext, 16f) * 2)
                 var tempWidth = i * 4 / 5
                 var tempX = wmParams.x
                 var tempY = wmParams.y
                 var tempHeight = 0
-                Log.i(
-                    javaClass.name,
-                    "!!!!!!!!===width=$width,i=$i,tempWidth=$tempWidth,,tempY=${tempY},tempHeight=$tempHeight,$mWidth,$mHeight"
-                )
                 if (width < tempWidth) {//放大
-                    Log.i(javaClass.name, "走了吗${i / (mWidth * 1.0f)}")
-                    layoutParams.width = (layoutParams.width * (i / (mWidth * 1.0f))).toInt()
-                    layoutParams.height = (layoutParams.height * (i / (mWidth * 1.0f))).toInt()
+                    layoutParams.width = tempWidth
+                    layoutParams.height = tempWidth * mHeight / mWidth
                     spvPlayerView.layoutParams = layoutParams
-                    setGravity(mFloatGravity)
+                    storeParams(layoutParams)
+                    setWindowLocation()
                 } else {//缩小
                     tempHeight = layoutParams.height * (i / mWidth)
-                    layoutParams.width = mWidth
-                    layoutParams.height = mHeight
+                    layoutParams.width = mLastWidth
+                    layoutParams.height = mLastHeight
                     spvPlayerView.layoutParams = layoutParams
                     wmParams.x = tempX
                     wmParams.y = tempY
@@ -582,7 +589,9 @@ class FloatWindowService : Service() {
                         javaClass.name,
                         "!!!!!!!!===123width=$width,i=$i,tempWidth=$tempWidth,,tempY=${tempY},tempHeight=$tempHeight"
                     )
-                    mWindowManager.updateViewLayout(mContainer, wmParams)
+                    storeParams(layoutParams)
+//                    mWindowManager.updateViewLayout(mContainer, wmParams)
+                    setWindowLocation()
                 }
 //                if (isBig) {
 //                    layoutParams.width = layoutParams.width * 2 / 3
@@ -603,9 +612,61 @@ class FloatWindowService : Service() {
             override fun onDoubleTapEvent(e: MotionEvent?): Boolean = false
 
         })
-        clContainer?.setOnTouchListener { v, event ->
+        clContainer.setOnTouchListener { v, event ->
             gestureDetector.onTouchEvent(event)
+            if (event.action == MotionEvent.ACTION_UP) {
+                setWindowLocation()
+            }
             true
+        }
+    }
+    private fun storeParams(layoutParams: ViewGroup.LayoutParams) {
+        mLastWidth = mWidth
+        mLastHeight = mHeight
+        mWidth = layoutParams.width
+        mHeight = layoutParams.height
+    }
+    private fun setWindowLocation() {
+        var centerX = wmParams.x + clContainer.width / 2
+        var valueAnimatorX = ValueAnimator()
+        if (centerX > mScreenWidth / 2) {
+            valueAnimatorX.setObjectValues(
+                wmParams.x,
+                mScreenWidth - dip2px(mContext, 16f) - mWidth
+            )
+        } else {
+            valueAnimatorX.setObjectValues(wmParams.x, dip2px(mContext, 16f))
+        }
+        valueAnimatorX.addUpdateListener { animation -> //                        Log.d(javaClass.name,"e1=====onAnimationUpdate===>${animation?.getAnimatedValue()}")
+            animation?.let {
+                var v: Int = animation.animatedValue as Int
+                wmParams.x = v
+                mWindowManager.updateViewLayout(mContainer, wmParams)
+            }
+        }
+        var valueAnimatorY = ValueAnimator()
+        val belowLimit = mScreenHeight - dip2px(mContext, 50f) - mHeight
+        val topLimit =dip2px(mContext, 50f)
+        if (wmParams.y > belowLimit) {
+            valueAnimatorY.setObjectValues(wmParams.y, belowLimit)
+        } else if (wmParams.y < topLimit) {
+            valueAnimatorY.setObjectValues(wmParams.y, topLimit)
+        }
+        valueAnimatorY.addUpdateListener { animation ->
+            animation?.let {
+                var v: Int = animation.animatedValue as Int
+                wmParams.y = v
+                mWindowManager.updateViewLayout(mContainer, wmParams)
+            }
+        }
+        if (valueAnimatorY.values != null && valueAnimatorY.values.isNotEmpty()) {
+            var animSet = AnimatorSet()
+            animSet.playTogether(valueAnimatorX, valueAnimatorY)
+            animSet.duration = 300
+            animSet.interpolator = DecelerateInterpolator()
+            animSet.start()
+        } else {
+            valueAnimatorX.start()
         }
     }
 
