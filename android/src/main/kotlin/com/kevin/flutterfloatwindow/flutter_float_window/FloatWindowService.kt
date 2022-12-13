@@ -30,7 +30,7 @@ import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
 
 enum class FloatWindowGravity {
-    LEFT, TOP, RIGHT, BOTTOM, CENTER,
+    LEFT, TOP, RIGHT, BOTTOM, CENTER,TL,TR,BR,BL
 }
 
 class FloatWindowService : Service() {
@@ -420,6 +420,47 @@ class FloatWindowService : Service() {
             FloatWindowGravity.CENTER -> {
                 wmParams.x = (sWidth - lWidth) / 2
                 wmParams.y = (sHeight - lHeight) / 2
+                mWindowManager.updateViewLayout(mContainer, wmParams)
+            }
+            FloatWindowGravity.TL->{
+                if (lWidth < sWidth - dip2px(mContext, 32f)) {
+                    wmParams.x = dip2px(mContext, 16f)
+                    wmParams.y = dip2px(mContext, 60f)
+                } else {//居中
+                    wmParams.x = (sWidth - lWidth) / 2
+                    wmParams.y = dip2px(mContext, 60f)
+                }
+                mWindowManager.updateViewLayout(mContainer, wmParams)
+            }
+            FloatWindowGravity.TR->{
+                if (lWidth < sWidth - dip2px(mContext, 32f)) {
+                    wmParams.x = sWidth - lWidth - dip2px(mContext, 16f)
+                    wmParams.y = dip2px(mContext, 60f)
+                } else {//居中
+                    wmParams.x = (sWidth - lWidth) / 2
+                    wmParams.y = dip2px(mContext, 60f)
+                }
+                mWindowManager.updateViewLayout(mContainer, wmParams)
+            }
+            FloatWindowGravity.BL->{
+                if (lWidth < sWidth - dip2px(mContext, 32f)) {
+                    wmParams.x = dip2px(mContext, 16f)
+                    wmParams.y = sHeight - lHeight - dip2px(mContext, 50f)
+                } else {//居中
+                    wmParams.x = (sWidth - lWidth) / 2
+                    wmParams.y = sHeight - lHeight - dip2px(mContext, 50f)
+                }
+                mWindowManager.updateViewLayout(mContainer, wmParams)
+            }
+
+            FloatWindowGravity.BR->{
+                if (lWidth < sWidth - dip2px(mContext, 32f)) {
+                    wmParams.x = sWidth - lWidth - dip2px(mContext, 16f)
+                    wmParams.y = sHeight - lHeight - dip2px(mContext, 50f)
+                } else {//居中
+                    wmParams.x = (sWidth - lWidth) / 2
+                    wmParams.y = sHeight - lHeight - dip2px(mContext, 50f)
+                }
                 mWindowManager.updateViewLayout(mContainer, wmParams)
             }
         }

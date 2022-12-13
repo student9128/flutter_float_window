@@ -258,6 +258,10 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
             "right"->mBinder?.setVideoGravity(FloatWindowGravity.RIGHT)
             "bottom"->mBinder?.setVideoGravity(FloatWindowGravity.BOTTOM)
             "center"->mBinder?.setVideoGravity(FloatWindowGravity.CENTER)
+            "tl"->mBinder?.setVideoGravity(FloatWindowGravity.TL)
+            "tr"->mBinder?.setVideoGravity(FloatWindowGravity.TR)
+            "bl"->mBinder?.setVideoGravity(FloatWindowGravity.BL)
+            "br"->mBinder?.setVideoGravity(FloatWindowGravity.BR)
         }
     }
 

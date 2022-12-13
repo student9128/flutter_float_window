@@ -2,7 +2,34 @@ import 'dart:async';
 
 import 'package:flutter/services.dart';
 
-enum FloatWindowGravity { LEFT, TOP, RIGHT, BOTTOM, CENTER }
+enum FloatWindowGravity {
+  ///left
+  LEFT,
+
+  ///top
+  TOP,
+
+  ///right
+  RIGHT,
+
+  ///bottom
+  BOTTOM,
+
+  ///center
+  CENTER,
+
+  ///top and left
+  TL,
+
+  ///top and right
+  TR,
+
+  ///bottom and right
+  BR,
+
+  ///bottom and left
+  BL
+}
 
 class FlutterFloatWindow {
   static const MethodChannel _channel = MethodChannel('flutter_float_window');
@@ -111,17 +138,30 @@ class FlutterFloatWindow {
       case FloatWindowGravity.CENTER:
         await _channel.invokeMethod('setGravity', "center");
         break;
+      case FloatWindowGravity.TL:
+        await _channel.invokeMethod('setGravity', "tl");
+        break;
+      case FloatWindowGravity.TR:
+        await _channel.invokeMethod('setGravity', "tr");
+        break;
+      case FloatWindowGravity.BL:
+        await _channel.invokeMethod('setGravity', "bl");
+        break;
+      case FloatWindowGravity.BR:
+        await _channel.invokeMethod('setGravity', "br");
+        break;
     }
   }
+
   ///设置背景色
   static setBackgroundColor(String color) async {
-    if(!color.startsWith("#")){
-      assert(color.length>=6&&color.length<=8);
-      color ="#$color";
-    }else{
-      assert(color.length>=7&&color.length<=9);
+    if (!color.startsWith("#")) {
+      assert(color.length >= 6 && color.length <= 8);
+      color = "#$color";
+    } else {
+      assert(color.length >= 7 && color.length <= 9);
     }
-    await _channel.invokeMethod('setBackgroundColor',color);
+    await _channel.invokeMethod('setBackgroundColor', color);
   }
 
   ///播放
