@@ -1,3 +1,5 @@
+## 0.1.0 
+add some flutter methods about live float window
 ## 0.0.9
 add agora live float window,now you can show live float window if you use agora SDK. 
 ## 0.0.8
