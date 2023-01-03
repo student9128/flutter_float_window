@@ -34,6 +34,7 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
     private lateinit var context: Context
     var firstUrl = ""
     private var useController = false
+    private var mIsLive = false
     private var isPlayWhenScreenOff = true//锁屏情况下是否播放
     var isFirstShowFloatWindow = true//多次重复show或者hide悬浮窗的话，service连接上的时候播放视频
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -102,9 +103,10 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
                 }
             }
             "setGravity" -> {
-                var gravity = call.arguments
+                var gravity = call.argument<String>("gravity")
+                var isLive = call.argument<Boolean>("isLive")
                 gravity?.let {
-                    setGravity(it.toString())
+                    setGravity(it, isLive!!)
                 }
             }
             "setBackgroundColor" -> {
@@ -171,14 +173,19 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
                 Log.d(javaClass.name, "position=$position")
                 mBinder?.seekTo(position.toString().toLong())
             }
+            "isLive" -> {
+                var isLive = call.argument<Boolean>("isLive")
+                mIsLive = isLive ?: false
+            }
             "initFloatLive" -> {
                 var args = call.arguments
                 var appId = call.argument<String>("appId")
                 Log.d(FloatWindowLiveService.TAG, "===========initFloatLive")
                 bindFloatWindowLiveService()
                 appId?.let {
-                    initFloatLiveWindow(activity,it)
+                    initFloatLiveWindow(activity, it)
                 }
+                result.success("")
             }
             "joinChannel" -> {
                 var args = call.arguments
@@ -187,6 +194,7 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
                 var optionalUid = call.argument<Int>("optionalUid")
                 if (token == null || channelName == null || optionalUid == null) return
                 mBinderLive?.joinChannel(context, token, channelName, optionalUid)
+                result.success("")
             }
             "leaveChannel" -> {
                 mBinderLive?.removeFloatWindow()
@@ -295,18 +303,33 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
         }
     }
 
-    private fun setGravity(gravity: String) {
-        when (gravity) {
-            "top" -> mBinder?.setVideoGravity(FloatWindowGravity.TOP)
-            "left" -> mBinder?.setVideoGravity(FloatWindowGravity.LEFT)
-            "right" -> mBinder?.setVideoGravity(FloatWindowGravity.RIGHT)
-            "bottom" -> mBinder?.setVideoGravity(FloatWindowGravity.BOTTOM)
-            "center" -> mBinder?.setVideoGravity(FloatWindowGravity.CENTER)
-            "tl" -> mBinder?.setVideoGravity(FloatWindowGravity.TL)
-            "tr" -> mBinder?.setVideoGravity(FloatWindowGravity.TR)
-            "bl" -> mBinder?.setVideoGravity(FloatWindowGravity.BL)
-            "br" -> mBinder?.setVideoGravity(FloatWindowGravity.BR)
+    private fun setGravity(gravity: String, isLive: Boolean) {
+        if (isLive||mIsLive) {
+            when (gravity) {
+                "top" -> mBinderLive?.setVideoGravity(FloatWindowGravity.TOP)
+                "left" -> mBinderLive?.setVideoGravity(FloatWindowGravity.LEFT)
+                "right" -> mBinderLive?.setVideoGravity(FloatWindowGravity.RIGHT)
+                "bottom" -> mBinderLive?.setVideoGravity(FloatWindowGravity.BOTTOM)
+                "center" -> mBinderLive?.setVideoGravity(FloatWindowGravity.CENTER)
+                "tl" -> mBinderLive?.setVideoGravity(FloatWindowGravity.TL)
+                "tr" -> mBinderLive?.setVideoGravity(FloatWindowGravity.TR)
+                "bl" -> mBinderLive?.setVideoGravity(FloatWindowGravity.BL)
+                "br" -> mBinderLive?.setVideoGravity(FloatWindowGravity.BR)
+            }
+        } else {
+            when (gravity) {
+                "top" -> mBinder?.setVideoGravity(FloatWindowGravity.TOP)
+                "left" -> mBinder?.setVideoGravity(FloatWindowGravity.LEFT)
+                "right" -> mBinder?.setVideoGravity(FloatWindowGravity.RIGHT)
+                "bottom" -> mBinder?.setVideoGravity(FloatWindowGravity.BOTTOM)
+                "center" -> mBinder?.setVideoGravity(FloatWindowGravity.CENTER)
+                "tl" -> mBinder?.setVideoGravity(FloatWindowGravity.TL)
+                "tr" -> mBinder?.setVideoGravity(FloatWindowGravity.TR)
+                "bl" -> mBinder?.setVideoGravity(FloatWindowGravity.BL)
+                "br" -> mBinder?.setVideoGravity(FloatWindowGravity.BR)
+            }
         }
+
     }
 
     private fun setVideoUrl(url: String, context: Context) {
@@ -391,9 +414,9 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
         }
     }
 
-    private fun initFloatLiveWindow(activity: Activity,appId:String){
+    private fun initFloatLiveWindow(activity: Activity, appId: String) {
         mBinderLive?.initFloatLive(activity, appId)
-        mBinderLive?.service?.setOnClickListener(object :FloatWindowLiveService.OnClickListener{
+        mBinderLive?.service?.setOnClickListener(object : FloatWindowLiveService.OnClickListener {
             override fun onFullScreenClick() {
                 mBinderLive?.removeFloatWindow()
                 channel.invokeMethod("onLiveFullScreenClick", null)
@@ -406,6 +429,7 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
 
         })
     }
+
     private fun initFloatWindow(activity: Activity) {
         Log.e("FloatWindowService", "initFloatWindow")
         mBinder?.initFloatWindow(activity, isUserController = useController)

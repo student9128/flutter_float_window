@@ -121,34 +121,43 @@ class FlutterFloatWindow {
   }
 
   ///设置位置
-  static setGravity(FloatWindowGravity gravity) async {
+  static setGravity(FloatWindowGravity gravity,{isLive = false}) async {
     switch (gravity) {
       case FloatWindowGravity.LEFT:
-        await _channel.invokeMethod('setGravity', "left");
+        Map<String,dynamic> params = {'gravity':"left",'isLive':isLive};
+        await _channel.invokeMethod('setGravity',params);
         break;
       case FloatWindowGravity.TOP:
-        await _channel.invokeMethod('setGravity', "top");
+        Map<String,dynamic> params = {'gravity':"top",'isLive':isLive};
+        await _channel.invokeMethod('setGravity',params);
         break;
       case FloatWindowGravity.RIGHT:
-        await _channel.invokeMethod('setGravity', "right");
+        Map<String,dynamic> params = {'gravity':"right",'isLive':isLive};
+        await _channel.invokeMethod('setGravity', params);
         break;
       case FloatWindowGravity.BOTTOM:
-        await _channel.invokeMethod('setGravity', "bottom");
+        Map<String,dynamic> params = {'gravity':"bottom",'isLive':isLive};
+        await _channel.invokeMethod('setGravity', params);
         break;
       case FloatWindowGravity.CENTER:
-        await _channel.invokeMethod('setGravity', "center");
+        Map<String,dynamic> params = {'gravity':"center",'isLive':isLive};
+        await _channel.invokeMethod('setGravity', params);
         break;
       case FloatWindowGravity.TL:
-        await _channel.invokeMethod('setGravity', "tl");
+        Map<String,dynamic> params = {'gravity':"tl",'isLive':isLive};
+        await _channel.invokeMethod('setGravity', params);
         break;
       case FloatWindowGravity.TR:
-        await _channel.invokeMethod('setGravity', "tr");
+        Map<String,dynamic> params = {'gravity':"tr",'isLive':isLive};
+        await _channel.invokeMethod('setGravity', params);
         break;
       case FloatWindowGravity.BL:
-        await _channel.invokeMethod('setGravity', "bl");
+        Map<String,dynamic> params = {'gravity':"bl",'isLive':isLive};
+        await _channel.invokeMethod('setGravity', params);
         break;
       case FloatWindowGravity.BR:
-        await _channel.invokeMethod('setGravity', "br");
+        Map<String,dynamic> params = {'gravity':"br",'isLive':isLive};
+        await _channel.invokeMethod('setGravity', params);
         break;
     }
   }
@@ -182,5 +191,32 @@ class FlutterFloatWindow {
   ///跳转到某个进度位置
   static seekTo(dynamic position) async {
     await _channel.invokeMethod('seekTo', position);
+  }
+
+  /// agora SDK appId
+  static Future<String> initFloatLive(String appId) async {
+    Map<String, String> params = {'appId': appId};
+    return await _channel.invokeMethod('initFloatLive', params);
+  }
+
+  /// join channel
+  static Future<String> joinChannel(
+      String token, String channelName, int optionalUid) async {
+    Map<String, dynamic> params = {
+      'token': token,
+      'channelName': channelName,
+      'optionalUid': optionalUid
+    };
+    return await _channel.invokeMethod('joinChannel', params);
+  }
+
+  /// leave channel
+  static Future<String> leaveChannel() async {
+    return await _channel.invokeMethod('leaveChannel');
+  }
+  /// is show live float window
+  static isLive(bool isLive) async{
+    Map<String, bool> params = {'isLive': isLive};
+    await _channel.invokeMethod("isLive",params);
   }
 }
