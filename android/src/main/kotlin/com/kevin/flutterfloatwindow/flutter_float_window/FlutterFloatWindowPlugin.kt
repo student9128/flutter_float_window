@@ -88,27 +88,27 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
                 var videoUrl = call.argument<Any>("videoUrl")
                 videoUrl?.let { setVideoUrl(it.toString(), context) }
             }
-            "setWidthAndHeight"->{
+            "setWidthAndHeight" -> {
                 val width = call.argument<Int>("width")
                 val height = call.argument<Int>("height")
-                if(width!=null&&height!=null){
+                if (width != null && height != null) {
                     mBinder?.setFloatVideoWidthAndHeight(width, height)
                 }
             }
-            "setAspectRatio"->{
+            "setAspectRatio" -> {
                 val ar = call.arguments
                 ar?.let {
                     mBinder?.setFloatVideoAspectRatio(it.toString().toFloat())
                 }
             }
-            "setGravity"->{
+            "setGravity" -> {
                 var gravity = call.arguments
                 gravity?.let {
                     setGravity(it.toString())
                 }
             }
-            "setBackgroundColor"->{
-                var color=call.arguments
+            "setBackgroundColor" -> {
+                var color = call.arguments
                 color?.let {
                     mBinder?.setBackgroundColor(it.toString())
                 }
@@ -171,12 +171,55 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
                 Log.d(javaClass.name, "position=$position")
                 mBinder?.seekTo(position.toString().toLong())
             }
+            "initFloatLive" -> {
+                var args = call.arguments
+                var appId = call.argument<String>("appId")
+                Log.d(FloatWindowLiveService.TAG, "===========initFloatLive")
+                bindFloatWindowLiveService()
+                appId?.let {
+                    initFloatLiveWindow(activity,it)
+                }
+            }
+            "joinChannel" -> {
+                var args = call.arguments
+                var token = call.argument<String>("token")
+                var channelName = call.argument<String>("channelName")
+                var optionalUid = call.argument<Int>("optionalUid")
+                if (token == null || channelName == null || optionalUid == null) return
+                mBinderLive?.joinChannel(context, token, channelName, optionalUid)
+            }
+            "leaveChannel" -> {
+                mBinderLive?.removeFloatWindow()
+                result.success("")
+            }
             else -> result.notImplemented()
         }
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
         channel.setMethodCallHandler(null)
+    }
+
+    private var bindServiceLive: FloatWindowLiveService? = null
+    private var mBinderLive: FloatWindowLiveService.LocalBinder? = null
+    var serviceConnectionLive: ServiceConnection? = null
+    var isBindLive = false
+
+    private fun initServiceLive(activity: Activity) {
+        serviceConnectionLive = object : ServiceConnection {
+            override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                bindServiceLive = (service as FloatWindowLiveService.LocalBinder).service
+                mBinderLive = service
+//                mBinderLive?.initFloatLive(activity.baseContext, "d4d4713353494ff5b93fca5ec5169f9b")
+                Log.d(FloatWindowLiveService.TAG, "===========onServiceConnected")
+            }
+
+            override fun onServiceDisconnected(name: ComponentName?) {
+                bindServiceLive = null
+                mBinderLive = null
+            }
+
+        }
     }
 
     private var bindService: FloatWindowService? = null
@@ -251,17 +294,18 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
             }
         }
     }
-    private fun setGravity(gravity:String){
-        when(gravity){
-            "top"->mBinder?.setVideoGravity(FloatWindowGravity.TOP)
-            "left"->mBinder?.setVideoGravity(FloatWindowGravity.LEFT)
-            "right"->mBinder?.setVideoGravity(FloatWindowGravity.RIGHT)
-            "bottom"->mBinder?.setVideoGravity(FloatWindowGravity.BOTTOM)
-            "center"->mBinder?.setVideoGravity(FloatWindowGravity.CENTER)
-            "tl"->mBinder?.setVideoGravity(FloatWindowGravity.TL)
-            "tr"->mBinder?.setVideoGravity(FloatWindowGravity.TR)
-            "bl"->mBinder?.setVideoGravity(FloatWindowGravity.BL)
-            "br"->mBinder?.setVideoGravity(FloatWindowGravity.BR)
+
+    private fun setGravity(gravity: String) {
+        when (gravity) {
+            "top" -> mBinder?.setVideoGravity(FloatWindowGravity.TOP)
+            "left" -> mBinder?.setVideoGravity(FloatWindowGravity.LEFT)
+            "right" -> mBinder?.setVideoGravity(FloatWindowGravity.RIGHT)
+            "bottom" -> mBinder?.setVideoGravity(FloatWindowGravity.BOTTOM)
+            "center" -> mBinder?.setVideoGravity(FloatWindowGravity.CENTER)
+            "tl" -> mBinder?.setVideoGravity(FloatWindowGravity.TL)
+            "tr" -> mBinder?.setVideoGravity(FloatWindowGravity.TR)
+            "bl" -> mBinder?.setVideoGravity(FloatWindowGravity.BL)
+            "br" -> mBinder?.setVideoGravity(FloatWindowGravity.BR)
         }
     }
 
@@ -311,6 +355,19 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
         return mBinder?.removeFloatWindow()!!
     }
 
+    private fun bindFloatWindowLiveService() {
+        Log.d(FloatWindowLiveService.TAG, "===========bindFloatWindowLiveService")
+        if (isBindLive) {
+            isBindLive = false
+            context.unbindService(serviceConnectionLive!!)
+            bindServiceLive = null
+            mBinderLive = null
+        }
+        var intent = Intent(context, FloatWindowLiveService::class.java)
+        context.bindService(intent, serviceConnectionLive!!, Context.BIND_AUTO_CREATE)
+        isBindLive = true
+    }
+
     private fun bindFloatWindowService() {
         Log.e(javaClass.name, "bindFloatWindowService")
         if (isBind) {
@@ -334,6 +391,21 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
         }
     }
 
+    private fun initFloatLiveWindow(activity: Activity,appId:String){
+        mBinderLive?.initFloatLive(activity, appId)
+        mBinderLive?.service?.setOnClickListener(object :FloatWindowLiveService.OnClickListener{
+            override fun onFullScreenClick() {
+                mBinderLive?.removeFloatWindow()
+                channel.invokeMethod("onLiveFullScreenClick", null)
+            }
+
+            override fun onCloseClick() {
+                mBinderLive?.removeFloatWindow()
+                channel.invokeMethod("onLiveCloseClick", null)
+            }
+
+        })
+    }
     private fun initFloatWindow(activity: Activity) {
         Log.e("FloatWindowService", "initFloatWindow")
         mBinder?.initFloatWindow(activity, isUserController = useController)
@@ -416,6 +488,7 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
         Log.d(javaClass.name, "onAttachedToActivity")
         activity = binding.activity
         initService(binding.activity)
+        initServiceLive(binding.activity)
     }
 
     override fun onDetachedFromActivityForConfigChanges() {

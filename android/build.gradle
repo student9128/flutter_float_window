@@ -53,4 +53,7 @@ dependencies {
     implementation 'com.google.android.exoplayer:exoplayer-smoothstreaming:2.18.0'
     implementation 'com.google.android.exoplayer:exoplayer-ui:2.18.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+
+    api 'io.agora.rtc:full-sdk:3.7.0.3'
+    api 'io.agora.rtc:iris-rtc:3.7.0.3'
 }
