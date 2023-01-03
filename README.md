@@ -1,6 +1,6 @@
 # flutter_float_window
 
-A Flutter plugin for Android show float window.
+A Flutter plugin for Android show float window about video & agora Live.
 
 ## How to use
 
