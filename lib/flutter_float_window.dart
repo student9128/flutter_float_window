@@ -192,6 +192,11 @@ class FlutterFloatWindow {
   static seekTo(dynamic position) async {
     await _channel.invokeMethod('seekTo', position);
   }
+  ///快进或者快退的时间间隔，以毫秒为单位
+  static setFastForwardMillisecond(int millisecond) async {
+    Map<String,int> params ={'fastForwardMillisecond':millisecond};
+    await _channel.invokeMethod('setFastForwardMillisecond', params);
+  }
 
   /// agora SDK appId
   static Future<String> initFloatLive(String appId) async {

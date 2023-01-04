@@ -46,10 +46,11 @@ class FloatWindowService : Service() {
     private var mLastHeight = mHeight
     private var mAspectRatio: Float = (9 / 16).toFloat()
     private var useAspectRatio = false
-    private var mFloatGravity: FloatWindowGravity = FloatWindowGravity.BOTTOM
+    private var mFloatGravity: FloatWindowGravity = FloatWindowGravity.BR
     private lateinit var mContext: Context
     private var mScreenWidth: Int = 0
     private var mScreenHeight: Int = 0
+    private var mFastForwardMillisecond:Long = 15000//快进或者快退
 
     //使用exoPlayer自带的播放器样式
     private var useController = false
@@ -158,6 +159,9 @@ class FloatWindowService : Service() {
         fun setBackgroundColor(color: String) {
             mContainer.setBackgroundColor(Color.parseColor(color))
         }
+        fun setFastForwardMillisecond(millisecond:Long){
+            setFastForwardTime(millisecond)
+        }
 
     }
 
@@ -171,6 +175,8 @@ class FloatWindowService : Service() {
     lateinit var ivClose: ImageView
     lateinit var ivPlay: ImageView
     lateinit var ivFullScreen: ImageView
+    lateinit var ivForward: ImageView
+    lateinit var ivBackward: ImageView
     lateinit var spvPlayerView: StyledPlayerView
     lateinit var clContainer: ConstraintLayout
     var hasClickClose = false
@@ -191,6 +197,8 @@ class FloatWindowService : Service() {
         ivPlay = view.findViewById(R.id.iv_play)
         ivFullScreen = view.findViewById(R.id.iv_full_screen)
         spvPlayerView = view.findViewById(R.id.player_view)
+        ivForward = view.findViewById(R.id.iv_forward)
+        ivBackward = view.findViewById(R.id.iv_backward)
         val layoutParams = spvPlayerView.layoutParams
         mWidth = layoutParams.width
         mHeight = layoutParams.height
@@ -204,6 +212,7 @@ class FloatWindowService : Service() {
 
         ivPlay.setOnClickListener {
             if (player.isPlaying) {
+                handler.removeCallbacks(runnable)
                 player.pause()
                 ivPlay.setImageResource(R.drawable.ic_play)
                 listener?.onPlayClick(false)
@@ -211,6 +220,7 @@ class FloatWindowService : Service() {
                 player.play()
                 ivPlay.setImageResource(R.drawable.ic_pause)
                 listener?.onPlayClick(true)
+                handler.postDelayed(runnable, 3000)
             }
         }
         ivClose.setOnClickListener {
@@ -221,6 +231,28 @@ class FloatWindowService : Service() {
         ivFullScreen.setOnClickListener {
             listener?.onFullScreenClick()
 //            openApp(context)
+        }
+        ivForward.setOnClickListener {
+            var position = player.currentPosition
+            var total = player.contentDuration
+            Log.d(javaClass.name, "position=$position,total=$total")
+            var next = position + mFastForwardMillisecond
+            if (next < total) {
+                player.seekTo(next)
+            } else {
+                player.seekTo(total)
+            }
+        }
+        ivBackward.setOnClickListener {
+            var position = player.currentPosition
+            var total = player.contentDuration
+            var index = player.currentPeriodIndex
+            var next = position-mFastForwardMillisecond
+            if(next>0){
+                player.seekTo(next)
+            }else{
+                player.seekTo(0)
+            }
         }
     }
 
@@ -373,6 +405,9 @@ class FloatWindowService : Service() {
 
     fun setFloatWindowGravity(gravity: FloatWindowGravity) {
         mFloatGravity = gravity
+    }
+    fun setFastForwardTime(millisecond:Long){
+        mFastForwardMillisecond = millisecond
     }
 
     fun setGravity(gravity: FloatWindowGravity) {
@@ -591,7 +626,25 @@ class FloatWindowService : Service() {
                     ivPlay.visibility = View.VISIBLE
                     ivFullScreen.visibility = View.VISIBLE
                     isButtonShown = true
-                    handler.postDelayed(runnable, 2000)
+                    var position = player.currentPosition
+                    var total = player.contentDuration
+                    if(position<mFastForwardMillisecond){
+                        ivBackward.imageAlpha=153
+                        ivBackward.isClickable=false
+                    }else{
+                        ivBackward.imageAlpha=255
+                        ivBackward.isClickable=true
+                    }
+                    if(total-position<mFastForwardMillisecond){
+                        ivForward.imageAlpha=153
+                        ivForward.isClickable = false
+                    }else{
+                        ivForward.imageAlpha=255
+                        ivForward.isClickable = true
+                    }
+                }
+                if(player.isPlaying){
+                    handler.postDelayed(runnable, 3000)
                 }
 //                openApp(context)
 //                else {

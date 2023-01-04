@@ -115,6 +115,12 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
                     mBinder?.setBackgroundColor(it.toString())
                 }
             }
+            "setFastForwardMillisecond"->{
+                var time = call.argument<Long>("fastForwardMillisecond")
+                time?.let {
+                    mBinder?.setFastForwardMillisecond(time)
+                }
+            }
             "canShowFloatWindow" -> {
                 result.success(canDrawOverlays())
             }

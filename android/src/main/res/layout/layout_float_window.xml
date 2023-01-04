@@ -7,9 +7,9 @@
     android:orientation="vertical">
 
     <com.google.android.exoplayer2.ui.StyledPlayerView
+        android:id="@+id/player_view"
         android:layout_width="200dp"
         android:layout_height="112dp"
-        android:id="@+id/player_view"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
@@ -26,25 +26,48 @@
 
     <ImageView
         android:id="@+id/iv_full_screen"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:padding="10dp"
-        android:rotation="90"
         android:src="@drawable/ic_full_screen"
         app:layout_constraintBottom_toBottomOf="@id/cl_parent"
         app:layout_constraintLeft_toLeftOf="@id/cl_parent"
-        app:layout_constraintRight_toLeftOf="@id/iv_play"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
-        android:id="@+id/iv_play"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:padding="10dp"
-        android:src="@drawable/ic_play"
-        app:layout_constraintBottom_toBottomOf="@id/iv_full_screen"
-        app:layout_constraintLeft_toRightOf="@id/iv_full_screen"
-        app:layout_constraintRight_toRightOf="@id/cl_parent"
-        app:layout_constraintTop_toTopOf="@id/iv_full_screen" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent">
+
+        <ImageView
+            android:id="@+id/iv_backward"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="10dp"
+            android:rotation="-180"
+            android:src="@drawable/ic_forward" />
+
+        <ImageView
+            android:id="@+id/iv_play"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="10dp"
+            android:src="@drawable/ic_play"
+            app:layout_constraintBottom_toBottomOf="@id/iv_full_screen"
+            app:layout_constraintLeft_toRightOf="@id/iv_full_screen"
+            app:layout_constraintRight_toRightOf="@id/cl_parent"
+            app:layout_constraintTop_toTopOf="@id/iv_full_screen" />
+
+        <ImageView
+            android:id="@+id/iv_forward"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="10dp"
+            android:src="@drawable/ic_forward" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
