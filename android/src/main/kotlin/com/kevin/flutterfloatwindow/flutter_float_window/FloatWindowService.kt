@@ -22,6 +22,7 @@ import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.ui.StyledPlayerView
@@ -50,7 +51,7 @@ class FloatWindowService : Service() {
     private lateinit var mContext: Context
     private var mScreenWidth: Int = 0
     private var mScreenHeight: Int = 0
-    private var mFastForwardMillisecond:Long = 15000//快进或者快退
+    private var mFastForwardMillisecond = 15000//快进或者快退
 
     //使用exoPlayer自带的播放器样式
     private var useController = false
@@ -64,6 +65,8 @@ class FloatWindowService : Service() {
     val runnable = Runnable {
         ivFullScreen.visibility = View.GONE
         ivPlay.visibility = View.GONE
+        ivForward.visibility = View.GONE
+        ivBackward.visibility = View.GONE
         isButtonShown = false
     }
 
@@ -159,9 +162,6 @@ class FloatWindowService : Service() {
         fun setBackgroundColor(color: String) {
             mContainer.setBackgroundColor(Color.parseColor(color))
         }
-        fun setFastForwardMillisecond(millisecond:Long){
-            setFastForwardTime(millisecond)
-        }
 
     }
 
@@ -180,6 +180,7 @@ class FloatWindowService : Service() {
     lateinit var spvPlayerView: StyledPlayerView
     lateinit var clContainer: ConstraintLayout
     var hasClickClose = false
+    var isVideoEnd = false
     private fun initView(context: Context) {
         mContainer = FrameLayout(context)
         mContainer.setBackgroundColor(Color.parseColor("#00000000"))
@@ -207,20 +208,44 @@ class FloatWindowService : Service() {
         if (useController) {
             ivPlay.visibility = View.GONE
             ivFullScreen.visibility = View.GONE
+            ivForward.visibility = View.GONE
+            ivBackward.visibility = View.GONE
             isButtonShown = false
         }
+        player.addListener(object : Player.Listener {
+            override fun onPlaybackStateChanged(playbackState: Int) {
+                when (playbackState) {
+                    Player.STATE_IDLE -> {
+                        Log.d(javaClass.name, "stateIdle")
+                    }
+                    Player.STATE_ENDED -> {
+                        Log.d(javaClass.name, "stateEnd")
+                        ivPlay.setImageResource(R.drawable.ic_play)
+                        isVideoEnd = true
+                    }
+                }
+                super.onPlaybackStateChanged(playbackState)
+            }
+        })
 
         ivPlay.setOnClickListener {
-            if (player.isPlaying) {
-                handler.removeCallbacks(runnable)
-                player.pause()
-                ivPlay.setImageResource(R.drawable.ic_play)
-                listener?.onPlayClick(false)
-            } else {
+            if (isVideoEnd) {
+                isVideoEnd = false
+                player.seekTo(0)
                 player.play()
                 ivPlay.setImageResource(R.drawable.ic_pause)
-                listener?.onPlayClick(true)
-                handler.postDelayed(runnable, 3000)
+            } else {
+                if (player.isPlaying) {
+                    player.pause()
+                    ivPlay.setImageResource(R.drawable.ic_play)
+                    listener?.onPlayClick(false)
+                    handler.removeCallbacks(runnable)
+                } else {
+                    player.play()
+                    ivPlay.setImageResource(R.drawable.ic_pause)
+                    listener?.onPlayClick(true)
+                    handler.postDelayed(runnable, 2000)
+                }
             }
         }
         ivClose.setOnClickListener {
@@ -245,12 +270,10 @@ class FloatWindowService : Service() {
         }
         ivBackward.setOnClickListener {
             var position = player.currentPosition
-            var total = player.contentDuration
-            var index = player.currentPeriodIndex
-            var next = position-mFastForwardMillisecond
-            if(next>0){
+            var next = position - mFastForwardMillisecond
+            if (next > 0) {
                 player.seekTo(next)
-            }else{
+            } else {
                 player.seekTo(0)
             }
         }
@@ -406,9 +429,6 @@ class FloatWindowService : Service() {
     fun setFloatWindowGravity(gravity: FloatWindowGravity) {
         mFloatGravity = gravity
     }
-    fun setFastForwardTime(millisecond:Long){
-        mFastForwardMillisecond = millisecond
-    }
 
     fun setGravity(gravity: FloatWindowGravity) {
         val layoutParams = spvPlayerView.layoutParams
@@ -453,7 +473,7 @@ class FloatWindowService : Service() {
                 wmParams.y = (sHeight - lHeight) / 2
                 mWindowManager.updateViewLayout(mContainer, wmParams)
             }
-            FloatWindowGravity.TL->{
+            FloatWindowGravity.TL -> {
                 if (lWidth < sWidth - dip2px(mContext, 32f)) {
                     wmParams.x = dip2px(mContext, 16f)
                     wmParams.y = dip2px(mContext, 60f)
@@ -463,7 +483,7 @@ class FloatWindowService : Service() {
                 }
                 mWindowManager.updateViewLayout(mContainer, wmParams)
             }
-            FloatWindowGravity.TR->{
+            FloatWindowGravity.TR -> {
                 if (lWidth < sWidth - dip2px(mContext, 32f)) {
                     wmParams.x = sWidth - lWidth - dip2px(mContext, 16f)
                     wmParams.y = dip2px(mContext, 60f)
@@ -473,7 +493,7 @@ class FloatWindowService : Service() {
                 }
                 mWindowManager.updateViewLayout(mContainer, wmParams)
             }
-            FloatWindowGravity.BL->{
+            FloatWindowGravity.BL -> {
                 if (lWidth < sWidth - dip2px(mContext, 32f)) {
                     wmParams.x = dip2px(mContext, 16f)
                     wmParams.y = sHeight - lHeight - dip2px(mContext, 50f)
@@ -484,7 +504,7 @@ class FloatWindowService : Service() {
                 mWindowManager.updateViewLayout(mContainer, wmParams)
             }
 
-            FloatWindowGravity.BR->{
+            FloatWindowGravity.BR -> {
                 if (lWidth < sWidth - dip2px(mContext, 32f)) {
                     wmParams.x = sWidth - lWidth - dip2px(mContext, 16f)
                     wmParams.y = sHeight - lHeight - dip2px(mContext, 50f)
@@ -583,7 +603,7 @@ class FloatWindowService : Service() {
                 override fun onShowPress(e: MotionEvent?) {
                 }
 
-                override fun onSingleTapUp(e: MotionEvent?): Boolean =false
+                override fun onSingleTapUp(e: MotionEvent?): Boolean = false
 
                 override fun onScroll(
                     e1: MotionEvent,
@@ -625,26 +645,28 @@ class FloatWindowService : Service() {
                     handler.removeCallbacks(runnable)
                     ivPlay.visibility = View.VISIBLE
                     ivFullScreen.visibility = View.VISIBLE
+                    ivForward.visibility = View.VISIBLE
+                    ivBackward.visibility = View.VISIBLE
                     isButtonShown = true
                     var position = player.currentPosition
                     var total = player.contentDuration
-                    if(position<mFastForwardMillisecond){
-                        ivBackward.imageAlpha=153
-                        ivBackward.isClickable=false
-                    }else{
-                        ivBackward.imageAlpha=255
-                        ivBackward.isClickable=true
+                    if (position < mFastForwardMillisecond) {
+                        ivBackward.imageAlpha = 153
+                        ivBackward.isClickable = false
+                    } else {
+                        ivBackward.imageAlpha = 255
+                        ivBackward.isClickable = true
                     }
-                    if(total-position<mFastForwardMillisecond){
-                        ivForward.imageAlpha=153
+                    if (total - position < mFastForwardMillisecond) {
+                        ivForward.imageAlpha = 153
                         ivForward.isClickable = false
-                    }else{
-                        ivForward.imageAlpha=255
+                    } else {
+                        ivForward.imageAlpha = 255
                         ivForward.isClickable = true
                     }
                 }
-                if(player.isPlaying){
-                    handler.postDelayed(runnable, 3000)
+                if (player.isPlaying) {
+                    handler.postDelayed(runnable, 2000)
                 }
 //                openApp(context)
 //                else {
@@ -710,12 +732,14 @@ class FloatWindowService : Service() {
             true
         }
     }
+
     private fun storeParams(layoutParams: ViewGroup.LayoutParams) {
         mLastWidth = mWidth
         mLastHeight = mHeight
         mWidth = layoutParams.width
         mHeight = layoutParams.height
     }
+
     private fun setWindowLocation() {
         var centerX = wmParams.x + clContainer.width / 2
         var valueAnimatorX = ValueAnimator()
@@ -736,7 +760,7 @@ class FloatWindowService : Service() {
         }
         var valueAnimatorY = ValueAnimator()
         val belowLimit = mScreenHeight - dip2px(mContext, 50f) - mHeight
-        val topLimit =dip2px(mContext, 50f)
+        val topLimit = dip2px(mContext, 50f)
         if (wmParams.y > belowLimit) {
             valueAnimatorY.setObjectValues(wmParams.y, belowLimit)
         } else if (wmParams.y < topLimit) {
