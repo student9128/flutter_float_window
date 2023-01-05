@@ -88,3 +88,11 @@ FlutterFloatWindow.setWidthAndHeight(map);
 ```
  FlutterFloatWindow.setAspectRatio(0.7);
 ```
+> live float window
+```
+///init and show live float window
+await FlutterFloatWindow.initFloatLive(_mAppId,_token, _channelName, _mOptionalUid);
+
+///hide live float window and leave channel
+FlutterFloatWindow.leaveChannel();
+```
