@@ -1,6 +1,8 @@
 package com.kevin.flutterfloatwindow.flutter_float_window
 
 import android.Manifest
+import android.animation.AnimatorSet
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.NotificationManager
@@ -14,8 +16,11 @@ import android.net.Uri
 import android.os.*
 import android.util.Log
 import android.view.*
+import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
+import android.widget.RelativeLayout
+import android.widget.TextView
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -43,6 +48,8 @@ class FloatWindowLiveService : Service() {
     private var isButtonShown = true
     private var mWidth = 500
     private var mHeight = 280
+    private var mLastWidth = mWidth
+    private var mLastHeight = mHeight
     private var mAspectRatio: Float = (9 / 16).toFloat()
     private var useAspectRatio = false
     private var mFloatGravity: FloatWindowGravity = FloatWindowGravity.BOTTOM
@@ -101,12 +108,13 @@ class FloatWindowLiveService : Service() {
             mContainer.setBackgroundColor(Color.parseColor(color))
         }
 
-        fun initFloatLive(context: Activity, appId: String) {
+        fun initFloatLive(context: Activity, appId: String,token: String, channelName: String, optionalUid: Int) {
             initFloatWindow(context)
-            initLiveEngine(context, appId)
+            initLiveEngine(context, appId,token, channelName, optionalUid)
         }
 
         fun joinChannel(context: Context, token: String, channelName: String, optionalUid: Int) {
+            Log.d(TAG, "===========joinChannel==$hasInitialized")
             if (hasInitialized) {
 
                 mRtcEngine.joinChannel(
@@ -127,11 +135,27 @@ class FloatWindowLiveService : Service() {
             Log.d(TAG, "onUserJoined=$uid")
             Handler(Looper.getMainLooper()).post {
                 val surfaceView = RtcEngine.CreateRendererView(mContext.applicationContext)
+                rlStatus.visibility=View.GONE
+                tvStatus.visibility=View.VISIBLE
                 flContainer.addView(surfaceView)
                 mRtcEngine.setupRemoteVideo(
-                    VideoCanvas(surfaceView, VideoCanvas.RENDER_MODE_FIT, uid)
+                    VideoCanvas(surfaceView, VideoCanvas.RENDER_MODE_FILL, uid)
                 )
             }
+        }
+
+        override fun onUserOffline(uid: Int, reason: Int) {
+            super.onUserOffline(uid, reason)
+            Log.d(TAG, "onUserOffline=$uid,reason=$reason")
+            Handler(Looper.getMainLooper()).post{
+                rlStatus.visibility=View.VISIBLE
+                tvStatus.visibility=View.GONE
+            }
+        }
+
+        override fun onUserEnableVideo(uid: Int, enabled: Boolean) {
+            super.onUserEnableVideo(uid, enabled)
+            Log.d(TAG, "onUserEnableVideo=$uid,enabled=$enabled")
         }
 
         override fun onJoinChannelSuccess(channel: String?, uid: Int, elapsed: Int) {
@@ -174,7 +198,8 @@ class FloatWindowLiveService : Service() {
     lateinit var flContainer: FrameLayout
     lateinit var ivClose: ImageView
     lateinit var ivFullScreen: ImageView
-
+    private lateinit var rlStatus: RelativeLayout
+    private lateinit var tvStatus: TextView
     //    lateinit var flContainer: StyledPlayerView
     lateinit var clContainer: ConstraintLayout
     var hasClickClose = false
@@ -192,6 +217,8 @@ class FloatWindowLiveService : Service() {
         ivClose = view.findViewById(R.id.iv_close)
         ivFullScreen = view.findViewById(R.id.iv_full_screen)
         flContainer = view.findViewById(R.id.fl_container)
+        rlStatus = view.findViewById(R.id.rl_status)
+        tvStatus = view.findViewById(R.id.tv_status)
         val layoutParams = flContainer.layoutParams
         mWidth = layoutParams.width
         mHeight = layoutParams.height
@@ -222,7 +249,7 @@ class FloatWindowLiveService : Service() {
         }
     }
 
-    private fun initLiveEngine(context: Context, appId: String) {
+    private fun initLiveEngine(context: Context, appId: String,token: String, channelName: String, optionalUid: Int) {
         Log.d(TAG, "===========initLiveEngine")
 //        mRtcEngine = RtcEngine.create(context, "d4d4713353494ff5b93fca5ec5169f9b", mRtcEventHandler)
         mRtcEngine = RtcEngine.create(context, appId, mRtcEventHandler)
@@ -234,15 +261,12 @@ class FloatWindowLiveService : Service() {
 
         // 视频默认禁用，你需要调用 enableVideo 开始视频流。
         mRtcEngine.enableVideo()
-//        val surfaceView = RtcEngine.CreateRendererView(context)
-//        flContainer.addView(surfaceView)
-//        mRtcEngine.setupLocalVideo(VideoCanvas(surfaceView, VideoCanvas.RENDER_MODE_FIT, 0))
-//        mRtcEngine.joinChannel(
-//            "007eJxTYAjcVq32SDL/tmwvn+h0KacilisOVXcS2EqUlmdPSTrxVUWBIcUkxcTc0NjY1NjE0iQtzTTJ0jgtOdE0NdnU0MwyzTJJdPa65IZARgaO6E9MjAwQCOLzMIS4BofEO3s4+vm5+jAwAAB2GR7q",
-//            "TEST_CHANNEL",
-//            "",
-//            0
-//        )
+        mRtcEngine.joinChannel(
+            token, channelName,
+            "",
+            optionalUid
+        )
+        showFloatView()
     }
 
     lateinit var dataSourceFactory: DataSource.Factory
@@ -388,6 +412,8 @@ class FloatWindowLiveService : Service() {
             mWidth = sWidth
             mHeight = sHeight
         }
+        mLastWidth = mWidth
+        mLastWidth = mHeight
     }
 
     fun setFloatWindowGravity(gravity: FloatWindowGravity) {
@@ -501,7 +527,7 @@ class FloatWindowLiveService : Service() {
 //                mWindowManager.updateViewLayout(mContainer, wmParams)
                 hasAdded = true
 //                if (!useController) {
-//                    handler.postDelayed(runnable, 3000)
+                handler.postDelayed(runnable, 3000)
 //                }
             } catch (e: Exception) {
                 hasAdded = false
@@ -599,7 +625,7 @@ class FloatWindowLiveService : Service() {
                     handler.removeCallbacks(runnable)
                     ivFullScreen.visibility = View.VISIBLE
                     isButtonShown = true
-                    handler.postDelayed(runnable, 2000)
+                    handler.postDelayed(runnable, 3000)
                 }
 //                openApp(context)
 //                else {
@@ -623,14 +649,15 @@ class FloatWindowLiveService : Service() {
                 )
                 if (width < tempWidth) {//放大
                     Log.i(javaClass.name, "走了吗${i / (mWidth * 1.0f)}")
-                    layoutParams.width = (layoutParams.width * (i / (mWidth * 1.0f))).toInt()
-                    layoutParams.height = (layoutParams.height * (i / (mWidth * 1.0f))).toInt()
+                    layoutParams.width = tempWidth
+                    layoutParams.height = tempWidth * mHeight / mWidth
                     flContainer.layoutParams = layoutParams
-                    setGravity(mFloatGravity)
+                    storeParams(layoutParams)
+                    setWindowLocation()
                 } else {//缩小
                     tempHeight = layoutParams.height * (i / mWidth)
-                    layoutParams.width = mWidth
-                    layoutParams.height = mHeight
+                    layoutParams.width = mLastWidth
+                    layoutParams.height = mLastHeight
                     flContainer.layoutParams = layoutParams
                     wmParams.x = tempX
                     wmParams.y = tempY
@@ -638,7 +665,9 @@ class FloatWindowLiveService : Service() {
                         javaClass.name,
                         "!!!!!!!!===123width=$width,i=$i,tempWidth=$tempWidth,,tempY=${tempY},tempHeight=$tempHeight"
                     )
-                    mWindowManager.updateViewLayout(mContainer, wmParams)
+                    storeParams(layoutParams)
+//                    mWindowManager.updateViewLayout(mContainer, wmParams)
+                    setWindowLocation()
                 }
 //                if (isBig) {
 //                    layoutParams.width = layoutParams.width * 2 / 3
@@ -661,10 +690,61 @@ class FloatWindowLiveService : Service() {
         })
         clContainer?.setOnTouchListener { v, event ->
             gestureDetector.onTouchEvent(event)
+            if (event.action == MotionEvent.ACTION_UP) {
+                setWindowLocation()
+            }
             true
         }
     }
-
+    private fun storeParams(layoutParams: ViewGroup.LayoutParams) {
+        mLastWidth = mWidth
+        mLastHeight = mHeight
+        mWidth = layoutParams.width
+        mHeight = layoutParams.height
+    }
+    private fun setWindowLocation() {
+        var centerX = wmParams.x + clContainer.width / 2
+        var valueAnimatorX = ValueAnimator()
+        if (centerX > mScreenWidth / 2) {
+            valueAnimatorX.setObjectValues(
+                wmParams.x,
+                mScreenWidth - dip2px(mContext, 16f) - mWidth
+            )
+        } else {
+            valueAnimatorX.setObjectValues(wmParams.x, dip2px(mContext, 16f))
+        }
+        valueAnimatorX.addUpdateListener { animation -> //                        Log.d(javaClass.name,"e1=====onAnimationUpdate===>${animation?.getAnimatedValue()}")
+            animation?.let {
+                var v: Int = animation.animatedValue as Int
+                wmParams.x = v
+                mWindowManager.updateViewLayout(mContainer, wmParams)
+            }
+        }
+        var valueAnimatorY = ValueAnimator()
+        val belowLimit = mScreenHeight - dip2px(mContext, 50f) - mHeight
+        val topLimit = dip2px(mContext, 50f)
+        if (wmParams.y > belowLimit) {
+            valueAnimatorY.setObjectValues(wmParams.y, belowLimit)
+        } else if (wmParams.y < topLimit) {
+            valueAnimatorY.setObjectValues(wmParams.y, topLimit)
+        }
+        valueAnimatorY.addUpdateListener { animation ->
+            animation?.let {
+                var v: Int = animation.animatedValue as Int
+                wmParams.y = v
+                mWindowManager.updateViewLayout(mContainer, wmParams)
+            }
+        }
+        if (valueAnimatorY.values != null && valueAnimatorY.values.isNotEmpty()) {
+            var animSet = AnimatorSet()
+            animSet.playTogether(valueAnimatorX, valueAnimatorY)
+            animSet.duration = 300
+            animSet.interpolator = DecelerateInterpolator()
+            animSet.start()
+        } else {
+            valueAnimatorX.start()
+        }
+    }
     private fun openApp(context: Context) {
         var packageName = context.packageName
         val packageManager = context.packageManager

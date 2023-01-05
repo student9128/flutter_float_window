@@ -33,6 +33,10 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
     private lateinit var activity: Activity
     private lateinit var context: Context
     var firstUrl = ""
+    var mAppId = ""
+    var mToken = ""
+    var mChannelName = ""
+    var mOptionalUid = 0
     private var useController = false
     private var mIsLive = false
     private var isPlayWhenScreenOff = true//锁屏情况下是否播放
@@ -115,12 +119,6 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
                     mBinder?.setBackgroundColor(it.toString())
                 }
             }
-            "setFastForwardMillisecond"->{
-                var time = call.argument<Long>("fastForwardMillisecond")
-                time?.let {
-                    mBinder?.setFastForwardMillisecond(time)
-                }
-            }
             "canShowFloatWindow" -> {
                 result.success(canDrawOverlays())
             }
@@ -185,22 +183,12 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
             }
             "initFloatLive" -> {
                 var args = call.arguments
-                var appId = call.argument<String>("appId")
+                mAppId = call.argument<String>("appId")?:""
+                mToken = call.argument<String>("token")?:""
+                mChannelName = call.argument<String>("channelName")?:""
+                mOptionalUid = call.argument<Int>("optionalUid")?:0
                 Log.d(FloatWindowLiveService.TAG, "===========initFloatLive")
-                bindFloatWindowLiveService()
-                appId?.let {
-                    initFloatLiveWindow(activity, it)
-                }
-                result.success("")
-            }
-            "joinChannel" -> {
-                var args = call.arguments
-                var token = call.argument<String>("token")
-                var channelName = call.argument<String>("channelName")
-                var optionalUid = call.argument<Int>("optionalUid")
-                if (token == null || channelName == null || optionalUid == null) return
-                mBinderLive?.joinChannel(context, token, channelName, optionalUid)
-                result.success("")
+                bindFloatWindowLiveService(result)
             }
             "leaveChannel" -> {
                 mBinderLive?.removeFloatWindow()
@@ -224,8 +212,9 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
             override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
                 bindServiceLive = (service as FloatWindowLiveService.LocalBinder).service
                 mBinderLive = service
-//                mBinderLive?.initFloatLive(activity.baseContext, "d4d4713353494ff5b93fca5ec5169f9b")
+                mBinderLive?.initFloatLive(activity, mAppId,mToken,mChannelName,mOptionalUid)
                 Log.d(FloatWindowLiveService.TAG, "===========onServiceConnected")
+                initFloatLiveWindow()
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
@@ -381,10 +370,10 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
 
     private fun hideFloatWindow(): Long {
         ScreenLockListener.getInstance(context).unregister()
-        return mBinder?.removeFloatWindow()!!
+        return mBinder?.removeFloatWindow()?:0
     }
 
-    private fun bindFloatWindowLiveService() {
+    private fun bindFloatWindowLiveService(result:Result) {
         Log.d(FloatWindowLiveService.TAG, "===========bindFloatWindowLiveService")
         if (isBindLive) {
             isBindLive = false
@@ -395,6 +384,7 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
         var intent = Intent(context, FloatWindowLiveService::class.java)
         context.bindService(intent, serviceConnectionLive!!, Context.BIND_AUTO_CREATE)
         isBindLive = true
+        result.success("")
     }
 
     private fun bindFloatWindowService() {
@@ -420,8 +410,8 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
         }
     }
 
-    private fun initFloatLiveWindow(activity: Activity, appId: String) {
-        mBinderLive?.initFloatLive(activity, appId)
+    private fun initFloatLiveWindow() {
+        Log.d(FloatWindowLiveService.TAG, "===========initFloatLiveWindow")
         mBinderLive?.service?.setOnClickListener(object : FloatWindowLiveService.OnClickListener {
             override fun onFullScreenClick() {
                 mBinderLive?.removeFloatWindow()
@@ -443,7 +433,7 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
         setVideoUrl(firstUrl, activity)//初始化的时候不播放，只缓冲
         mBinder?.service?.setOnClickListener(object : FloatWindowService.OnClickListener {
             override fun onFullScreenClick() {
-                Log.e(javaClass.name, "onFullScreenClick")
+                Log.e(javaClass.name, "onFullScreenClick Native")
                 //在这里判断窗口是在app内还是外
                 channel.invokeMethod("onFullScreenClick", null)
 

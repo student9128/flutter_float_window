@@ -8,6 +8,7 @@ import android.os.PowerManager
 
 class ScreenLockListener constructor(context: Context) {
     private val mContext = context
+    private var hasInitialized = false
     private lateinit var mReceiver: ScreenLockBroadcastReceiver
 
     companion object {
@@ -23,6 +24,7 @@ class ScreenLockListener constructor(context: Context) {
 
     private var l: ScreenStateListener? = null
     fun beginListen(listener: ScreenStateListener) {
+        hasInitialized = true
         mReceiver = ScreenLockBroadcastReceiver(listener)
         l = listener
         register()
@@ -56,8 +58,9 @@ class ScreenLockListener constructor(context: Context) {
     }
 
     fun unregister() {
-        if (mReceiver != null) {
+        if (hasInitialized) {
             mContext.unregisterReceiver(mReceiver)
+            hasInitialized = false
         }
     }
 
