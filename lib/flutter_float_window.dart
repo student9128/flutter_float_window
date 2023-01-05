@@ -199,8 +199,13 @@ class FlutterFloatWindow {
   }
 
   /// agora SDK appId
-  static Future<String> initFloatLive(String appId) async {
-    Map<String, String> params = {'appId': appId};
+  static Future<String> initFloatLive(String appId, String token,
+      String channelName, int optionalUid) async {
+    Map<String, dynamic> params = {
+      'appId': appId,
+      'token': token,
+      'channelName': channelName,
+      'optionalUid': optionalUid};
     return await _channel.invokeMethod('initFloatLive', params);
   }
 
