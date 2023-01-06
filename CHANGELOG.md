@@ -1,3 +1,5 @@
+## 0.1.2
+fix bug.
 ## 0.1.1
 completed live float window ui and method.
 ## 0.1.0 
