@@ -66,6 +66,7 @@ class FloatWindowLiveService : Service() {
     private val handler = Handler()
     val runnable = Runnable {
         ivFullScreen.visibility = View.GONE
+        ivClose.visibility = View.GONE
         isButtonShown = false
     }
 
@@ -624,6 +625,7 @@ class FloatWindowLiveService : Service() {
                 if (!isButtonShown) {
                     handler.removeCallbacks(runnable)
                     ivFullScreen.visibility = View.VISIBLE
+                    ivClose.visibility=View.VISIBLE
                     isButtonShown = true
                     handler.postDelayed(runnable, 3000)
                 }

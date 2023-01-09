@@ -67,6 +67,7 @@ class FloatWindowService : Service() {
         ivPlay.visibility = View.GONE
         ivForward.visibility = View.GONE
         ivBackward.visibility = View.GONE
+        ivClose.visibility = View.GONE
         isButtonShown = false
     }
 
@@ -112,6 +113,7 @@ class FloatWindowService : Service() {
                     player?.play()
                 }
             }
+            setWardBtnStatus()
             ivPlay.setImageResource(R.drawable.ic_pause)
         }
 
@@ -134,6 +136,7 @@ class FloatWindowService : Service() {
 
         fun seekTo(position: Long) {
             player?.seekTo(position)
+            setWardBtnStatus()
         }
 
         fun removeFloatWindow(): Long {
@@ -163,6 +166,26 @@ class FloatWindowService : Service() {
             mContainer.setBackgroundColor(Color.parseColor(color))
         }
 
+    }
+
+    //设置前进和后退按钮的状态
+    private fun setWardBtnStatus() {
+        var position = player.currentPosition
+        var total = player.contentDuration
+        if (position < mFastForwardMillisecond) {
+            ivBackward.imageAlpha = 153
+            ivBackward.isClickable = false
+        } else {
+            ivBackward.imageAlpha = 255
+            ivBackward.isClickable = true
+        }
+        if (total - position <= mFastForwardMillisecond) {
+            ivForward.imageAlpha = 153
+            ivForward.isClickable = false
+        } else {
+            ivForward.imageAlpha = 255
+            ivForward.isClickable = true
+        }
     }
 
     override fun onCreate() {
@@ -223,6 +246,14 @@ class FloatWindowService : Service() {
                         ivPlay.setImageResource(R.drawable.ic_play)
                         isVideoEnd = true
                     }
+                    Player.STATE_READY -> {
+                        Log.d(javaClass.name, "stateReady")
+                        isVideoEnd = false
+                    }
+                    Player.STATE_BUFFERING -> {
+                        Log.d(javaClass.name, "stateBuffering")
+
+                    }
                 }
                 super.onPlaybackStateChanged(playbackState)
             }
@@ -264,8 +295,18 @@ class FloatWindowService : Service() {
             var next = position + mFastForwardMillisecond
             if (next < total) {
                 player.seekTo(next)
+                if (total - next < mFastForwardMillisecond) {
+                    ivForward.imageAlpha = 153
+                    ivForward.isClickable = false
+                }
             } else {
                 player.seekTo(total)
+                ivForward.imageAlpha = 153
+                ivForward.isClickable = false
+            }
+            if (!ivBackward.isClickable) {
+                ivBackward.imageAlpha = 255
+                ivBackward.isClickable = true
             }
         }
         ivBackward.setOnClickListener {
@@ -273,9 +314,19 @@ class FloatWindowService : Service() {
             var next = position - mFastForwardMillisecond
             if (next > 0) {
                 player.seekTo(next)
+                ivForward.imageAlpha = 255
+                ivForward.isClickable = true
             } else {
                 player.seekTo(0)
+                ivBackward.imageAlpha = 153
+                ivBackward.isClickable = false
             }
+            if (!ivForward.isClickable) {
+                ivForward.imageAlpha = 255
+                ivForward.isClickable = true
+            }
+            isVideoEnd = false
+            ivPlay.setImageResource(R.drawable.ic_pause)
         }
     }
 
@@ -647,6 +698,7 @@ class FloatWindowService : Service() {
                     ivFullScreen.visibility = View.VISIBLE
                     ivForward.visibility = View.VISIBLE
                     ivBackward.visibility = View.VISIBLE
+                    ivClose.visibility = View.VISIBLE
                     isButtonShown = true
                     var position = player.currentPosition
                     var total = player.contentDuration
