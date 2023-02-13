@@ -177,6 +177,10 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
                 Log.d(javaClass.name, "position=$position")
                 mBinder?.seekTo(position.toString().toLong())
             }
+            "setPlaybackSpeed"->{
+                var speed = call.argument<Double>("speed")
+                mBinder?.setPlaybackSpeed(speed?:1.0);
+            }
             "isLive" -> {
                 var isLive = call.argument<Boolean>("isLive")
                 mIsLive = isLive ?: false

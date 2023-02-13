@@ -192,9 +192,16 @@ class FlutterFloatWindow {
   static seekTo(dynamic position) async {
     await _channel.invokeMethod('seekTo', position);
   }
+
+  ///设置视频播放速度
+  static setPlaybackSpeed(double speed) async {
+    Map<String, double> params = {'speed': speed};
+    await _channel.invokeMethod("setPlaybackSpeed", params);
+  }
+
   ///快进或者快退的时间间隔，以毫秒为单位
   static setFastForwardMillisecond(int millisecond) async {
-    Map<String,int> params ={'fastForwardMillisecond':millisecond};
+    Map<String, int> params = {'fastForwardMillisecond': millisecond};
     await _channel.invokeMethod('setFastForwardMillisecond', params);
   }
 

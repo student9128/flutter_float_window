@@ -29,7 +29,7 @@
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:textColor="#FFECC8"
-            android:text="主播已下线"/>
+            android:text="直播已结束"/>
 
     </RelativeLayout>
 

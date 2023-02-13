@@ -138,6 +138,9 @@ class FloatWindowService : Service() {
             player?.seekTo(position)
             setWardBtnStatus()
         }
+        fun setPlaybackSpeed(speed: Double){
+            player?.setPlaybackSpeed(speed.toFloat())
+        }
 
         fun removeFloatWindow(): Long {
             removeWindowView()
