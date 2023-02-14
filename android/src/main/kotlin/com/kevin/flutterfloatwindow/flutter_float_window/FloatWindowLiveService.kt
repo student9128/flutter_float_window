@@ -30,6 +30,7 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
+import io.agora.rtc.Constants
 import io.agora.rtc.IRtcEngineEventHandler
 import io.agora.rtc.RtcEngine
 import io.agora.rtc.video.VideoCanvas
@@ -256,9 +257,9 @@ class FloatWindowLiveService : Service() {
         mRtcEngine = RtcEngine.create(context, appId, mRtcEventHandler)
         hasInitialized = true
         // 直播场景下，设置频道场景为 BROADCASTING。
-//        mRtcEngine.setChannelProfile();
+        mRtcEngine.setChannelProfile(Constants.CHANNEL_PROFILE_LIVE_BROADCASTING)
         // 根据场景设置用户角色为 BORADCASTER 或 AUDIENCE。
-//        mRtcEngine.setClientRole();
+        mRtcEngine.setClientRole(Constants.CLIENT_ROLE_AUDIENCE)
 
         // 视频默认禁用，你需要调用 enableVideo 开始视频流。
         mRtcEngine.enableVideo()
