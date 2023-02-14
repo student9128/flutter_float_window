@@ -1,3 +1,5 @@
+## 0.1.5
+optimized code.
 ## 0.1.4
 add method `setPlaybackSpeed`.
 ## 0.1.3
