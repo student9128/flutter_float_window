@@ -20,9 +20,11 @@ import android.view.animation.DecelerateInterpolator
 import android.widget.FrameLayout
 import android.widget.ImageView
 import androidx.constraintlayout.widget.ConstraintLayout
+import com.google.android.exoplayer2.C
 import com.google.android.exoplayer2.ExoPlayer
 import com.google.android.exoplayer2.MediaItem
 import com.google.android.exoplayer2.Player
+import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.ui.StyledPlayerView
@@ -238,6 +240,10 @@ class FloatWindowService : Service() {
             ivBackward.visibility = View.GONE
             isButtonShown = false
         }
+        var audioAttributes: AudioAttributes = AudioAttributes.Builder().setUsage(C.USAGE_MEDIA)
+            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+            .build()
+        player.setAudioAttributes(audioAttributes,true)
         player.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 when (playbackState) {
@@ -259,6 +265,19 @@ class FloatWindowService : Service() {
                     }
                 }
                 super.onPlaybackStateChanged(playbackState)
+            }
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                Log.d(javaClass.name, "playWhenReady====$reason")
+                when(reason){
+                    Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_FOCUS_LOSS->{
+                        ivPlay.setImageResource(R.drawable.ic_play)
+                        isVideoEnd = false
+                    }
+                    Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST->{
+
+                    }
+                }
+                super.onPlayWhenReadyChanged(playWhenReady, reason)
             }
         })
 
