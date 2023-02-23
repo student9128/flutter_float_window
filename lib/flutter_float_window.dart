@@ -236,4 +236,33 @@ class FlutterFloatWindow {
     Map<String, bool> params = {'isLive': isLive};
     await _channel.invokeMethod("isLive",params);
   }
+  ///* channelId:  Notification channel id
+  ///* channelName:  Notification channel name
+  static setNotificationChannelIdAndName(
+      String channelId, String channelName) async {
+    Map<String, String> params = {
+      "channelId": channelId,
+      "channelName": channelName
+    };
+    await _channel.invokeMethod("setNotificationChannelIdAndName", params);
+  }
+
+  /// 判断设备是否对app开启通知权限
+  ///
+  static Future<bool> canShowNotification() async {
+    return await _channel.invokeMethod("canShowNotification");
+  }
+
+  /// 去设置页面
+  static goSettingNotificationPage() async {
+    await _channel.invokeMethod("goSettingPage");
+  }
+  static showPlaybackNotification(String title,String content) async{
+    Map<String, String> params = {"title": title, "content": content};
+    await _channel.invokeMethod('showPlaybackNotification',params);
+  }
+  static showLiveNotification(String title,String content) async{
+    Map<String, String> params = {"title": title, "content": content};
+    await _channel.invokeMethod('showLiveNotification',params);
+  }
 }

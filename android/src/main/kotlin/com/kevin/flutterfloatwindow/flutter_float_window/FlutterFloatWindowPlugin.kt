@@ -40,6 +40,8 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
     private var useController = false
     private var mIsLive = false
     private var isPlayWhenScreenOff = true//锁屏情况下是否播放
+    private var channelID: String? = null
+    private var channelName: String? = null
     var isFirstShowFloatWindow = true//多次重复show或者hide悬浮窗的话，service连接上的时候播放视频
     override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         channel = MethodChannel(flutterPluginBinding.binaryMessenger, "flutter_float_window")
@@ -198,8 +200,68 @@ class FlutterFloatWindowPlugin : FlutterPlugin, MethodCallHandler, ActivityAware
                 mBinderLive?.removeFloatWindow()
                 result.success("")
             }
+            "canShowNotification" -> {
+                val checkCanShowNotification = checkCanShowNotification(context)
+                result.success(checkCanShowNotification)
+            }
+            "goSettingPage" -> {
+                goSettingPage(context)
+            }
+            "setNotificationChannelIdAndName"->{
+                channelID = call.argument<String>("channelId")
+                channelName = call.argument<String>("channelName")
+            }
+            "showPlaybackNotification"->{
+                initRemoteClick()
+                val title = call.argument<String>("title")
+                val content = call.argument<String>("content")
+                if (isCanNotShow()) return
+                showNotification(context,title!!,content!!,channelID!!,channelName!!)
+            }
+            "showLiveNotification"->{
+
+            }
             else -> result.notImplemented()
         }
+    }
+private fun initRemoteClick(){
+    RemoteClickListener.getInstance(context).beginListen(object:
+        RemoteClickListener.RemoteViewClickListener {
+        override fun onForwardClick() {
+            Toast.makeText(context,"快进",Toast.LENGTH_SHORT).show()
+            Log.e("Notification","1=======================")
+        }
+
+        override fun onPlayClick() {
+            Toast.makeText(context,"播放暂停",Toast.LENGTH_SHORT).show()
+            Log.e("Notification","2=======================")
+        }
+
+        override fun onBackwardClick() {
+            Toast.makeText(context,"后退",Toast.LENGTH_SHORT).show()
+            Log.e("Notification","3=======================")
+        }
+
+    })
+}
+    private fun isCanNotShow(): Boolean {
+        if (channelID.isNullOrEmpty() || channelName.isNullOrEmpty()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                Toast.makeText(
+                    activity,
+                    "you must set notification channel id and name",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                Toast.makeText(
+                    activity,
+                    "you must set notification channel id and name in Android O or higher",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            return true
+        }
+        return false
     }
 
     override fun onDetachedFromEngine(@NonNull binding: FlutterPlugin.FlutterPluginBinding) {
