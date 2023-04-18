@@ -27,6 +27,8 @@ import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.audio.AudioAttributes
 import com.google.android.exoplayer2.source.MediaSource
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
+import com.google.android.exoplayer2.source.hls.HlsDataSourceFactory
+import com.google.android.exoplayer2.source.hls.HlsMediaSource
 import com.google.android.exoplayer2.ui.StyledPlayerView
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
@@ -89,8 +91,7 @@ class FloatWindowService : Service() {
 
         fun initMediaSource(url: String, context: Context) {
             currentUrl = url
-            val uri = Uri.parse(url)
-            val mediaSource = buildMediaSource(uri, context)
+            val mediaSource = buildMediaSource(url, context)
             player?.setMediaSource(mediaSource!!)
             player?.prepare()
 //            player?.play()
@@ -140,7 +141,8 @@ class FloatWindowService : Service() {
             player?.seekTo(position)
             setWardBtnStatus()
         }
-        fun setPlaybackSpeed(speed: Double){
+
+        fun setPlaybackSpeed(speed: Double) {
             player?.setPlaybackSpeed(speed.toFloat())
         }
 
@@ -243,7 +245,7 @@ class FloatWindowService : Service() {
         var audioAttributes: AudioAttributes = AudioAttributes.Builder().setUsage(C.USAGE_MEDIA)
             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
             .build()
-        player.setAudioAttributes(audioAttributes,true)
+        player.setAudioAttributes(audioAttributes, true)
         player.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
                 when (playbackState) {
@@ -266,14 +268,15 @@ class FloatWindowService : Service() {
                 }
                 super.onPlaybackStateChanged(playbackState)
             }
+
             override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
                 Log.d(javaClass.name, "playWhenReady====$reason")
-                when(reason){
-                    Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_FOCUS_LOSS->{
+                when (reason) {
+                    Player.PLAY_WHEN_READY_CHANGE_REASON_AUDIO_FOCUS_LOSS -> {
                         ivPlay.setImageResource(R.drawable.ic_play)
                         isVideoEnd = false
                     }
-                    Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST->{
+                    Player.PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST -> {
 
                     }
                 }
@@ -353,8 +356,8 @@ class FloatWindowService : Service() {
     }
 
     lateinit var dataSourceFactory: DataSource.Factory
-    private fun buildMediaSource(uri: Uri, context: Context): MediaSource? {
-
+    private fun buildMediaSource(url: String, context: Context): MediaSource? {
+        val uri = Uri.parse(url)
         dataSourceFactory = if (isHTTP(uri)) {
             val httpDataSourceFactory = DefaultHttpDataSource.Factory()
                 .setUserAgent("ExoPlayer")
@@ -363,7 +366,9 @@ class FloatWindowService : Service() {
         } else {
             DefaultDataSource.Factory(context)
         }
-        return ProgressiveMediaSource.Factory(
+
+        return if (url.lowercase().endsWith(".m3u8")) HlsMediaSource.Factory(dataSourceFactory)
+            .createMediaSource(MediaItem.fromUri(uri)) else ProgressiveMediaSource.Factory(
             dataSourceFactory
         ).createMediaSource(MediaItem.fromUri(uri))
     }
