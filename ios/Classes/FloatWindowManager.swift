@@ -25,6 +25,11 @@ public class FloatWindowManager:NSObject{
          }
         pipController = AVPictureInPictureController(playerLayer: playerLayer)
         pipController?.delegate=self
+        if #available(iOS 14.2, *) {
+            pipController?.canStartPictureInPictureAutomaticallyFromInline=true
+        } else {
+            // Fallback on earlier versions
+        }
         initRemoteCommand()
         initNowingPlayCenter()
     }

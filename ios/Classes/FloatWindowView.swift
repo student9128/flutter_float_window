@@ -18,12 +18,14 @@ class FloatWindowView : NSObject,FlutterPlatformView{
           arguments args: Any?,
           binaryMessenger messenger: FlutterBinaryMessenger?
       ) {
-          _view = UIView()
+//          _view = UIView()
+          _view = TestView()
           super.init()
           let channel = FlutterMethodChannel(name: "flutter_float_window", binaryMessenger: messenger!)
           channel.setMethodCallHandler { call, result in
               self.handle(call, result: result)
           }
+          printE("frame=\(frame)")
           // iOS views can be created here
           printW("args=\(String(describing: args))")
 //          if let paragms = args as? [String:Any]{
@@ -40,17 +42,17 @@ class FloatWindowView : NSObject,FlutterPlatformView{
               let nativeLabel = UILabel()
               nativeLabel.text = "\(dic["text"] as! String)\(dic["hello"] as! String)"
               nativeLabel.textColor = UIColor.white
-              nativeLabel.frame=CGRect(x: 0, y: 50, width: 180, height: 50)
+//              nativeLabel.frame=CGRect(x: 0, y: 50, width: 180, height: 50)
               _view.addSubview(nativeLabel)
           }
-          createNativeView(view: _view)
+//          createNativeView(view: _view,frame: frame)
       }
 
       func view() -> UIView {
           return _view
       }
 //    var pipController:AVPictureInPictureController!
-      func createNativeView(view _view: UIView){
+    func createNativeView(view _view: UIView,frame:CGRect){
           _view.backgroundColor = UIColor.blue
           let nativeLabel = UILabel()
           nativeLabel.text = "Native text from iOS"
@@ -64,7 +66,8 @@ class FloatWindowView : NSObject,FlutterPlatformView{
           let videoURL = URL(string: url)!
           let player = AVPlayer(url: videoURL)
           let playerLayer = AVPlayerLayer(player: player)
-          playerLayer.frame=CGRect(x: 0, y: 0, width: width, height: 300)
+          printI("frame=\(frame)")
+          playerLayer.frame=CGRect(x: 0, y: 0, width: 200, height: 300)
 //          _view.addSubview(player)
           FloatWindowManager.shared.initFloatWindowManager(playerLayer: playerLayer)
 //          pipController = AVPictureInPictureController(playerLayer: playerLayer)
@@ -98,6 +101,47 @@ class FloatWindowView : NSObject,FlutterPlatformView{
         }
     }
     
+}
+class TestView:UIView{
+    let _nativeLabel = UILabel()
+    var playerLayer:AVPlayerLayer?
+    override init(frame: CGRect) {
+        super.init(frame:frame)
+        _nativeLabel.text = "Native text from iOS测试"
+          _nativeLabel.textColor = UIColor.white
+          _nativeLabel.backgroundColor = UIColor.red
+          _nativeLabel.textAlignment = .center
+          _nativeLabel.frame = CGRect.zero
+          self.addSubview(_nativeLabel)
+        
+        let url = "https://live.idbhost.com/05d2556e74e9408db0ee370b41536282/d4d54975f8a34b21bd9061ac0464a092-bafd00dba653149fda08dc8743bf8820-sd.mp4"
+        let width = UIScreen.main.bounds.size.width
+        let height = UIScreen.main.bounds.size.height
+        let playerItem = AVPlayerItem(url:URL(string: url)!)
+        let videoURL = URL(string: url)!
+        let player = AVPlayer(url: videoURL)
+        playerLayer = AVPlayerLayer(player: player)
+        printI("frame=\(frame)")
+        
+//          _view.addSubview(player)
+        FloatWindowManager.shared.initFloatWindowManager(playerLayer: playerLayer!)
+//          pipController = AVPictureInPictureController(playerLayer: playerLayer)
+//          pipController.delegate=self
+        self.layer.addSublayer(playerLayer!)
+        printI("player=\(playerLayer!),\(player)")
+        player.play()
+   
+    }
+    
+    required init?(coder: NSCoder) {
+       super.init(coder: coder)
+     }
+    override func layoutSubviews() {
+        print("current frame: \(self.frame)")
+//        _nativeLabel.frame = CGRect(x: 10, y: 10, width: self.frame.width-20, height: self.frame.height-20)
+        playerLayer?.frame=frame
+        super.layoutSubviews()
+    }
 }
 
 //extension FloatWindowView: AVPictureInPictureControllerDelegate{

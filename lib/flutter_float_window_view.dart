@@ -10,12 +10,12 @@ class FlutterFloatWindowView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return UiKitView(
-      viewType: "flutter_float_window",
-      creationParams: <String,dynamic>{"text":text,"hello":"hello"},
-      creationParamsCodec: const StandardMessageCodec(),
-      onPlatformViewCreated:(viewId){
-        print("viewId===$viewId");
-      } ,
+          viewType: "flutter_float_window",
+          creationParams: <String,dynamic>{"text":text,"hello":"hello"},
+          creationParamsCodec: const StandardMessageCodec(),
+          onPlatformViewCreated:(viewId){
+            print("viewId===$viewId");
+          }
     );
   }
 }
