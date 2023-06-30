@@ -7,6 +7,8 @@
 
 import Foundation
 import UIKit
+import AVKit
+import AVFoundation
 class FloatWindowView : NSObject,FlutterPlatformView{
     private var _view: UIView
 
@@ -18,6 +20,10 @@ class FloatWindowView : NSObject,FlutterPlatformView{
       ) {
           _view = UIView()
           super.init()
+          let channel = FlutterMethodChannel(name: "flutter_float_window", binaryMessenger: messenger!)
+          channel.setMethodCallHandler { call, result in
+              self.handle(call, result: result)
+          }
           // iOS views can be created here
           printW("args=\(String(describing: args))")
 //          if let paragms = args as? [String:Any]{
@@ -43,7 +49,7 @@ class FloatWindowView : NSObject,FlutterPlatformView{
       func view() -> UIView {
           return _view
       }
-
+//    var pipController:AVPictureInPictureController!
       func createNativeView(view _view: UIView){
           _view.backgroundColor = UIColor.blue
           let nativeLabel = UILabel()
@@ -51,6 +57,63 @@ class FloatWindowView : NSObject,FlutterPlatformView{
           nativeLabel.textColor = UIColor.white
           nativeLabel.textAlignment = .center
           nativeLabel.frame = CGRect(x: 0, y: 0, width: 180, height: 48.0)
-          _view.addSubview(nativeLabel)
+          let url = "https://live.idbhost.com/05d2556e74e9408db0ee370b41536282/d4d54975f8a34b21bd9061ac0464a092-bafd00dba653149fda08dc8743bf8820-sd.mp4"
+          let width = UIScreen.main.bounds.size.width
+          let height = UIScreen.main.bounds.size.height
+          let playerItem = AVPlayerItem(url:URL(string: url)!)
+          let videoURL = URL(string: url)!
+          let player = AVPlayer(url: videoURL)
+          let playerLayer = AVPlayerLayer(player: player)
+          playerLayer.frame=CGRect(x: 0, y: 0, width: width, height: 300)
+//          _view.addSubview(player)
+          FloatWindowManager.shared.initFloatWindowManager(playerLayer: playerLayer)
+//          pipController = AVPictureInPictureController(playerLayer: playerLayer)
+//          pipController.delegate=self
+          _view.layer.addSublayer(playerLayer)
+          printI("player=\(playerLayer),\(player)")
+          player.play()
+//          do {
+//              try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback,mode: AVAudioSession.Mode.default)
+//                try AVAudioSession.sharedInstance().setActive(true)
+//            } catch {
+//                printE("初始化的时候Failed to enable background audio.")
+//            }
+          
       }
+    public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+        printD("floatwindowview call method=\(call.method)")
+        switch (call.method) {
+        case "canShowFloatWindow":
+            break
+        case "showFloatWindow":
+            FloatWindowManager.shared.startPip()
+//            printW("possible=\(pipController.isPictureInPicturePossible)")
+//            pipController.startPictureInPicture()
+            break
+        case "hideFloatWindow":
+//            pipController.startPictureInPicture()
+            break
+        default:
+            result(FlutterMethodNotImplemented)
+        }
+    }
+    
 }
+
+//extension FloatWindowView: AVPictureInPictureControllerDelegate{
+//    func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, failedToStartPictureInPictureWithError error: Error) {
+//        printE("pictureInPictureController erro=\(error)")
+//    }
+//    func pictureInPictureControllerWillStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+//
+//    }
+//    func pictureInPictureControllerDidStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+//
+//    }
+//    func pictureInPictureControllerWillStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+//
+//    }
+//    func pictureInPictureControllerDidStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+//
+//    }
+//}

@@ -42,10 +42,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
       overlayEntryX = OverlayEntry(builder: (context) {
         return Positioned(
-          left: 10,
+          left: 0,
             top: 80,
-            width: 200,
-            height: 100,
+            width: MediaQuery.of(context).size.width-1,
+            height: 300,
             child:Material(
           color: Colors.transparent,
           child: Container(
@@ -87,7 +87,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       Overlay.of(context)?.insert(overlayEntry);
     });
     super.initState();
-    initVideoPlayer();
+    // initVideoPlayer();
     initFloatListener();
     _widthController = TextEditingController()..addListener(() {});
     _heightController = TextEditingController()..addListener(() {});
@@ -96,10 +96,10 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   }
 
   initVideoPlayer() async {
-    _controller = VideoPlayerController.network(
-        "https://live.idbhost.com/da211fc4238d421984788089b7263566/4e589f50870b471095aa86d07a25a83e-a9a4e5e6da87e733106f697c8ab0de98-sd.mp4");
-    await _controller.initialize();
-    _controller.play();
+    // _controller = VideoPlayerController.network(
+    //     "https://live.idbhost.com/da211fc4238d421984788089b7263566/4e589f50870b471095aa86d07a25a83e-a9a4e5e6da87e733106f697c8ab0de98-sd.mp4");
+    // await _controller.initialize();
+    // _controller.play();
   }
 
   initFloatListener() async {
@@ -130,15 +130,23 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
+      case AppLifecycleState.inactive:
+        print("inactive");
+        // FlutterFloatWindow.showFloatWindow();
+        break;
       case AppLifecycleState.paused:
+        print("paused");
         Map<String, String> params = {
           "videoUrl":
               'https://live.idbhost.com/da211fc4238d421984788089b7263566/4e589f50870b471095aa86d07a25a83e-a9a4e5e6da87e733106f697c8ab0de98-sd.mp4'
           // 'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
         };
         // FlutterFloatWindow.showFloatWindowWithInit(params);
+        debugPrint("hello");
+        // FlutterFloatWindow.showFloatWindow();
         break;
       case AppLifecycleState.resumed:
+        print("resumed");
         // FlutterFloatWindow.hideFloatWindow();
         break;
       default:
@@ -161,15 +169,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               child: Wrap(
               spacing: 10,
               children: [
-                AspectRatio(
-                  aspectRatio: 1.7 / 1,
-                  child: VideoPlayer(_controller),
-                ),
-                Container(
-                  width: 200,
-                  height: 100,
-                  child: FlutterFloatWindowView(text: "我是flutter层",),
-                ),
+                // AspectRatio(
+                //   aspectRatio: 1.7 / 1,
+                //   child: VideoPlayer(_controller),
+                // ),
+                // Container(
+                //   width: 200,
+                //   height: 100,
+                //   child: FlutterFloatWindowView(text: "我是flutter层",),
+                // ),
                 Center(
                   child: Text('Running on: $_platformVersion\n'),
                 ),
@@ -381,7 +389,11 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                       Navigator.of(context).push(
                           CupertinoPageRoute(builder: (context) => TestPage()));
                     },
-                    child: Text('go next')),
+                    child: Text('go next')),    ElevatedButton(
+                    onPressed: () {
+                    FlutterFloatWindow.showFloatWindow();
+                    },
+                    child: Text('弹画中画')),
                 ElevatedButton(
                     onPressed: () {
                       Overlay.of(context).insert(overlayEntryX);
