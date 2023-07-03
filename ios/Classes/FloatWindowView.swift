@@ -51,6 +51,9 @@ class FloatWindowView : NSObject,FlutterPlatformView{
       func view() -> UIView {
           return _view
       }
+    deinit {
+        printE("走了吗XXXXX")
+    }
 //    var pipController:AVPictureInPictureController!
     func createNativeView(view _view: UIView,frame:CGRect){
           _view.backgroundColor = UIColor.blue
@@ -69,7 +72,7 @@ class FloatWindowView : NSObject,FlutterPlatformView{
           printI("frame=\(frame)")
           playerLayer.frame=CGRect(x: 0, y: 0, width: 200, height: 300)
 //          _view.addSubview(player)
-          FloatWindowManager.shared.initFloatWindowManager(playerLayer: playerLayer)
+//          FloatWindowManager.shared.initFloatWindowManager(playerLayer: playerLayer)
 //          pipController = AVPictureInPictureController(playerLayer: playerLayer)
 //          pipController.delegate=self
           _view.layer.addSublayer(playerLayer)
@@ -118,18 +121,19 @@ class TestView:UIView{
         let width = UIScreen.main.bounds.size.width
         let height = UIScreen.main.bounds.size.height
         let playerItem = AVPlayerItem(url:URL(string: url)!)
-        let videoURL = URL(string: url)!
-        let player = AVPlayer(url: videoURL)
-        playerLayer = AVPlayerLayer(player: player)
-        printI("frame=\(frame)")
+//        let videoURL = URL(string: url)!
+//        let player = AVPlayer(url: videoURL)
+//        playerLayer = AVPlayerLayer(player: player)
+//        printI("frame=\(frame)")
+        FloatWindowManager.shared.initFloatWindowManager(videoUrl: url)
         
 //          _view.addSubview(player)
-        FloatWindowManager.shared.initFloatWindowManager(playerLayer: playerLayer!)
+//        FloatWindowManager.shared.initFloatWindowManager(playerLayer: playerLayer!)
 //          pipController = AVPictureInPictureController(playerLayer: playerLayer)
 //          pipController.delegate=self
-        self.layer.addSublayer(playerLayer!)
-        printI("player=\(playerLayer!),\(player)")
-        player.play()
+        self.layer.addSublayer(FloatWindowManager.shared.playerLayerX!)
+//        printI("player=\(playerLayer!),\(player)")
+//        player.play()
    
     }
     
@@ -139,8 +143,13 @@ class TestView:UIView{
     override func layoutSubviews() {
         print("current frame: \(self.frame)")
 //        _nativeLabel.frame = CGRect(x: 10, y: 10, width: self.frame.width-20, height: self.frame.height-20)
-        playerLayer?.frame=frame
+//        playerLayer?.frame=frame
+        FloatWindowManager.shared.playerLayerX?.frame=frame
         super.layoutSubviews()
+    }
+    
+    deinit {
+        printE("是否走了deinit")
     }
 }
 

@@ -74,6 +74,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver,TickerProvide
                       height: 180,
                       color: Colors.yellow,
                       child: FlutterFloatWindowView(
+                        videoUrl:"https://live.idbhost.com/05d2556e74e9408db0ee370b41536282/d4d54975f8a34b21bd9061ac0464a092-bafd00dba653149fda08dc8743bf8820-sd.mp4",
                         text: "我是flutter层12",
                       ),
                     ),

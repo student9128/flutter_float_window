@@ -15,23 +15,28 @@ public class FloatWindowManager:NSObject{
     }
     var pipController: AVPictureInPictureController?
     var playerLayerX:AVPlayerLayer?
-    func initFloatWindowManager(playerLayer:AVPlayerLayer){
-        playerLayerX=playerLayer
+    var player:AVPlayer?
+    func initFloatWindowManager(videoUrl:String){
+        let videoURL = URL(string: videoUrl)!
+        let player = AVPlayer(url: videoURL)
+        playerLayerX = AVPlayerLayer(player: player)
+        player.play()
         do {
              try AVAudioSession.sharedInstance().setCategory(.playback)
 //             try AVAudioSession.sharedInstance().setActive(true, options: [])
          } catch {
              printE("AVAudioSession发生错误")
          }
-        pipController = AVPictureInPictureController(playerLayer: playerLayer)
+        pipController = AVPictureInPictureController(playerLayer: playerLayerX!)
         pipController?.delegate=self
         if #available(iOS 14.2, *) {
             pipController?.canStartPictureInPictureAutomaticallyFromInline=true
         } else {
             // Fallback on earlier versions
         }
-        initRemoteCommand()
-        initNowingPlayCenter()
+        
+//        initRemoteCommand()
+//        initNowingPlayCenter()
     }
     public func startPip(){
         pipController?.startPictureInPicture()
@@ -47,6 +52,9 @@ public class FloatWindowManager:NSObject{
         }else{
             printI("XXX==")
         }
+    }
+    public func pause(){
+        
     }
     func initRemoteCommand(){
         let commondCenter: MPRemoteCommandCenter = MPRemoteCommandCenter.shared()
@@ -123,5 +131,17 @@ public class FloatWindowManager:NSObject{
 extension FloatWindowManager:AVPictureInPictureControllerDelegate{
     public func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, failedToStartPictureInPictureWithError error: Error) {
     printE("error=\(error)")
+    }
+    public func pictureInPictureControllerWillStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+        printI("pictureInPictureControllerWillStartPictureInPicture")
+    }
+    public func pictureInPictureControllerDidStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+        printI("pictureInPictureControllerDidStartPictureInPicture")
+    }
+    public func pictureInPictureControllerWillStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+        printI("pictureInPictureControllerWillStopPictureInPicture")
+    }
+    public func pictureInPictureControllerDidStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
+        printI("pictureInPictureControllerDidStopPictureInPicture")
     }
 }
