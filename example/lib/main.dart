@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:math';
 import 'dart:ui';
 
@@ -9,7 +10,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_float_window/flutter_float_window.dart';
 import 'package:flutter_float_window/flutter_float_window_view.dart';
 import 'package:flutter_float_window_example/test_page.dart';
-import 'package:video_player/video_player.dart';
 
 void main() {
   runApp(const MaterialApp(
@@ -24,7 +24,8 @@ class MyApp extends StatefulWidget {
   _MyAppState createState() => _MyAppState();
 }
 
-class _MyAppState extends State<MyApp> with WidgetsBindingObserver,TickerProviderStateMixin {
+class _MyAppState extends State<MyApp>
+    with WidgetsBindingObserver, TickerProviderStateMixin {
   String _platformVersion = 'Unknown';
   late TextEditingController _widthController;
   late TextEditingController _heightController;
@@ -34,86 +35,131 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver,TickerProvide
   int colorIndex = 0;
   late OverlayEntry overlayEntry;
   late OverlayEntry overlayEntryX;
-  late VideoPlayerController _controller;
   double scaleFactor = 1.0;
   late AnimationController _animationController;
   late Animation _animationScale;
+  double x = 16;
+  double y = 80;
+
+  ///设计小窗大小：4/5*width
+
   @override
   void initState() {
-      _animationController = AnimationController(duration: Duration(milliseconds: 200), vsync: this);
-      _animationScale =
-          Tween(begin: 1.0, end: 0.5).animate(_animationController)..addListener(() {
-            setState(() {
-            });
-            overlayEntryX.markNeedsBuild();
-          });
-      _animationController.addStatusListener((status) {
-        // if(_animationController.isCompleted){
-        //   _animationController.reverse();
-        // }else{
-        //   _animationController.forward();
-        // }
+    _animationController =
+        AnimationController(duration: Duration(milliseconds: 200), vsync: this);
+    _animationScale = Tween(begin: 1.0, end: 0.5).animate(_animationController)
+      ..addListener(() {
+        setState(() {});
+        overlayEntryX.markNeedsBuild();
       });
+    _animationController.addStatusListener((status) {
+      // if(_animationController.isCompleted){
+      //   _animationController.reverse();
+      // }else{
+      //   _animationController.forward();
+      // }
+    });
     WidgetsBinding.instance?.addObserver(this);
-    WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
-      overlayEntryX = OverlayEntry(builder: (context) {
-        return  Positioned(
-              left: 0,
-              top: 80,
+    if (Platform.isIOS) {
+      WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
+        overlayEntryX = OverlayEntry(builder: (context) {
+          return Positioned(
+              left: x,
+              top: y,
               // width: MediaQuery.of(context).size.width,
               // height: 100,
-              child:AnimatedBuilder(
-                animation: _animationController,
-                builder: (context,child){
-                  return Transform.scale(
-                    scale: _animationScale.value,
-                    child: Material(
-                    color: Colors.transparent,
-                    child: Container(
-                      width: 320,
-                      height: 180,
-                      color: Colors.yellow,
-                      child: FlutterFloatWindowView(
-                        videoUrl:"https://live.idbhost.com/05d2556e74e9408db0ee370b41536282/d4d54975f8a34b21bd9061ac0464a092-bafd00dba653149fda08dc8743bf8820-sd.mp4",
-                        text: "我是flutter层12",
-                      ),
-                    ),
-                  ),);
-                },
-              )
-        );
+              child: GestureDetector(
+                  onTap: () {},
+                  onDoubleTap: () {
+                    if (_animationScale.value == 0.5) {
+                      _animationController.reverse();
+                      x=16;
+                      overlayEntryX.markNeedsBuild();
+                    } else if (_animationScale.value == 1.0) {
+                      _animationController.forward();
+                    }
+                  },
+                  onPanUpdate: (DragUpdateDetails details) {
+                    x += details.delta.dx;
+                    y += details.delta.dy;
+                    if (x <= 0) x = 0;
+                    if (y <= 40) y = 40;
+                    print("x=$x,y=$y");
+
+                    overlayEntryX.markNeedsBuild();
+                  },
+                  onPanEnd: (DragEndDetails details){
+                    if(_animationScale.value==0.5){
+                      var width = (MediaQuery.of(context).size.width-32)/2;
+                      var right =MediaQuery.of(context).size.width-16;
+                      if(x+width>=right){
+                        x=right-width;
+                      }
+                    }else if(_animationScale.value==1.0){
+                      var width = (MediaQuery.of(context).size.width-32);
+                      var right =MediaQuery.of(context).size.width-16;
+                    }
+                    if(y<=80)y=80;
+                    overlayEntryX.markNeedsBuild();
+                  },
+                  child: AnimatedBuilder(
+                    animation: _animationController,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _animationScale.value,
+                        alignment: Alignment.topLeft,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: Container(
+                            width: MediaQuery.of(context).size.width - 32,
+                            height: (MediaQuery.of(context).size.width - 32) *
+                                9 /
+                                16,
+                            color: Colors.yellow,
+                            child: FlutterFloatWindowView(
+                              videoUrl:
+                                  "https://live.idbhost.com/05d2556e74e9408db0ee370b41536282/d4d54975f8a34b21bd9061ac0464a092-bafd00dba653149fda08dc8743bf8820-sd.mp4",
+                              text: "我是flutter层12",
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  )));
+        });
+        overlayEntry = OverlayEntry(builder: (context) {
+          debugPrint('hello');
+          return IgnorePointer(
+            child: Material(
+              color: Colors.transparent,
+              child:
+                  // color: Colors.red.withOpacity(0.5),
+                  ListView.builder(
+                      itemExtent: 100,
+                      itemCount: 10,
+                      itemBuilder: (context, index) {
+                        return buildRow();
+                      }),
+            ),
+          );
+          // return Positioned(
+          //     right: 0,
+          //     bottom: 0,
+          //     width: 200,
+          //     height: 200,
+          //     child: GestureDetector(
+          //         behavior: HitTestBehavior.translucent,
+          //         child: Material(
+          //             color: Colors.blue.withOpacity(0.1),
+          //             child: Container(
+          //               color: Colors.red.withOpacity(0.5),
+          //               child: Text('hello'),
+          //             ))));
+        });
+        Overlay.of(context)?.insert(overlayEntry);
       });
-      overlayEntry = OverlayEntry(builder: (context) {
-        debugPrint('hello');
-        return IgnorePointer(
-          child: Material(
-            color: Colors.transparent,
-            child:
-                // color: Colors.red.withOpacity(0.5),
-                ListView.builder(
-                    itemExtent: 100,
-                    itemCount: 10,
-                    itemBuilder: (context, index) {
-                      return buildRow();
-                    }),
-          ),
-        );
-        // return Positioned(
-        //     right: 0,
-        //     bottom: 0,
-        //     width: 200,
-        //     height: 200,
-        //     child: GestureDetector(
-        //         behavior: HitTestBehavior.translucent,
-        //         child: Material(
-        //             color: Colors.blue.withOpacity(0.1),
-        //             child: Container(
-        //               color: Colors.red.withOpacity(0.5),
-        //               child: Text('hello'),
-        //             ))));
-      });
-      Overlay.of(context)?.insert(overlayEntry);
-    });
+    }
+
     super.initState();
     // initVideoPlayer();
     initFloatListener();
@@ -151,7 +197,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver,TickerProvide
   @override
   void dispose() {
     WidgetsBinding.instance?.removeObserver(this);
-    _controller.dispose();
     super.dispose();
   }
 
@@ -197,15 +242,6 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver,TickerProvide
               child: Wrap(
                 spacing: 10,
                 children: [
-                  // AspectRatio(
-                  //   aspectRatio: 1.7 / 1,
-                  //   child: VideoPlayer(_controller),
-                  // ),
-                  // Container(
-                  //   width: 200,
-                  //   height: 100,
-                  //   child: FlutterFloatWindowView(text: "我是flutter层",),
-                  // ),
                   Center(
                     child: Text('Running on: $_platformVersion\n'),
                   ),
@@ -436,12 +472,13 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver,TickerProvide
                       child: Text('移除overaly')),
                   ElevatedButton(
                       onPressed: () {
-                       _animationController.forward();
+                        _animationController.forward();
                         // overlayEntryX.markNeedsBuild();
                       },
-                      child: Text('缩放overlay操作')),      ElevatedButton(
+                      child: Text('缩放overlay操作')),
+                  ElevatedButton(
                       onPressed: () {
-                       _animationController.reverse();
+                        _animationController.reverse();
                         // overlayEntryX.markNeedsBuild();
                       },
                       child: Text('缩放overlay操作返回')),
