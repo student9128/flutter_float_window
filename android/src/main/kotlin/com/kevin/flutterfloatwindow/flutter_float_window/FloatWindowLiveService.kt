@@ -589,10 +589,10 @@ class FloatWindowLiveService : Service() {
                     return false
                 }
 
-                override fun onShowPress(e: MotionEvent?) {
+                override fun onShowPress(e: MotionEvent) {
                 }
 
-                override fun onSingleTapUp(e: MotionEvent?): Boolean = false
+                override fun onSingleTapUp(e: MotionEvent): Boolean = false
 
                 override fun onScroll(
                     e1: MotionEvent,
@@ -610,7 +610,7 @@ class FloatWindowLiveService : Service() {
                     return true
                 }
 
-                override fun onLongPress(e: MotionEvent?) {
+                override fun onLongPress(e: MotionEvent) {
                 }
 
                 override fun onFling(
@@ -622,7 +622,7 @@ class FloatWindowLiveService : Service() {
 
             })
         gestureDetector.setOnDoubleTapListener(object : GestureDetector.OnDoubleTapListener {
-            override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
+            override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
                 if (!isButtonShown) {
                     handler.removeCallbacks(runnable)
                     ivFullScreen.visibility = View.VISIBLE
@@ -637,7 +637,7 @@ class FloatWindowLiveService : Service() {
                 return true
             }
 
-            override fun onDoubleTap(e: MotionEvent?): Boolean {
+            override fun onDoubleTap(e: MotionEvent): Boolean {
                 val layoutParams = flContainer.layoutParams
                 var width = layoutParams.width
                 var height = layoutParams.height
@@ -688,7 +688,7 @@ class FloatWindowLiveService : Service() {
                 return true
             }
 
-            override fun onDoubleTapEvent(e: MotionEvent?): Boolean = false
+            override fun onDoubleTapEvent(e: MotionEvent): Boolean = false
 
         })
         clContainer?.setOnTouchListener { v, event ->
