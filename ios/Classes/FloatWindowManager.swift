@@ -35,8 +35,16 @@ public class FloatWindowManager:NSObject{
          } catch {
              printE("AVAudioSession发生错误")
          }
+        
         pipController = AVPictureInPictureController(playerLayer: playerLayerX!)
         pipController?.delegate=self
+
+//        if #available(iOS 14.0, *) {
+//            pipController?.requiresLinearPlayback=true //隐藏快进后退按钮
+//        } else {
+//            // Fallback on earlier versions
+//        }
+//        pipController?.setValue(1, forKey: "controlsStyle")//隐藏除关闭和退出画中画以外的其他按钮
     
 //        pipController?.setValue(1, forKey: "requiresLinearPlayback")//隐藏快进后退按钮
 //        pipController?.setValue(2, forKey: "controlsStyle")//隐藏所有按钮

@@ -137,21 +137,37 @@ class FloatVideoView:UIView{
         pipExitImageView.tintColor = UIColor.white
         closeImageView.tintColor = UIColor.white
         
-        self.addSubview(pipExitImageView)
-        self.addSubview(closeImageView)
-        
+        pipExitContainer.addSubview(pipExitImageView)
         pipExitImageView.translatesAutoresizingMaskIntoConstraints=false
-        closeImageView.translatesAutoresizingMaskIntoConstraints=false
         NSLayoutConstraint.activate([
             pipExitImageView.widthAnchor.constraint(equalToConstant: 25),
             pipExitImageView.heightAnchor.constraint(equalToConstant: 20),
-            pipExitImageView.topAnchor.constraint(equalTo: self.topAnchor,constant: 10),
-            pipExitImageView.rightAnchor.constraint(equalTo: self.rightAnchor,constant: -10),
-        
+            pipExitImageView.centerXAnchor.constraint(equalTo: pipExitContainer.centerXAnchor),
+            pipExitImageView.centerYAnchor.constraint(equalTo: pipExitContainer.centerYAnchor)
+        ])
+        closeContainer.addSubview(closeImageView)
+        closeImageView.translatesAutoresizingMaskIntoConstraints=false
+        NSLayoutConstraint.activate([
             closeImageView.widthAnchor.constraint(equalToConstant: 20),
             closeImageView.heightAnchor.constraint(equalToConstant: 22),
-            closeImageView.topAnchor.constraint(equalTo: self.topAnchor,constant: 10),
-            closeImageView.leftAnchor.constraint(equalTo: self.leftAnchor,constant: 10),
+            closeImageView.centerXAnchor.constraint(equalTo: closeContainer.centerXAnchor),
+            closeImageView.centerYAnchor.constraint(equalTo: closeContainer.centerYAnchor)
+        ])
+        
+        self.addSubview(pipExitContainer)
+        self.addSubview(closeContainer)
+        pipExitContainer.translatesAutoresizingMaskIntoConstraints=false
+        closeContainer.translatesAutoresizingMaskIntoConstraints=false
+        NSLayoutConstraint.activate([
+            pipExitContainer.widthAnchor.constraint(equalToConstant: 45),
+            pipExitContainer.heightAnchor.constraint(equalToConstant: 40),
+            pipExitContainer.topAnchor.constraint(equalTo: self.topAnchor,constant: 0),
+            pipExitContainer.rightAnchor.constraint(equalTo: self.rightAnchor,constant: 0),
+        
+            closeContainer.widthAnchor.constraint(equalToConstant: 40),
+            closeContainer.heightAnchor.constraint(equalToConstant: 42),
+            closeContainer.topAnchor.constraint(equalTo: self.topAnchor,constant: 0),
+            closeContainer.leftAnchor.constraint(equalTo: self.leftAnchor,constant: 0),
         ])
         
         stackView.axis = .horizontal
@@ -164,7 +180,7 @@ class FloatVideoView:UIView{
         NSLayoutConstraint.activate([
             stackView.leftAnchor.constraint(equalTo: self.leftAnchor,constant: 0),
             stackView.rightAnchor.constraint(equalTo: self.rightAnchor,constant: 0),
-            stackView.topAnchor.constraint(equalTo: self.topAnchor,constant: 0),
+            stackView.topAnchor.constraint(equalTo: self.topAnchor,constant: 60),
             stackView.bottomAnchor.constraint(equalTo: self.bottomAnchor,constant: 0),
         ])
         
@@ -217,9 +233,9 @@ class FloatVideoView:UIView{
             playPauseContainer.heightAnchor.constraint(equalToConstant: 50),
         ])
 
-        let currentViewClick = UITapGestureRecognizer(target: self, action: #selector(onCurrentViewClick))
-        self.isUserInteractionEnabled=true
-        self.addGestureRecognizer(currentViewClick)
+//        let currentViewClick = UITapGestureRecognizer(target: self, action: #selector(onCurrentViewClick))
+//        self.isUserInteractionEnabled=true
+//        self.addGestureRecognizer(currentViewClick)
         
         let playPauseClick = UITapGestureRecognizer(target: self, action: #selector(onPlayPauseClick))
         playPauseContainer.isUserInteractionEnabled=true
@@ -234,11 +250,12 @@ class FloatVideoView:UIView{
         backwardContainer.addGestureRecognizer(backwardClick)
         
         let fullScreenClick = UITapGestureRecognizer(target: self, action: #selector(onFullScreenClick))
-        pipExitImageView.isUserInteractionEnabled=true
-        pipExitImageView.addGestureRecognizer(fullScreenClick)
+        pipExitContainer.isUserInteractionEnabled=true
+        pipExitContainer.addGestureRecognizer(fullScreenClick)
+        
         let closeClick = UITapGestureRecognizer(target: self, action: #selector(onCloseClick))
-        closeImageView.isUserInteractionEnabled=true
-        closeImageView.addGestureRecognizer(closeClick)
+        closeContainer.isUserInteractionEnabled=true
+        closeContainer.addGestureRecognizer(closeClick)
         
         
         
@@ -252,8 +269,8 @@ class FloatVideoView:UIView{
         FloatWindowManager.shared.playerLayerX?.frame=frame
         super.layoutSubviews()
 
-        self.addSubview(pipExitImageView)
-        self.addSubview(closeImageView)
+        self.addSubview(pipExitContainer)
+        self.addSubview(closeContainer)
         self.addSubview(stackView)
         
     }
