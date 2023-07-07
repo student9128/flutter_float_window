@@ -11,93 +11,96 @@ import AVKit
 import AVFoundation
 class FloatWindowView : NSObject,FlutterPlatformView{
     private var _view: UIView
-
-      init(
-          frame: CGRect,
-          viewIdentifier viewId: Int64,
-          arguments args: Any?,
-          binaryMessenger messenger: FlutterBinaryMessenger?
-      ) {
-//          _view = UIView()
-          _view = TestView()
-          super.init()
-          let channel = FlutterMethodChannel(name: "flutter_float_window", binaryMessenger: messenger!)
-          channel.setMethodCallHandler { call, result in
-              self.handle(call, result: result)
-          }
-          printE("frame=\(frame)")
-          // iOS views can be created here
-          printW("args=\(String(describing: args))")
-//          if let paragms = args as? [String:Any]{
-//              let text =  paragms["text"]
-//              printI("flutter传参\(text)")
-//          }
-//          if let XX = args as? Dictionary<String,Any>?{
-//              let text =  XX!["text"]
-//              printI("flutter传参23\(text)")
-//          }
-          if args is Dictionary<String,Any>?{
-              let dic = args as! Dictionary<String,Any>
-              printI("flutter的传参：\(String(describing: dic["text"])),\(String(describing: dic["hello"]))")
-              let nativeLabel = UILabel()
-              nativeLabel.text = "\(dic["text"] as! String)\(dic["hello"] as! String)"
-              nativeLabel.textColor = UIColor.white
-//              nativeLabel.frame=CGRect(x: 0, y: 50, width: 180, height: 50)
-              _view.addSubview(nativeLabel)
-          }
-//          createNativeView(view: _view,frame: frame)
-      }
-
-      func view() -> UIView {
-          return _view
-      }
+    
+    init(
+        frame: CGRect,
+        viewIdentifier viewId: Int64,
+        arguments args: Any?,
+        binaryMessenger messenger: FlutterBinaryMessenger?
+    ) {
+        //          _view = UIView()
+        _view = FloatVideoView()
+        super.init()
+        _view.layer.cornerRadius=14
+        _view.clipsToBounds=true
+        let channel = FlutterMethodChannelManager.shared.registerMethodChannel(name:"flutter_float_window",binaryMessenger: messenger!)
+        channel.setMethodCallHandler { call, result in
+            self.handle(call, result: result)
+        }
+        printE("frame=\(frame)")
+        // iOS views can be created here
+        printW("args=\(String(describing: args))")
+        //          if let paragms = args as? [String:Any]{
+        //              let text =  paragms["text"]
+        //              printI("flutter传参\(text)")
+        //          }
+        //          if let XX = args as? Dictionary<String,Any>?{
+        //              let text =  XX!["text"]
+        //              printI("flutter传参23\(text)")
+        //          }
+        if args is Dictionary<String,Any>?{
+            let dic = args as! Dictionary<String,Any>
+            printI("flutter的传参：\(String(describing: dic["text"])),\(String(describing: dic["hello"]))")
+            let nativeLabel = UILabel()
+            nativeLabel.text = "\(dic["text"] as! String)\(dic["hello"] as! String)"
+            nativeLabel.textColor = UIColor.white
+            //              nativeLabel.frame=CGRect(x: 0, y: 50, width: 180, height: 50)
+            _view.addSubview(nativeLabel)
+            
+            let url = dic["videoUrl"] as? String
+            if let videoUlr=url{
+                FloatWindowManager.shared.initFloatWindowManager(videoUrl: videoUlr)
+                _view.layer.addSublayer(FloatWindowManager.shared.playerLayerX!)
+            }
+            _view.addSubview(nativeLabel)
+            
+        }
+    }
+    
+    func view() -> UIView {
+        return _view
+    }
     deinit {
         printE("走了吗XXXXX")
     }
-//    var pipController:AVPictureInPictureController!
-    func createNativeView(view _view: UIView,frame:CGRect){
-          _view.backgroundColor = UIColor.blue
-          let nativeLabel = UILabel()
-          nativeLabel.text = "Native text from iOS"
-          nativeLabel.textColor = UIColor.white
-          nativeLabel.textAlignment = .center
-          nativeLabel.frame = CGRect(x: 0, y: 0, width: 180, height: 48.0)
-          let url = "https://live.idbhost.com/05d2556e74e9408db0ee370b41536282/d4d54975f8a34b21bd9061ac0464a092-bafd00dba653149fda08dc8743bf8820-sd.mp4"
-          let width = UIScreen.main.bounds.size.width
-          let height = UIScreen.main.bounds.size.height
-          let playerItem = AVPlayerItem(url:URL(string: url)!)
-          let videoURL = URL(string: url)!
-          let player = AVPlayer(url: videoURL)
-          let playerLayer = AVPlayerLayer(player: player)
-          printI("frame=\(frame)")
-          playerLayer.frame=CGRect(x: 0, y: 0, width: 200, height: 300)
-//          _view.addSubview(player)
-//          FloatWindowManager.shared.initFloatWindowManager(playerLayer: playerLayer)
-//          pipController = AVPictureInPictureController(playerLayer: playerLayer)
-//          pipController.delegate=self
-          _view.layer.addSublayer(playerLayer)
-          printI("player=\(playerLayer),\(player)")
-          player.play()
-//          do {
-//              try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback,mode: AVAudioSession.Mode.default)
-//                try AVAudioSession.sharedInstance().setActive(true)
-//            } catch {
-//                printE("初始化的时候Failed to enable background audio.")
-//            }
-          
-      }
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        printD("floatwindowview call method=\(call.method)")
+        printD("floatwindowview call method=\(call.method),\(call.arguments)")
         switch (call.method) {
         case "canShowFloatWindow":
             break
         case "showFloatWindow":
             FloatWindowManager.shared.startPip()
-//            printW("possible=\(pipController.isPictureInPicturePossible)")
-//            pipController.startPictureInPicture()
             break
         case "hideFloatWindow":
-//            pipController.startPictureInPicture()
+            FloatWindowManager.shared.stopPip()
+            break
+        case "play":
+            FloatWindowManager.shared.play()
+            break
+        case "pause":
+            FloatWindowManager.shared.pause()
+            break
+        case "seekTo":
+            NSLog("seekTo", "seekTo")
+            FloatWindowManager.shared.seekTo()
+            break
+        case "backward":
+            FloatWindowManager.shared.backward{ enable in
+                if(enable){
+                    
+                }else{
+                    
+                }
+            }
+            break
+        case "forward":
+            FloatWindowManager.shared.forward{ enable in
+                if(enable){}else{}
+                
+            }
+            break
+        case "onFullScreenClick":
+            FloatWindowManager.shared.onFullScreenClick()
             break
         default:
             result(FlutterMethodNotImplemented)
@@ -105,51 +108,176 @@ class FloatWindowView : NSObject,FlutterPlatformView{
     }
     
 }
-class TestView:UIView{
-    let _nativeLabel = UILabel()
+class FloatVideoView:UIView{
+    let forwardContainer = UIView()
+    let backwardContainer = UIView()
+    let playPauseContainer = UIView()
+    let closeContainer = UIView()
+    let pipExitContainer = UIView()
+    let forwardImageView = UIImageView(image: UIImage(systemName:"goforward.15"))
+    let backwardImageView = UIImageView(image: UIImage(systemName:"gobackward.15"))
+    let pauseImage = UIImage(systemName:"pause.fill")
+    let playImage = UIImage(systemName:"play.fill")
+    let playPauseImageView = UIImageView(image:UIImage(systemName:"pause.fill"))
+    let pipExitImageView = UIImageView(image: UIImage(systemName:"pip.exit"))
+    let closeImageView = UIImageView(image: UIImage(systemName:"xmark"))
+    let stackView = UIStackView()
     var playerLayer:AVPlayerLayer?
+    private var videoUrl: String=""
+    init(frame: CGRect,videoUrl:String) {
+        self.videoUrl=videoUrl;
+        super.init(frame: frame)
+        debugPrint("zou le ma~==========================12==")
+    }
     override init(frame: CGRect) {
+        self.videoUrl = ""
         super.init(frame:frame)
-        _nativeLabel.text = "Native text from iOS测试"
-          _nativeLabel.textColor = UIColor.white
-          _nativeLabel.backgroundColor = UIColor.red
-          _nativeLabel.textAlignment = .center
-          _nativeLabel.frame = CGRect.zero
-          self.addSubview(_nativeLabel)
+        debugPrint("zou le ma~============================")
+
+        pipExitImageView.tintColor = UIColor.white
+        closeImageView.tintColor = UIColor.white
+        self.addSubview(pipExitImageView)
+        self.addSubview(closeImageView)
+        pipExitImageView.translatesAutoresizingMaskIntoConstraints=false
+        closeImageView.translatesAutoresizingMaskIntoConstraints=false
+        NSLayoutConstraint.activate([
+            pipExitImageView.widthAnchor.constraint(equalToConstant: 25),
+            pipExitImageView.heightAnchor.constraint(equalToConstant: 20),
+            pipExitImageView.topAnchor.constraint(equalTo: self.topAnchor,constant: 10),
+            pipExitImageView.rightAnchor.constraint(equalTo: self.rightAnchor,constant: -10),
         
-        let url = "https://live.idbhost.com/05d2556e74e9408db0ee370b41536282/d4d54975f8a34b21bd9061ac0464a092-bafd00dba653149fda08dc8743bf8820-sd.mp4"
-        let width = UIScreen.main.bounds.size.width
-        let height = UIScreen.main.bounds.size.height
-        let playerItem = AVPlayerItem(url:URL(string: url)!)
-//        let videoURL = URL(string: url)!
-//        let player = AVPlayer(url: videoURL)
-//        playerLayer = AVPlayerLayer(player: player)
-//        printI("frame=\(frame)")
-        FloatWindowManager.shared.initFloatWindowManager(videoUrl: url)
+            closeImageView.widthAnchor.constraint(equalToConstant: 20),
+            closeImageView.heightAnchor.constraint(equalToConstant: 22),
+            closeImageView.topAnchor.constraint(equalTo: self.topAnchor,constant: 10),
+            closeImageView.leftAnchor.constraint(equalTo: self.leftAnchor,constant: 10),
+        ])
+        stackView.axis = .horizontal
+        stackView.alignment = .center
+        stackView.distribution = .equalCentering
+        self.addSubview(stackView)
+        stackView.translatesAutoresizingMaskIntoConstraints=false
+        NSLayoutConstraint.activate([
+            stackView.leftAnchor.constraint(equalTo: self.leftAnchor,constant: 0),
+            stackView.rightAnchor.constraint(equalTo: self.rightAnchor,constant: 0),
+            stackView.topAnchor.constraint(equalTo: self.topAnchor,constant: 0),
+            stackView.bottomAnchor.constraint(equalTo: self.bottomAnchor,constant: 0),
+        ])
+        forwardImageView.tintColor = UIColor.white
+        backwardImageView.tintColor = UIColor.white
+        playPauseImageView.tintColor = UIColor.white
         
-//          _view.addSubview(player)
-//        FloatWindowManager.shared.initFloatWindowManager(playerLayer: playerLayer!)
-//          pipController = AVPictureInPictureController(playerLayer: playerLayer)
-//          pipController.delegate=self
-        self.layer.addSublayer(FloatWindowManager.shared.playerLayerX!)
-//        printI("player=\(playerLayer!),\(player)")
-//        player.play()
-   
+        let padding: CGFloat = 20.0
+        
+        forwardContainer.addSubview(forwardImageView)
+//        forwardContainer.frame = forwardImageView.frame.inset(by: UIEdgeInsets.init(top: 20, left: 20, bottom: 20, right: 20))
+        let uiEdgeInset = UIEdgeInsets.init(top: padding, left: padding, bottom: padding, right: padding)
+//        forwardImageView.frame.insetBy(dx: <#T##CGFloat#>, dy: <#T##CGFloat#>)
+//        forwardImageView.frame = forwardImageView.frame.inset(by: uiEdgeInset)
+        forwardImageView.backgroundColor = UIColor.red
+        
+        stackView.addArrangedSubview(UIView())
+        stackView.addArrangedSubview(backwardImageView)
+        stackView.addArrangedSubview(playPauseImageView)
+        stackView.addArrangedSubview(forwardImageView)
+        stackView.addArrangedSubview(UIView())
+        
+        forwardImageView.translatesAutoresizingMaskIntoConstraints=false
+        backwardImageView.translatesAutoresizingMaskIntoConstraints=false
+        playPauseImageView.translatesAutoresizingMaskIntoConstraints=false
+        NSLayoutConstraint.activate([
+            forwardImageView.widthAnchor.constraint(equalToConstant: 25),
+            forwardImageView.heightAnchor.constraint(equalToConstant: 25),
+            backwardImageView.widthAnchor.constraint(equalToConstant: 25),
+            backwardImageView.heightAnchor.constraint(equalToConstant: 25),
+            playPauseImageView.widthAnchor.constraint(equalToConstant: 25),
+            playPauseImageView.heightAnchor.constraint(equalToConstant: 30),
+        ])
+        forwardImageView.frame = forwardImageView.frame.inset(by: uiEdgeInset)
+        let currentViewClick = UITapGestureRecognizer(target: self, action: #selector(onCurrentViewClick))
+        self.isUserInteractionEnabled=true
+        self.addGestureRecognizer(currentViewClick)
+        
+        let playPauseClick = UITapGestureRecognizer(target: self, action: #selector(onPlayPauseClick))
+        playPauseImageView.isUserInteractionEnabled=true
+        playPauseImageView.addGestureRecognizer(playPauseClick)
+        
+        let forwardClick = UITapGestureRecognizer(target: self, action: #selector(onForwardClick))
+        forwardImageView.isUserInteractionEnabled=true
+        forwardImageView.addGestureRecognizer(forwardClick)
+        
+        let backwardClick = UITapGestureRecognizer(target: self, action: #selector(onBackwardClick))
+        backwardImageView.isUserInteractionEnabled=true
+        backwardImageView.addGestureRecognizer(backwardClick)
+        
+        let fullScreenClick = UITapGestureRecognizer(target: self, action: #selector(onFullScreenClick))
+        pipExitImageView.isUserInteractionEnabled=true
+        pipExitImageView.addGestureRecognizer(fullScreenClick)
+        let closeClick = UITapGestureRecognizer(target: self, action: #selector(onCloseClick))
+        closeImageView.isUserInteractionEnabled=true
+        closeImageView.addGestureRecognizer(closeClick)
+        
+        
+        
     }
     
     required init?(coder: NSCoder) {
-       super.init(coder: coder)
-     }
+        super.init(coder: coder)
+    }
     override func layoutSubviews() {
         print("current frame: \(self.frame)")
-//        _nativeLabel.frame = CGRect(x: 10, y: 10, width: self.frame.width-20, height: self.frame.height-20)
-//        playerLayer?.frame=frame
         FloatWindowManager.shared.playerLayerX?.frame=frame
         super.layoutSubviews()
+
+        self.addSubview(pipExitImageView)
+        self.addSubview(closeImageView)
+        self.addSubview(stackView)
+        
     }
     
     deinit {
         printE("是否走了deinit")
+    }
+    
+    @objc func onCloseClick(){
+        FloatWindowManager.shared.onCloseClick()
+        
+    }
+    @objc func onFullScreenClick(){
+        printE("onFullScreenClick")
+        FloatWindowManager.shared.onFullScreenClick()
+        
+    }
+    @objc func onForwardClick(){
+        FloatWindowManager.shared.backward{ enable in
+            if(enable){
+                forwardImageView.tintColor=UIColor.white
+            }else{
+                forwardImageView.tintColor=UIColor.white.withAlphaComponent(0.5)
+            }
+        }
+    }
+    @objc func onBackwardClick(){
+        FloatWindowManager.shared.backward{ enable in
+            if(enable){
+                backwardImageView.tintColor=UIColor.white
+            }else{
+                backwardImageView.tintColor=UIColor.white.withAlphaComponent(0.5)
+            }
+        }
+    }
+    @objc func onPlayPauseClick(){
+        if(FloatWindowManager.shared.isPlaying){
+            FloatWindowManager.shared.pause()
+            playPauseImageView.image = playImage
+        }else{
+            FloatWindowManager.shared.play()
+            playPauseImageView.image = pauseImage
+        }
+        
+    }
+    @objc func onCurrentViewClick(){
+        printE("onCurrentViewClick")
+        
     }
 }
 

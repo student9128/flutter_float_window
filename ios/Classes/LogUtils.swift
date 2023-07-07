@@ -7,23 +7,23 @@
 
 import Foundation
 func printV(_ message:String){
-    debugPrint("✈️\t\(message)\n")
+    debugPrint("✈️ \(message)")
 }
 func printE(_ message:String){
-    debugPrint("🈲\t\(message)\n")
+    debugPrint("🈲 \(message)")
 }
 func printI(_ message:String){
-    debugPrint("🌿\t\(message)\n")
+    debugPrint("🌿 \(message)")
 }
 func printW(_ message:String){
-    debugPrint("⚠️\t\(message)\n")
+    debugPrint("⚠️ \(message)")
 }
 func printD(_ message:String){
-    debugPrint("🐬📘\(message)\n")
+    debugPrint("🐬📘 \(message)")
 }
 func printPurple(_ message:String){
-    debugPrint("🟣\(message)\n")
+    debugPrint("🟣 \(message)")
 }
 func printCyan(_ message:String){
-    debugPrint("🗳️\(message)\n")
+    debugPrint("🗳️ \(message)")
 }
