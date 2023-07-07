@@ -136,8 +136,10 @@ class FloatVideoView:UIView{
 
         pipExitImageView.tintColor = UIColor.white
         closeImageView.tintColor = UIColor.white
+        
         self.addSubview(pipExitImageView)
         self.addSubview(closeImageView)
+        
         pipExitImageView.translatesAutoresizingMaskIntoConstraints=false
         closeImageView.translatesAutoresizingMaskIntoConstraints=false
         NSLayoutConstraint.activate([
@@ -151,10 +153,13 @@ class FloatVideoView:UIView{
             closeImageView.topAnchor.constraint(equalTo: self.topAnchor,constant: 10),
             closeImageView.leftAnchor.constraint(equalTo: self.leftAnchor,constant: 10),
         ])
+        
         stackView.axis = .horizontal
         stackView.alignment = .center
         stackView.distribution = .equalCentering
+        
         self.addSubview(stackView)
+        
         stackView.translatesAutoresizingMaskIntoConstraints=false
         NSLayoutConstraint.activate([
             stackView.leftAnchor.constraint(equalTo: self.leftAnchor,constant: 0),
@@ -162,52 +167,71 @@ class FloatVideoView:UIView{
             stackView.topAnchor.constraint(equalTo: self.topAnchor,constant: 0),
             stackView.bottomAnchor.constraint(equalTo: self.bottomAnchor,constant: 0),
         ])
+        
         forwardImageView.tintColor = UIColor.white
         backwardImageView.tintColor = UIColor.white
         playPauseImageView.tintColor = UIColor.white
         
-        let padding: CGFloat = 20.0
-        
         forwardContainer.addSubview(forwardImageView)
-//        forwardContainer.frame = forwardImageView.frame.inset(by: UIEdgeInsets.init(top: 20, left: 20, bottom: 20, right: 20))
-        let uiEdgeInset = UIEdgeInsets.init(top: padding, left: padding, bottom: padding, right: padding)
-//        forwardImageView.frame.insetBy(dx: <#T##CGFloat#>, dy: <#T##CGFloat#>)
-//        forwardImageView.frame = forwardImageView.frame.inset(by: uiEdgeInset)
-        forwardImageView.backgroundColor = UIColor.red
-        
-        stackView.addArrangedSubview(UIView())
-        stackView.addArrangedSubview(backwardImageView)
-        stackView.addArrangedSubview(playPauseImageView)
-        stackView.addArrangedSubview(forwardImageView)
-        stackView.addArrangedSubview(UIView())
-        
         forwardImageView.translatesAutoresizingMaskIntoConstraints=false
-        backwardImageView.translatesAutoresizingMaskIntoConstraints=false
-        playPauseImageView.translatesAutoresizingMaskIntoConstraints=false
         NSLayoutConstraint.activate([
             forwardImageView.widthAnchor.constraint(equalToConstant: 25),
             forwardImageView.heightAnchor.constraint(equalToConstant: 25),
+            forwardImageView.centerXAnchor.constraint(equalTo: forwardContainer.centerXAnchor),
+            forwardImageView.centerYAnchor.constraint(equalTo: forwardContainer.centerYAnchor)
+        ])
+        
+        backwardContainer.addSubview(backwardImageView)
+        backwardImageView.translatesAutoresizingMaskIntoConstraints=false
+        NSLayoutConstraint.activate([
             backwardImageView.widthAnchor.constraint(equalToConstant: 25),
             backwardImageView.heightAnchor.constraint(equalToConstant: 25),
+            backwardImageView.centerXAnchor.constraint(equalTo: backwardContainer.centerXAnchor),
+            backwardImageView.centerYAnchor.constraint(equalTo: backwardContainer.centerYAnchor)
+        ])
+        
+        playPauseContainer.addSubview(playPauseImageView)
+        playPauseImageView.translatesAutoresizingMaskIntoConstraints=false
+        NSLayoutConstraint.activate([
             playPauseImageView.widthAnchor.constraint(equalToConstant: 25),
             playPauseImageView.heightAnchor.constraint(equalToConstant: 30),
+            playPauseImageView.centerXAnchor.constraint(equalTo: playPauseContainer.centerXAnchor),
+            playPauseImageView.centerYAnchor.constraint(equalTo: playPauseContainer.centerYAnchor)
         ])
-        forwardImageView.frame = forwardImageView.frame.inset(by: uiEdgeInset)
+        
+        stackView.addArrangedSubview(UIView())
+        stackView.addArrangedSubview(backwardContainer)
+        stackView.addArrangedSubview(playPauseContainer)
+        stackView.addArrangedSubview(forwardContainer)
+        stackView.addArrangedSubview(UIView())
+        
+        forwardContainer.translatesAutoresizingMaskIntoConstraints=false
+        backwardContainer.translatesAutoresizingMaskIntoConstraints=false
+        playPauseContainer.translatesAutoresizingMaskIntoConstraints=false
+        NSLayoutConstraint.activate([
+            forwardContainer.widthAnchor.constraint(equalToConstant: 45),
+            forwardContainer.heightAnchor.constraint(equalToConstant: 45),
+            backwardContainer.widthAnchor.constraint(equalToConstant: 45),
+            backwardContainer.heightAnchor.constraint(equalToConstant: 45),
+            playPauseContainer.widthAnchor.constraint(equalToConstant: 45),
+            playPauseContainer.heightAnchor.constraint(equalToConstant: 50),
+        ])
+
         let currentViewClick = UITapGestureRecognizer(target: self, action: #selector(onCurrentViewClick))
         self.isUserInteractionEnabled=true
         self.addGestureRecognizer(currentViewClick)
         
         let playPauseClick = UITapGestureRecognizer(target: self, action: #selector(onPlayPauseClick))
-        playPauseImageView.isUserInteractionEnabled=true
-        playPauseImageView.addGestureRecognizer(playPauseClick)
+        playPauseContainer.isUserInteractionEnabled=true
+        playPauseContainer.addGestureRecognizer(playPauseClick)
         
         let forwardClick = UITapGestureRecognizer(target: self, action: #selector(onForwardClick))
-        forwardImageView.isUserInteractionEnabled=true
-        forwardImageView.addGestureRecognizer(forwardClick)
+        forwardContainer.isUserInteractionEnabled=true
+        forwardContainer.addGestureRecognizer(forwardClick)
         
         let backwardClick = UITapGestureRecognizer(target: self, action: #selector(onBackwardClick))
-        backwardImageView.isUserInteractionEnabled=true
-        backwardImageView.addGestureRecognizer(backwardClick)
+        backwardContainer.isUserInteractionEnabled=true
+        backwardContainer.addGestureRecognizer(backwardClick)
         
         let fullScreenClick = UITapGestureRecognizer(target: self, action: #selector(onFullScreenClick))
         pipExitImageView.isUserInteractionEnabled=true
