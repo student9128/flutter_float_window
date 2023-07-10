@@ -40,8 +40,38 @@ class _MyAppState extends State<MyApp>
   late Animation _animationScale;
   double x = 16;
   double y = 80;
+  String videoUrl = "https://media.w3.org/2010/05/sintel/trailer.mp4";
+  String videoUrlMp4="http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
 
   ///设计小窗大小：4/5*width
+  ///
+  _initFloatWindowMethodCallHandler() async{
+    var channel = FlutterFloatWindow.channel;
+    channel.setMethodCallHandler((call)async{
+      debugPrint('_initFloatWindowMethodCallHandler=======${call.method},=${call.arguments}');
+      switch(call.method){
+        case "onFullScreenClick":
+          // FlutterFloatWindow.pause();
+          overlayEntryX.remove();
+          Navigator.of(context).push(CupertinoPageRoute(
+              builder: (context) => TestPage()));
+          break;
+        case "onPictureInPictureWillStart":
+          //在开始的时候修改app内的窗口为播放视频也的视频的位置，方便下次进来进入播放视频页面的位置
+          x=0;
+          y=80;
+          overlayEntryX.markNeedsBuild();
+          break;
+        case "onCloseClick":
+          //关闭的时候存储时间
+          // FlutterFloatWindow.pause();
+          overlayEntryX.remove();
+          break;
+        default:
+          break;
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -62,6 +92,7 @@ class _MyAppState extends State<MyApp>
     WidgetsBinding.instance?.addObserver(this);
     if (Platform.isIOS) {
       WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
+        _initFloatWindowMethodCallHandler();
         overlayEntryX = OverlayEntry(builder: (context) {
           return Positioned(
               left: x,
@@ -111,15 +142,45 @@ class _MyAppState extends State<MyApp>
                         child: Material(
                           color: Colors.transparent,
                           child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black,
+                              borderRadius: BorderRadius.circular(16)
+                            ),
                             width: MediaQuery.of(context).size.width - 32,
                             height: (MediaQuery.of(context).size.width - 32) *
                                 9 /
                                 16,
-                            color: Colors.yellow,
-                            child: FlutterFloatWindowView(
-                              videoUrl:
-                                  "https://live.idbhost.com/05d2556e74e9408db0ee370b41536282/d4d54975f8a34b21bd9061ac0464a092-bafd00dba653149fda08dc8743bf8820-sd.mp4",
-                              text: "我是flutter层12",
+                            
+                            child:Stack(
+                              children: [
+                                FlutterFloatWindowView(
+                                  videoUrl:videoUrl,
+                                  title: "flutterWindow",
+                                  artist: "videoeTest",
+                                  position: 10000,
+                                  duration: 180000,
+                                  coverUrl: "https://t7.baidu.com/it/u=2621658848,3952322712&fm=193&f=GIF",
+                                ),
+                                // Center(
+                                //   child: Row(
+                                //     mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                //     children: [
+                                //       IconButton(onPressed:(){
+                                //
+                                //       }, icon: Icon(Icons.arrow_back_ios,color: Colors.white,)),
+                                //       IconButton(onPressed:(){}, icon: Icon(Icons.fullscreen,color: Colors.white,)),
+                                //       IconButton(onPressed:(){}, icon: Icon(Icons.arrow_forward_ios,color: Colors.white,))
+                                //     ],
+                                //   ),
+                                // ),
+                                // Positioned(
+                                //   left: 0,
+                                //     top: 0,
+                                //     child: ElevatedButton(onPressed:(){
+                                //   FlutterFloatWindow.pause();
+                                //   overlayEntryX.remove();
+                                // } ,child: Text('关闭'),))
+                              ],
                             ),
                           ),
                         ),
@@ -171,7 +232,7 @@ class _MyAppState extends State<MyApp>
 
   initVideoPlayer() async {
     // _controller = VideoPlayerController.network(
-    //     "https://live.idbhost.com/da211fc4238d421984788089b7263566/4e589f50870b471095aa86d07a25a83e-a9a4e5e6da87e733106f697c8ab0de98-sd.mp4");
+    //     "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4");
     // await _controller.initialize();
     // _controller.play();
   }
@@ -211,8 +272,7 @@ class _MyAppState extends State<MyApp>
         print("paused");
         Map<String, String> params = {
           "videoUrl":
-              'https://live.idbhost.com/da211fc4238d421984788089b7263566/4e589f50870b471095aa86d07a25a83e-a9a4e5e6da87e733106f697c8ab0de98-sd.mp4'
-          // 'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
+          'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
         };
         // FlutterFloatWindow.showFloatWindowWithInit(params);
         debugPrint("hello");
@@ -255,8 +315,7 @@ class _MyAppState extends State<MyApp>
                       onPressed: () {
                         Map<String, String> params = {
                           "videoUrl":
-                              'https://live.idbhost.com/da211fc4238d421984788089b7263566/4e589f50870b471095aa86d07a25a83e-a9a4e5e6da87e733106f697c8ab0de98-sd.mp4'
-                          // 'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
+                          'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
                         };
                         FlutterFloatWindow.initFloatWindow(params);
                       },
@@ -467,6 +526,7 @@ class _MyAppState extends State<MyApp>
                       child: Text('添加overaly')),
                   ElevatedButton(
                       onPressed: () {
+                        FlutterFloatWindow.pause();
                         overlayEntryX.remove();
                       },
                       child: Text('移除overaly')),
@@ -482,6 +542,15 @@ class _MyAppState extends State<MyApp>
                         // overlayEntryX.markNeedsBuild();
                       },
                       child: Text('缩放overlay操作返回')),
+                  ElevatedButton(onPressed: (){
+                    setState(() {
+                      videoUrl=videoUrlMp4;
+                    });
+                  }, child: Text('切换VideoUrl')),
+                  ElevatedButton(onPressed: () async{
+                   var canShowFloatWindow = await FlutterFloatWindow.canShowFloatWindow();
+                   print("canShowFloatWindow=$canShowFloatWindow");
+                  }, child: Text('canShow for ios')),
                 ],
               ),
             ),
