@@ -13,16 +13,53 @@ public class FloatWindowManager:NSObject{
     public static let shared = FloatWindowManager()
     private override init() {
     }
-    public var isPlaying = true
+    //    public var isPlaying = true
     var pipController: AVPictureInPictureController?
     var playerLayerX:AVPlayerLayer?
-    var player:AVPlayer?
-    func initFloatWindowManager(videoUrl:String){
+    private var progressUpdateTimer: Timer?
+    var nowPlayingInfo = [String : Any]()
+    var mUrlString   : String?
+    var mImageUrl    : String?
+    var mAudioTitle  : String?
+    var mArtist      : String?
+    var mAlbumTitle  : String?
+    var mDuration    : Int = 0
+    var mPosition    : Int = 0
+    
+    var isPlaying   : Bool = false {
+        didSet {
+            if let c = _isPlayingChanged{
+                c(isPlaying)
+            }
+        }
+    }
+    var isReady     : Bool = false
+    var progress    : Int = 0 {
+        didSet {
+            if let c = _progressChanged{
+                c(progress)
+            }
+        }
+    }
+    private var _isPlayingChanged : ((Bool)->Void)?
+    func onIsPlayingChanged(_ isPlayingChanged : @escaping ((Bool)->Void)){
+        _isPlayingChanged = isPlayingChanged
+    }
+    
+    private var _progressChanged : ((Int)->Void)?
+    func onProgressChanged(_ progressChanged : @escaping ((Int)->Void)){
+        _progressChanged = progressChanged
+    }
+    
+    
+    func initFloatWindowManager(videoUrl:String,title:String = "",artist:String = "",coverUrl:String = "",position:Int = 0,duration:Int = 0){
+        printD("title=\(title),artist=\(artist),coverUrl=\(coverUrl),currentPosition=\(position)")
         let videoURL = URL(string: videoUrl)!
         let player = AVPlayer(url: videoURL)
         playerLayerX = AVPlayerLayer(player: player)
-        player.seek(to: CMTimeMake(value: 30, timescale: 1))
+        player.seek(to: CMTimeMake(value: Int64(position/1000), timescale: 1))
         player.play()
+        isPlaying=true
         if #available(iOS 15.0, *) {
             player.audiovisualBackgroundPlaybackPolicy = AVPlayerAudiovisualBackgroundPlaybackPolicy.continuesIfPossible
         } else {
@@ -30,29 +67,29 @@ public class FloatWindowManager:NSObject{
         }
         player.preventsDisplaySleepDuringVideoPlayback=true
         do {
-             try AVAudioSession.sharedInstance().setCategory(.playback)
-             try AVAudioSession.sharedInstance().setActive(true)
-         } catch {
-             printE("AVAudioSession发生错误")
-         }
+            try AVAudioSession.sharedInstance().setCategory(.playback)
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch {
+            printE("AVAudioSession发生错误")
+        }
         
         pipController = AVPictureInPictureController(playerLayer: playerLayerX!)
         pipController?.delegate=self
-
-//        if #available(iOS 14.0, *) {
-//            pipController?.requiresLinearPlayback=true //隐藏快进后退按钮
-//        } else {
-//            // Fallback on earlier versions
-//        }
-//        pipController?.setValue(1, forKey: "controlsStyle")//隐藏除关闭和退出画中画以外的其他按钮
-    
-//        pipController?.setValue(1, forKey: "requiresLinearPlayback")//隐藏快进后退按钮
-//        pipController?.setValue(2, forKey: "controlsStyle")//隐藏所有按钮
+        
+        //        if #available(iOS 14.0, *) {
+        //            pipController?.requiresLinearPlayback=true //隐藏快进后退按钮
+        //        } else {
+        //            // Fallback on earlier versions
+        //        }
+        //        pipController?.setValue(1, forKey: "controlsStyle")//隐藏除关闭和退出画中画以外的其他按钮
+        
+        //        pipController?.setValue(1, forKey: "requiresLinearPlayback")//隐藏快进后退按钮
+        //        pipController?.setValue(2, forKey: "controlsStyle")//隐藏所有按钮
         //根据视频形状去修改画中画形状
-//        NSURL *url = [[NSBundle mainBundle] URLForResource:videoName withExtension:@"MP4"];
-//        AVAsset *asset = [AVAsset assetWithURL:url];
-//        AVPlayerItem * item = [[AVPlayerItem alloc] initWithAsset:asset];
-//        [self.pipController.playerLayer.player replaceCurrentItemWithPlayerItem:item];
+        //        NSURL *url = [[NSBundle mainBundle] URLForResource:videoName withExtension:@"MP4"];
+        //        AVAsset *asset = [AVAsset assetWithURL:url];
+        //        AVPlayerItem * item = [[AVPlayerItem alloc] initWithAsset:asset];
+        //        [self.pipController.playerLayer.player replaceCurrentItemWithPlayerItem:item];
         
         
         if #available(iOS 14.2, *) {
@@ -60,9 +97,35 @@ public class FloatWindowManager:NSObject{
         } else {
             // Fallback on earlier versions
         }
+        if(position>15000){
+            NotificationCenter.default.post(name: NSNotification.Name("forwardAndBackwardBtnEnable"), object: "backwardEnabled")
+        }else{
+            NotificationCenter.default.post(name: NSNotification.Name("forwardAndBackwardBtnEnable"), object: "backwardDisabled")
+        }
+        if(duration-position>15000){
+            NotificationCenter.default.post(name: NSNotification.Name("forwardAndBackwardBtnEnable"), object: "forwardEnabled")
+        }else{
+            NotificationCenter.default.post(name: NSNotification.Name("forwardAndBackwardBtnEnable"), object: "forwardDisabled")
+        }
         
-//        initRemoteCommand()
-//        initNowingPlayCenter()
+        mImageUrl = coverUrl
+        mAudioTitle = title
+        mArtist = artist
+        mAlbumTitle = title
+        
+        mDuration = duration/1000
+        mPosition = position/1000
+       
+        initRemoteCommand()
+        initNowingPlayCenter()
+    }
+    public func pictureInPictureSwitchOn()->Bool{
+        var isOn = true;
+        if let pip = pipController{
+            isOn = pip.isPictureInPicturePossible
+            printE("isOn=\(isOn)")
+        }
+        return isOn
     }
     public func startPip(){
         pipController?.startPictureInPicture()
@@ -70,7 +133,7 @@ public class FloatWindowManager:NSObject{
     public func stopPip(){
         pipController?.stopPictureInPicture()
     }
-  
+    
     public func play(){
         printI("play")
         isPlaying=true
@@ -80,68 +143,100 @@ public class FloatWindowManager:NSObject{
         isPlaying=false
         playerLayerX?.player?.pause()
     }
-    public func backward(backwardBtnEnable:(Bool)->Void){
+    public func playPause(){
+        if(isPlaying){
+            playerLayerX?.player?.pause()
+            isPlaying=false
+            NotificationCenter.default.post(name: NSNotification.Name("PlayPause"), object: "pause")
+        }else{
+            playerLayerX?.player?.play()
+            isPlaying=true
+            NotificationCenter.default.post(name: NSNotification.Name("PlayPause"), object: "play")
+        }
         if let playerLayer = playerLayerX{
             if let player = playerLayer.player{
                 let progress = CMTimeGetSeconds(player.currentTime())
-                
+                updateNowPlayingInfoProgress(Float(progress))
+                createTimers(true)
+            }
+        }}
+    public func backward(){
+        if let playerLayer = playerLayerX{
+            if let player = playerLayer.player{
+                let progress = CMTimeGetSeconds(player.currentTime())
+                let duration = CMTimeGetSeconds(player.currentItem?.duration ?? CMTime.zero)
                 if(progress-15>15){
-                    backwardBtnEnable(true)
+                    
                     player.seek(to:CMTimeMake(value: Int64(progress-15.0), timescale: 1))
+                    NotificationCenter.default.post(name: NSNotification.Name("forwardAndBackwardBtnEnable"), object: "backwardEnabled")
+                    NotificationCenter.default.post(name: NSNotification.Name("forwardAndBackwardBtnEnable"), object: "forwardEnabled")
                 }else{
-                    backwardBtnEnable(false)
+                    NotificationCenter.default.post(name: NSNotification.Name("forwardAndBackwardBtnEnable"), object: "backwardDisabled")
                     player.seek(to:CMTimeMake(value: 0, timescale: 1))
+                    NotificationCenter.default.post(name: NSNotification.Name("forwardAndBackwardBtnEnable"), object: duration-progress>15 ? "forwardEnabled" : "forwardDisabled")
                 }
+              
+                
+                
+                updateNowPlayingInfoProgress(Float(progress))
             }
         }else{
-            backwardBtnEnable(false)
+            
         }
         
     }
-    public func forward(forwardBtnEnable:(Bool)->Void){
+    public func forward(){
         if let playerLayer = playerLayerX{
             if let player = playerLayer.player{
                 let duration = CMTimeGetSeconds(player.currentItem?.duration ?? CMTime.zero)
                 let progress = CMTimeGetSeconds(player.currentTime())
                 if(duration>0 && duration-progress>15){
-                    forwardBtnEnable(true)
+                    NotificationCenter.default.post(name: NSNotification.Name("forwardAndBackwardBtnEnable"), object: "forwardEnabled")
                     player.seek(to:CMTimeMake(value: Int64(progress+15.0), timescale: 1))
+                    NotificationCenter.default.post(name: NSNotification.Name("forwardAndBackwardBtnEnable"), object: "backwardEnabled")
                 }else{
-                    forwardBtnEnable(false)
+                    NotificationCenter.default.post(name: NSNotification.Name("forwardAndBackwardBtnEnable"), object: "forwardDisabled")
                     player.seek(to:CMTimeMake(value: Int64(duration), timescale: 1))
+                    NotificationCenter.default.post(name: NSNotification.Name("forwardAndBackwardBtnEnable"), object: duration>15 ? "backwardEnabled" : "backwardDisabled")
                 }
+            
+                
+                updateNowPlayingInfoProgress(Float(progress))
             }
         }else{
-            forwardBtnEnable(false)
+            
         }
     }
     ///关闭
     public func onCloseClick(){
-        let channel = FlutterMethodChannelManager.shared.channel()
-        channel.invokeMethod("onCloseClick", arguments: nil)
+        if let playerLayer = playerLayerX{
+            if let player = playerLayer.player{
+                player.pause()
+                let progress = CMTimeGetSeconds(player.currentTime())
+                let channel = FlutterMethodChannelManager.shared.channel()
+                let args=["position":progress*1000]
+                channel.invokeMethod("onCloseClick", arguments: args)
+            }
+        }
     }
     public func onFullScreenClick(){
         if let playerLayer = playerLayerX{
             if let player = playerLayer.player{
+                player.pause()
                 let progress = CMTimeGetSeconds(player.currentTime())
                 let channel = FlutterMethodChannelManager.shared.channel()
-                var args=["test":progress*1000]
+                let args=["position":progress*1000]
                 channel.invokeMethod("onFullScreenClick", arguments: args)
             }
         }
     }
-    public func seekTo(){
+    public func seekTo(position:Int){
         if let playerLayer = playerLayerX{
             if let player = playerLayer.player{
-                let progress = CMTimeGetSeconds(player.currentTime())
-                player.seek(to:CMTimeMake(value: Int64(progress+15.0), timescale: 1))
+                player.seek(to:CMTimeMake(value: Int64(position), timescale: 1))
+                updateNowPlayingInfoProgress(Float(position))
             }
         }
-//        if(playerLayerX !=nil && playerLayerX!.player !=nil){
-//            let progress = CMTimeGetSeconds(playerLayerX!.player!.currentTime())
-//            playerLayerX?.player?.seek(to:CMTimeMake(value: Int64(progress+15.0), timescale: 1))
-//        }
-      
     }
     func initRemoteCommand(){
         let commondCenter: MPRemoteCommandCenter = MPRemoteCommandCenter.shared()
@@ -152,101 +247,133 @@ public class FloatWindowManager:NSObject{
         commondCenter.skipForwardCommand.preferredIntervals=[15]
         commondCenter.skipBackwardCommand.preferredIntervals=[15]
         commondCenter.skipBackwardCommand.addTarget{ [unowned self]event in
-//            if isPlaying {
-//                let progress = CMTimeGetSeconds(player!.currentTime())
-//                player?.seek(to: CMTimeMake(value: Int64(progress - 15.0), timescale: 1))
-//                updateNowPlayingInfoProgress(Float(progress))
-//            }
+            //                        if isPlaying {
+            //                            let progress = CMTimeGetSeconds(player!.currentTime())
+            //                            playerLayerX?.player?.seek(to: CMTimeMake(value: Int64(progress - 15.0), timescale: 1))
+            //                            updateNowPlayingInfoProgress(Float(progress))
+            //                        }
+            backward()
             return .success
         }
         commondCenter.skipForwardCommand.addTarget{[unowned self] event in
-//            if isPlaying {
-//                let progress = CMTimeGetSeconds(player!.currentTime())
-//                player?.seek(to: CMTimeMake(value: Int64(progress + 15.0), timescale: 1)){finish in}
-//                updateNowPlayingInfoProgress(Float(progress))
-//            }
+            //            if isPlaying {
+            //                let progress = CMTimeGetSeconds(player!.currentTime())
+            //                playerLayerX?.player?.seek(to: CMTimeMake(value: Int64(progress + 15.0), timescale: 1)){finish in}
+            //                updateNowPlayingInfoProgress(Float(progress))
+            //            }
+            forward()
             return .commandFailed
         }
         commondCenter.playCommand.addTarget{[unowned self]event in
-//            playPause()
+            playPause()
             return .success
-//            if player?.rate == 0.0 {
-//                playPause()
-//                return .success
-//            }else{
-//                print("播放失败")
-//            }
-//            return .commandFailed
         }
         commondCenter.pauseCommand.addTarget{ [unowned self]event in
-//            playPause()
+            playPause()
             return .success
-//            if player?.rate == 1.0 {
-//                playPause()
-//                return .success
-//            }else{
-//                print("暂停失败")
-//            }
-//            return .commandFailed
+            
         }
     }
     func initNowingPlayCenter(){
         
-//        if let url = URL(string: imageUrl ?? "") {
-//            downloadImage(url:url) { image in
-//                self.nowPlayingInfo[MPMediaItemPropertyArtwork] =
-//                MPMediaItemArtwork(boundsSize: image.size) { size in
-//                    return image
-//                }
-//                MPNowPlayingInfoCenter.default().nowPlayingInfo = self.nowPlayingInfo
-//            }
-//        }
-        var nowPlayingInfo = [String : Any]()
-        let totalDuration = Float (60000 / 1000)
-        nowPlayingInfo[MPMediaItemPropertyTitle] = "title"
-        nowPlayingInfo[MPMediaItemPropertyArtist] = "artist"
-        nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = "albumTitle"
-        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = "10000"
-        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = 0
+        if let url = URL(string: mImageUrl ?? "") {
+            downloadImage(url:url) { image in
+                self.nowPlayingInfo[MPMediaItemPropertyArtwork] =
+                MPMediaItemArtwork(boundsSize: image.size) { size in
+                    return image
+                }
+                MPNowPlayingInfoCenter.default().nowPlayingInfo = self.nowPlayingInfo
+            }
+        }
+        
+        nowPlayingInfo[MPMediaItemPropertyTitle] = mAudioTitle
+        nowPlayingInfo[MPMediaItemPropertyArtist] = mArtist
+        nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = mAudioTitle
+        nowPlayingInfo[MPMediaItemPropertyPlaybackDuration] = mDuration
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = mPosition
         nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1
         
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
     
+    func createTimers(_ create: Bool) {
+        if create {
+            createTimers(false)
+            progressUpdateTimer = Timer.scheduledTimer(timeInterval: 1.0, target: self, selector: #selector(self.updateProgress(_:)), userInfo: nil, repeats: true)
+        } else {
+            if let put = progressUpdateTimer {
+                put.invalidate()
+                progressUpdateTimer = nil
+            }
+        }
+    }
+    
+    func updateNowPlayingInfoProgress(_ progress: Float) {
+        nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = progress
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    
+    @objc func updateProgress(_ updatedTimer: Timer?) {
+        if isPlaying {
+            if let playerLayer = playerLayerX{
+                if let player = playerLayer.player{
+                    progress = Int(CMTimeGetSeconds(player.currentTime())) *  1000
+                }
+            }
+        }
+    }
+    
+    func downloadImage(url: URL, callback: @escaping  (UIImage)->() ) {
+        getDataFromUrl(url: url) { (data, response, error)  in
+            guard let data = data, error == nil else {
+                return
+            }
+            DispatchQueue.main.async() { () -> Void in
+                callback(UIImage(data: data) ?? UIImage())
+            }
+        }
+    }
+    
+    func getDataFromUrl(url: URL, completion: @escaping (_ data: Data?, _  response: URLResponse?, _ error: Error?) -> Void) {
+        URLSession.shared.dataTask(with: url) {
+            (data, response, error) in
+            completion(data, response, error)
+        }.resume()
+    }
+    
     
 }
+
 extension FloatWindowManager:AVPictureInPictureControllerDelegate{
     
     public func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, failedToStartPictureInPictureWithError error: Error) {
-    printE("error=\(error)")
+        printE("error=\(error)")
     }
     public func pictureInPictureControllerWillStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
-        printI("pictureInPictureControllerWillStartPictureInPicture")
+//        printI("pictureInPictureControllerWillStartPictureInPicture")
         let channel = FlutterMethodChannelManager.shared.channel()
-        var args=["test":"start"]
-        channel.invokeMethod("onPictureInPictureWillStart", arguments: args)
+        channel.invokeMethod("onPictureInPictureWillStart", arguments: nil)
     }
     public func pictureInPictureControllerDidStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
-        printI("pictureInPictureControllerDidStartPictureInPicture")
+//        printI("pictureInPictureControllerDidStartPictureInPicture")
     }
     public func pictureInPictureControllerWillStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
-        printI("pictureInPictureControllerWillStopPictureInPicture")
+//        printI("pictureInPictureControllerWillStopPictureInPicture")
     }
     public func pictureInPictureControllerDidStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
-        printI("pictureInPictureControllerDidStopPictureInPicture")
+//        printI("pictureInPictureControllerDidStopPictureInPicture")
     }
     public func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void) {
         printE("pictureInPictureControllerDidStopPictureInPicture")
         if let playerLayer = playerLayerX{
             if let player = playerLayer.player{
                 let progress = CMTimeGetSeconds(player.currentTime())
-//                player.seek(to:CMTimeMake(value: Int64(progress+15.0), timescale: 1))
+                let duration = CMTimeGetSeconds(player.currentItem?.duration ?? CMTime.zero)
                 let channel = FlutterMethodChannelManager.shared.channel()
-                var args=["test":progress*1000]
+                let args=["test":progress*1000]
                 channel.invokeMethod("onFullScreenClick", arguments: args)
             }
         }
-   
         completionHandler(true)
     }
 }

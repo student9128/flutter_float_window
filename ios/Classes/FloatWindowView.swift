@@ -27,7 +27,6 @@ class FloatWindowView : NSObject,FlutterPlatformView{
         channel.setMethodCallHandler { call, result in
             self.handle(call, result: result)
         }
-        printE("frame=\(frame)")
         // iOS views can be created here
         printW("args=\(String(describing: args))")
         //          if let paragms = args as? [String:Any]{
@@ -40,19 +39,17 @@ class FloatWindowView : NSObject,FlutterPlatformView{
         //          }
         if args is Dictionary<String,Any>?{
             let dic = args as! Dictionary<String,Any>
-            printI("flutter的传参：\(String(describing: dic["text"])),\(String(describing: dic["hello"]))")
-            let nativeLabel = UILabel()
-            nativeLabel.text = "\(dic["text"] as! String)\(dic["hello"] as! String)"
-            nativeLabel.textColor = UIColor.white
-            //              nativeLabel.frame=CGRect(x: 0, y: 50, width: 180, height: 50)
-            _view.addSubview(nativeLabel)
-            
             let url = dic["videoUrl"] as? String
             if let videoUlr=url{
-                FloatWindowManager.shared.initFloatWindowManager(videoUrl: videoUlr)
+                let title = dic["title"] as? String
+                let artist = dic["artist"] as? String
+                let coverUrl = dic["coverUrl"] as? String
+                let currentPosition = dic["position"] as? Int
+                let duration = dic["duration"] as? Int
+                FloatWindowManager.shared.initFloatWindowManager(videoUrl: videoUlr,title: title ?? "",artist: artist ?? "",coverUrl:coverUrl ?? "",position:currentPosition ?? 0,duration: duration ?? 0)
                 _view.layer.addSublayer(FloatWindowManager.shared.playerLayerX!)
+                
             }
-            _view.addSubview(nativeLabel)
             
         }
     }
@@ -60,13 +57,11 @@ class FloatWindowView : NSObject,FlutterPlatformView{
     func view() -> UIView {
         return _view
     }
-    deinit {
-        printE("走了吗XXXXX")
-    }
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
-        printD("floatwindowview call method=\(call.method),\(call.arguments)")
+        printD("FloatWindowView call method:\(call.method), args:\(String(describing: call.arguments))")
         switch (call.method) {
         case "canShowFloatWindow":
+            result(AVPictureInPictureController.isPictureInPictureSupported())
             break
         case "showFloatWindow":
             FloatWindowManager.shared.startPip()
@@ -81,23 +76,18 @@ class FloatWindowView : NSObject,FlutterPlatformView{
             FloatWindowManager.shared.pause()
             break
         case "seekTo":
-            NSLog("seekTo", "seekTo")
-            FloatWindowManager.shared.seekTo()
-            break
-        case "backward":
-            FloatWindowManager.shared.backward{ enable in
-                if(enable){
-                    
-                }else{
-                    
+            if call.arguments is Dictionary<String,Any>?{
+                let dic = call.arguments as! Dictionary<String,Any>
+                if let position = dic["position"] as? Int{
+                    FloatWindowManager.shared.seekTo(position: position)
                 }
             }
             break
+        case "backward":
+            FloatWindowManager.shared.backward()
+            break
         case "forward":
-            FloatWindowManager.shared.forward{ enable in
-                if(enable){}else{}
-                
-            }
+            FloatWindowManager.shared.forward()
             break
         case "onFullScreenClick":
             FloatWindowManager.shared.onFullScreenClick()
@@ -123,16 +113,16 @@ class FloatVideoView:UIView{
     let closeImageView = UIImageView(image: UIImage(systemName:"xmark"))
     let stackView = UIStackView()
     var playerLayer:AVPlayerLayer?
+    var isForwardBtnEnabled = true
+    var isBackwardBtnEnabled = true
     private var videoUrl: String=""
     init(frame: CGRect,videoUrl:String) {
         self.videoUrl=videoUrl;
         super.init(frame: frame)
-        debugPrint("zou le ma~==========================12==")
     }
     override init(frame: CGRect) {
         self.videoUrl = ""
         super.init(frame:frame)
-        debugPrint("zou le ma~============================")
 
         pipExitImageView.tintColor = UIColor.white
         closeImageView.tintColor = UIColor.white
@@ -181,7 +171,7 @@ class FloatVideoView:UIView{
             stackView.leftAnchor.constraint(equalTo: self.leftAnchor,constant: 0),
             stackView.rightAnchor.constraint(equalTo: self.rightAnchor,constant: 0),
             stackView.topAnchor.constraint(equalTo: self.topAnchor,constant: 60),
-            stackView.bottomAnchor.constraint(equalTo: self.bottomAnchor,constant: 0),
+            stackView.bottomAnchor.constraint(equalTo: self.bottomAnchor,constant: -60),
         ])
         
         forwardImageView.tintColor = UIColor.white
@@ -232,10 +222,6 @@ class FloatVideoView:UIView{
             playPauseContainer.widthAnchor.constraint(equalToConstant: 45),
             playPauseContainer.heightAnchor.constraint(equalToConstant: 50),
         ])
-
-//        let currentViewClick = UITapGestureRecognizer(target: self, action: #selector(onCurrentViewClick))
-//        self.isUserInteractionEnabled=true
-//        self.addGestureRecognizer(currentViewClick)
         
         let playPauseClick = UITapGestureRecognizer(target: self, action: #selector(onPlayPauseClick))
         playPauseContainer.isUserInteractionEnabled=true
@@ -257,15 +243,16 @@ class FloatVideoView:UIView{
         closeContainer.isUserInteractionEnabled=true
         closeContainer.addGestureRecognizer(closeClick)
         
-        
+        NotificationCenter.default.addObserver(self, selector: #selector(handleNotification), name:NSNotification.Name.init("PlayPause") , object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleNotification), name:NSNotification.Name.init("forwardAndBackwardBtnEnable") , object: nil)
         
     }
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
     }
+    
     override func layoutSubviews() {
-        print("current frame: \(self.frame)")
         FloatWindowManager.shared.playerLayerX?.frame=frame
         super.layoutSubviews()
 
@@ -275,36 +262,73 @@ class FloatVideoView:UIView{
         
     }
     
-    deinit {
-        printE("是否走了deinit")
+    @objc func handleNotification(notification:Notification){
+        if(notification.name.rawValue == "PlayPause"){
+            if let result = notification.object as? String{
+                if(result=="play"){
+                    playPauseImageView.image = pauseImage
+                }else{
+                    playPauseImageView.image = playImage
+                }
+             }
+        }else if(notification.name.rawValue == "forwardAndBackwardBtnEnable"){
+            if let result = notification.object as? String{
+                switch (result){
+                case "forwardEnabled":
+                    forwardImageView.tintColor=UIColor.white
+                    isForwardBtnEnabled = true
+                    break
+                case "forwardDisabled":
+                    forwardImageView.tintColor=UIColor.white.withAlphaComponent(0.5)
+                    isForwardBtnEnabled = false
+                    break
+                case "backwardEnabled":
+                    backwardImageView.tintColor=UIColor.white
+                    isBackwardBtnEnabled = true
+                    break
+                case "backwardDisabled":
+                    backwardImageView.tintColor=UIColor.white.withAlphaComponent(0.5)
+                    isBackwardBtnEnabled = false
+                    break
+                default:
+                    break
+                }
+            }
+        }
     }
     
     @objc func onCloseClick(){
+        NotificationCenter.default.removeObserver(self)
         FloatWindowManager.shared.onCloseClick()
         
     }
     @objc func onFullScreenClick(){
         printE("onFullScreenClick")
+        NotificationCenter.default.removeObserver(self)
         FloatWindowManager.shared.onFullScreenClick()
         
     }
     @objc func onForwardClick(){
-        FloatWindowManager.shared.backward{ enable in
-            if(enable){
-                forwardImageView.tintColor=UIColor.white
-            }else{
-                forwardImageView.tintColor=UIColor.white.withAlphaComponent(0.5)
-            }
-        }
+        if(!isForwardBtnEnabled){return}
+        FloatWindowManager.shared.forward()
+//        { enable in
+//            if(enable){
+//                forwardImageView.tintColor=UIColor.white
+//            }else{
+//                forwardImageView.tintColor=UIColor.white.withAlphaComponent(0.5)
+//            }
+//        }
     }
     @objc func onBackwardClick(){
-        FloatWindowManager.shared.backward{ enable in
-            if(enable){
-                backwardImageView.tintColor=UIColor.white
-            }else{
-                backwardImageView.tintColor=UIColor.white.withAlphaComponent(0.5)
-            }
-        }
+        if(!isBackwardBtnEnabled){return}
+        FloatWindowManager.shared.backward()
+//        { enable in
+//            if(enable){
+//                backwardImageView.tintColor=UIColor.white
+//            }else{
+//                backwardImageView.tintColor=UIColor.white.withAlphaComponent(0.5)
+//            }
+//        }
     }
     @objc func onPlayPauseClick(){
         if(FloatWindowManager.shared.isPlaying){
@@ -321,21 +345,3 @@ class FloatVideoView:UIView{
         
     }
 }
-
-//extension FloatWindowView: AVPictureInPictureControllerDelegate{
-//    func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, failedToStartPictureInPictureWithError error: Error) {
-//        printE("pictureInPictureController erro=\(error)")
-//    }
-//    func pictureInPictureControllerWillStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
-//
-//    }
-//    func pictureInPictureControllerDidStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
-//
-//    }
-//    func pictureInPictureControllerWillStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
-//
-//    }
-//    func pictureInPictureControllerDidStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
-//
-//    }
-//}
