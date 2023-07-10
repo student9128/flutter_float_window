@@ -17,6 +17,7 @@ public class FloatWindowManager:NSObject{
     var pipController: AVPictureInPictureController?
     var playerLayerX:AVPlayerLayer?
     private var progressUpdateTimer: Timer?
+    private var isPlayEnd = false;
     var nowPlayingInfo = [String : Any]()
     var mUrlString   : String?
     var mImageUrl    : String?
@@ -98,6 +99,7 @@ public class FloatWindowManager:NSObject{
         } else {
             // Fallback on earlier versions
         }
+        NotificationCenter.default.addObserver(self, selector: #selector(playerDidFinishPlaying), name: .AVPlayerItemDidPlayToEndTime, object: player.currentItem)
         if(position>15000){
             NotificationCenter.default.post(name: NSNotification.Name("forwardAndBackwardBtnEnable"), object: "backwardEnabled")
         }else{
@@ -118,7 +120,13 @@ public class FloatWindowManager:NSObject{
         mPosition = position/1000
         
         initRemoteCommand()
-        initNowingPlayCenter()
+        initNowPlayingCenter()
+    }
+    @objc func playerDidFinishPlaying(notification:Notification){
+        isPlayEnd=true;
+        isPlaying=false;
+        NotificationCenter.default.post(name: NSNotification.Name("PlayPause"), object: "pause")
+        
     }
     public func pictureInPictureSwitchOn()->Bool{
         var isOn = true;
@@ -154,6 +162,9 @@ public class FloatWindowManager:NSObject{
     }
     
     public func play(){
+        if(isPlayEnd){
+            playerLayerX?.player?.seek(to:CMTimeMake(value:0, timescale: 1))
+        }
         printI("play")
         isPlaying=true
         playerLayerX?.player?.play()
@@ -163,6 +174,9 @@ public class FloatWindowManager:NSObject{
         playerLayerX?.player?.pause()
     }
     public func playPause(){
+        if(isPlayEnd){
+            playerLayerX?.player?.seek(to:CMTimeMake(value:0, timescale: 1))
+        }
         if(isPlaying){
             playerLayerX?.player?.pause()
             isPlaying=false
@@ -228,6 +242,7 @@ public class FloatWindowManager:NSObject{
     }
     ///关闭
     public func onCloseClick(){
+        NotificationCenter.default.removeObserver(self)
         if let playerLayer = playerLayerX{
             if let player = playerLayer.player{
                 player.pause()
@@ -240,6 +255,7 @@ public class FloatWindowManager:NSObject{
         }
     }
     public func onFullScreenClick(){
+        NotificationCenter.default.removeObserver(self)
         if let playerLayer = playerLayerX{
             if let player = playerLayer.player{
                 player.pause()
@@ -284,7 +300,7 @@ public class FloatWindowManager:NSObject{
             
         }
     }
-    func initNowingPlayCenter(){
+    func initNowPlayingCenter(){
         if let url = URL(string: mImageUrl ?? "") {
             downloadImage(url:url) { image in
                 self.nowPlayingInfo[MPMediaItemPropertyArtwork] =
