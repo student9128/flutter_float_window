@@ -115,6 +115,7 @@ class FloatVideoView:UIView{
     var playerLayer:AVPlayerLayer?
     var isForwardBtnEnabled = true
     var isBackwardBtnEnabled = true
+    var isButtonShown = true
     private var videoUrl: String=""
     init(frame: CGRect,videoUrl:String) {
         self.videoUrl=videoUrl;
@@ -123,7 +124,7 @@ class FloatVideoView:UIView{
     override init(frame: CGRect) {
         self.videoUrl = ""
         super.init(frame:frame)
-
+        
         pipExitImageView.tintColor = UIColor.white
         closeImageView.tintColor = UIColor.white
         
@@ -153,7 +154,7 @@ class FloatVideoView:UIView{
             pipExitContainer.heightAnchor.constraint(equalToConstant: 40),
             pipExitContainer.topAnchor.constraint(equalTo: self.topAnchor,constant: 0),
             pipExitContainer.rightAnchor.constraint(equalTo: self.rightAnchor,constant: 0),
-        
+            
             closeContainer.widthAnchor.constraint(equalToConstant: 40),
             closeContainer.heightAnchor.constraint(equalToConstant: 42),
             closeContainer.topAnchor.constraint(equalTo: self.topAnchor,constant: 0),
@@ -223,6 +224,10 @@ class FloatVideoView:UIView{
             playPauseContainer.heightAnchor.constraint(equalToConstant: 50),
         ])
         
+        let currentViewClick = UITapGestureRecognizer(target: self, action: #selector(onCurrentViewClick))
+        self.isUserInteractionEnabled=true
+        self.addGestureRecognizer(currentViewClick)
+        
         let playPauseClick = UITapGestureRecognizer(target: self, action: #selector(onPlayPauseClick))
         playPauseContainer.isUserInteractionEnabled=true
         playPauseContainer.addGestureRecognizer(playPauseClick)
@@ -255,11 +260,51 @@ class FloatVideoView:UIView{
     override func layoutSubviews() {
         FloatWindowManager.shared.playerLayerX?.frame=frame
         super.layoutSubviews()
-
+        printE("layoutSubviews")
+        
         self.addSubview(pipExitContainer)
         self.addSubview(closeContainer)
         self.addSubview(stackView)
         
+    }
+    
+    var mTimer:Timer?
+    override func didMoveToWindow() {
+        hideButton()
+        
+    }
+    func hideButton(){
+        if(mTimer != nil){
+            mTimer?.invalidate()
+        }
+        mTimer = Timer.scheduledTimer(timeInterval: 3.0, target: self, selector: #selector(handleTimer), userInfo: nil, repeats: false)
+    }
+    func toggleButton(){
+        FloatWindowManager.shared.updateForwardAndBackwardBtnStatus()
+        if(isButtonShown){
+            hiddenButton()
+        }else{
+            playPauseContainer.isHidden = false
+            forwardContainer.isHidden = false
+            backwardContainer.isHidden = false
+            pipExitContainer.isHidden = false
+            closeContainer.isHidden = false
+            isButtonShown = true
+            hideButton()
+        }
+    }
+    func hiddenButton(){
+        playPauseContainer.isHidden = true
+        forwardContainer.isHidden = true
+        backwardContainer.isHidden = true
+        pipExitContainer.isHidden = true
+        closeContainer.isHidden = true
+        isButtonShown = false
+    }
+    @objc func handleTimer(){
+        if(FloatWindowManager.shared.isPlaying){
+            hiddenButton()
+        }
     }
     
     @objc func handleNotification(notification:Notification){
@@ -270,7 +315,7 @@ class FloatVideoView:UIView{
                 }else{
                     playPauseImageView.image = playImage
                 }
-             }
+            }
         }else if(notification.name.rawValue == "forwardAndBackwardBtnEnable"){
             if let result = notification.object as? String{
                 switch (result){
@@ -302,34 +347,26 @@ class FloatVideoView:UIView{
         FloatWindowManager.shared.onCloseClick()
         
     }
+    
     @objc func onFullScreenClick(){
         printE("onFullScreenClick")
         NotificationCenter.default.removeObserver(self)
         FloatWindowManager.shared.onFullScreenClick()
         
     }
+    
     @objc func onForwardClick(){
         if(!isForwardBtnEnabled){return}
         FloatWindowManager.shared.forward()
-//        { enable in
-//            if(enable){
-//                forwardImageView.tintColor=UIColor.white
-//            }else{
-//                forwardImageView.tintColor=UIColor.white.withAlphaComponent(0.5)
-//            }
-//        }
+        
     }
+    
     @objc func onBackwardClick(){
         if(!isBackwardBtnEnabled){return}
         FloatWindowManager.shared.backward()
-//        { enable in
-//            if(enable){
-//                backwardImageView.tintColor=UIColor.white
-//            }else{
-//                backwardImageView.tintColor=UIColor.white.withAlphaComponent(0.5)
-//            }
-//        }
+        
     }
+    
     @objc func onPlayPauseClick(){
         if(FloatWindowManager.shared.isPlaying){
             FloatWindowManager.shared.pause()
@@ -340,8 +377,11 @@ class FloatVideoView:UIView{
         }
         
     }
+    
     @objc func onCurrentViewClick(){
         printE("onCurrentViewClick")
+        mTimer?.invalidate()
+        toggleButton()
         
     }
 }
