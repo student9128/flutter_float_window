@@ -231,6 +231,7 @@ public class FloatWindowManager:NSObject{
         if let playerLayer = playerLayerX{
             if let player = playerLayer.player{
                 player.pause()
+                resetNowingPlayCenter()
                 let progress = CMTimeGetSeconds(player.currentTime())
                 let channel = FlutterMethodChannelManager.shared.channel()
                 let args=["position":progress*1000]
@@ -303,6 +304,11 @@ public class FloatWindowManager:NSObject{
         
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
+    func resetNowingPlayCenter(){
+        let nowPlayingInfo = [String : Any]()
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+        
     
     func createTimers(_ create: Bool) {
         if create {

@@ -156,7 +156,7 @@ class _MyAppState extends State<MyApp>
                                 FlutterFloatWindowView(
                                   videoUrl:videoUrl,
                                   title: "flutterWindow",
-                                  artist: "videoeTest",
+                                  artist: "videoTest",
                                   position: 10000,
                                   duration: 180000,
                                   coverUrl: "https://t7.baidu.com/it/u=2621658848,3952322712&fm=193&f=GIF",
