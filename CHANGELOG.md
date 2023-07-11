@@ -1,3 +1,5 @@
+## 0.1.7
+support iOS show float window inside app by Overlay, it can show picture in picture when app in background mode.
 ## 0.1.6
 support hsl video (.m3u8)
 ## 0.1.5
