@@ -35,31 +35,36 @@ class _MyAppState extends State<MyApp>
   int colorIndex = 0;
   late OverlayEntry overlayEntry;
   late OverlayEntry overlayEntryX;
-  double scaleFactor = 1.0;
+  double scaleFactor = 0.5;
   late AnimationController _animationController;
   late Animation _animationScale;
+  bool isScaled = false;
   double x = 16;
   double y = 80;
+  double hPadding = 16; //横轴边距
+  double vPadding = 50; //竖轴边距
   String videoUrl = "https://media.w3.org/2010/05/sintel/trailer.mp4";
-  String videoUrlMp4="http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
+  String videoUrlMp4 = "http://clips.vorwaerts-gmbh.de/big_buck_bunny.mp4";
+  var scaleAlignment = Alignment.topLeft;
 
   ///设计小窗大小：4/5*width
   ///
-  _initFloatWindowMethodCallHandler() async{
+  _initFloatWindowMethodCallHandler() async {
     var channel = FlutterFloatWindow.channel;
-    channel.setMethodCallHandler((call)async{
-      debugPrint('_initFloatWindowMethodCallHandler=======${call.method},=${call.arguments}');
-      switch(call.method){
+    channel.setMethodCallHandler((call) async {
+      debugPrint(
+          '_initFloatWindowMethodCallHandler=======${call.method},=${call.arguments}');
+      switch (call.method) {
         case "onFullScreenClick":
           // FlutterFloatWindow.pause();
           overlayEntryX.remove();
-          Navigator.of(context).push(CupertinoPageRoute(
-              builder: (context) => TestPage()));
+          Navigator.of(context)
+              .push(CupertinoPageRoute(builder: (context) => TestPage()));
           break;
         case "onPictureInPictureWillStart":
           //在开始的时候修改app内的窗口为播放视频也的视频的位置，方便下次进来进入播放视频页面的位置
-          x=0;
-          y=80;
+          x = 0;
+          y = 80;
           overlayEntryX.markNeedsBuild();
           break;
         case "onCloseClick":
@@ -77,60 +82,174 @@ class _MyAppState extends State<MyApp>
   void initState() {
     _animationController =
         AnimationController(duration: Duration(milliseconds: 200), vsync: this);
-    _animationScale = Tween(begin: 1.0, end: 0.5).animate(_animationController)
-      ..addListener(() {
-        setState(() {});
-        overlayEntryX.markNeedsBuild();
-      });
+    _animationScale =
+        Tween(begin: 1.0, end: scaleFactor).animate(_animationController)
+          ..addListener(() {
+            setState(() {});
+            overlayEntryX.markNeedsBuild();
+          });
     _animationController.addStatusListener((status) {
-      // if(_animationController.isCompleted){
-      //   _animationController.reverse();
-      // }else{
-      //   _animationController.forward();
-      // }
+      if (_animationController.isCompleted) {
+        // _animationController.reverse();
+        setState(() {
+          isScaled = true;
+        });
+      } else {
+        setState(() {
+          isScaled = false;
+        });
+        // _animationController.forward();
+      }
     });
     WidgetsBinding.instance?.addObserver(this);
     if (Platform.isIOS) {
       WidgetsBinding.instance?.addPostFrameCallback((timeStamp) {
         _initFloatWindowMethodCallHandler();
         overlayEntryX = OverlayEntry(builder: (context) {
+          var screenWidth = MediaQuery.of(context).size.width;
+          var screenHeight = MediaQuery.of(context).size.height;
           return Positioned(
               left: x,
               top: y,
-              // width: MediaQuery.of(context).size.width,
-              // height: 100,
               child: GestureDetector(
                   onTap: () {},
                   onDoubleTap: () {
-                    if (_animationScale.value == 0.5) {
+                    if (isScaled) {
                       _animationController.reverse();
-                      x=16;
-                      overlayEntryX.markNeedsBuild();
-                    } else if (_animationScale.value == 1.0) {
+                      setState(() {
+                        isScaled = false;
+                      });
+                    } else {
                       _animationController.forward();
+                      setState(() {
+                        isScaled = true;
+                      });
                     }
                   },
                   onPanUpdate: (DragUpdateDetails details) {
                     x += details.delta.dx;
                     y += details.delta.dy;
-                    if (x <= 0) x = 0;
-                    if (y <= 40) y = 40;
                     print("x=$x,y=$y");
-
                     overlayEntryX.markNeedsBuild();
                   },
-                  onPanEnd: (DragEndDetails details){
-                    if(_animationScale.value==0.5){
-                      var width = (MediaQuery.of(context).size.width-32)/2;
-                      var right =MediaQuery.of(context).size.width-16;
-                      if(x+width>=right){
-                        x=right-width;
+                  onPanEnd: (DragEndDetails details) {
+                    var originWidth = (MediaQuery.of(context).size.width - 32);
+                    var originHeight = originWidth * 9 / 16;
+                    var width =
+                        isScaled ? originWidth * scaleFactor : originWidth;
+                    var height = width * 9 / 16;
+                    var centerX = x + width / 2;
+                    var centerY = y + height / 2;
+                    print(
+                        "screenHeight=$screenHeight,y=$y,x=$x,alignment=$scaleAlignment,isScaled=$isScaled");
+
+                    if (isScaled) {
+                      //   print("screenHeight12=$screenHeight,y=$y,x=$x");
+                      if (scaleAlignment == Alignment.topLeft) {
+                        centerX = x + width / 2;
+                        centerY = y + height / 2;
+                        print("走了这里 topLeft");
                       }
-                    }else if(_animationScale.value==1.0){
-                      var width = (MediaQuery.of(context).size.width-32);
-                      var right =MediaQuery.of(context).size.width-16;
+                      if (scaleAlignment == Alignment.topRight) {
+                        //由于缩放后，x,y轴的位置数值不变，所以需要手动计算出在屏幕上的centerX,centerY作为temp判断在屏幕上的用户看到的位置
+                        centerX =
+                            x + width / 2 + screenWidth * (1 - scaleFactor);
+                        centerY = y + height / 2;
+                      }
+                      if (scaleAlignment == Alignment.bottomLeft) {
+                        //bottom的时候
+                        //y轴坐标位置不变，处理坐标的时候，y值应该首先减去1.0时的y值大小 即(MediaQuery.of(context).size.width - 32)*9/16,然后再减去距离y轴的边距
+                        centerX = x + width / 2;
+                        centerY = y + height / 2;
+                        print("走了这里 bottomLeft");
+                      }
+                      if (scaleAlignment == Alignment.bottomRight) {
+                        centerX =
+                            x + width / 2 + screenWidth * (1 - scaleFactor);
+                        centerY = y + height / 2;
+                      }
+                      print(
+                          "screenHeight=$screenHeight,y=$y,x=$x,alignment=$scaleAlignment,isScaled=$isScaled,centerX=$centerX,centerY=$centerY");
+                      print(
+                          "screen=$screenWidth,height=$screenHeight,x=$x,y=$y,screenW/2=${screenWidth / 2},screenH/2=${screenHeight / 2}");
+
+                      setState(() {
+                        if (centerX < screenWidth / 2 &&
+                            centerY < screenHeight / 2) {
+                          scaleAlignment = Alignment.topLeft; //左上为基准
+                          print('走了这里 左上为基准');
+                          x = hPadding;
+                          if (y <= vPadding) y = vPadding;
+                        }
+                        if (centerX < screenWidth / 2 &&
+                            centerY > screenHeight / 2) {
+                          print('走了这里 左下为基准');
+                          scaleAlignment = Alignment.bottomLeft;
+                          if (x <= hPadding) x = hPadding;
+                          print(
+                              "走了吗,值是${screenHeight - originHeight - vPadding}");
+                          if (y > screenHeight - originHeight - vPadding) {
+                            y = screenHeight - originHeight - vPadding;
+                          }
+                        }
+                        if (centerX >= screenWidth / 2 &&
+                            centerY < screenHeight / 2) {
+                          scaleAlignment = Alignment.topRight; //右上为基准
+                          print('走了这里 右上为基准');
+                          x = screenWidth * scaleFactor - width;
+                          if (y <= vPadding) y = vPadding;
+                        }
+                        if (centerX >= screenWidth / 2 &&
+                            centerY > screenHeight / 2) {
+                          print('走了这里 右下为基准');
+                          scaleAlignment = Alignment.bottomRight;
+                          x = screenWidth * scaleFactor - width;
+                          if (y > screenHeight - originHeight - vPadding) {
+                            y = screenHeight - originHeight - vPadding;
+                          }
+                        }
+                      });
+                    } else {
+                      print(
+                          "screenHeight=$screenHeight,y=$y,x=$x,alignment=$scaleAlignment,isScaled=$isScaled,centerX=$centerX,centerY=$centerY");
+                      setState(() {
+                        if (centerX < screenWidth / 2 &&
+                            centerY < screenHeight / 2) {
+                          scaleAlignment = Alignment.topLeft; //左上为基准
+                          print('走了这里 左上为基准');
+                          x = hPadding;
+                          if (y <= vPadding) y = vPadding;
+                        }
+                        if (centerX < screenWidth / 2 &&
+                            centerY > screenHeight / 2) {
+                          print('走了这里 左下为基准');
+                          scaleAlignment = Alignment.bottomLeft;
+                          if (x <= hPadding) x = hPadding;
+                          if (y > screenHeight - originHeight - vPadding) {
+                            y = screenHeight - originHeight - vPadding;
+                          }
+                        }
+                        if (centerX >= screenWidth / 2 &&
+                            centerY < screenHeight / 2) {
+                          scaleAlignment = Alignment.topRight; //右上为基准
+                          print('走了这里 右上为基准');
+                          x = screenWidth - width - hPadding;
+                          if (y <= vPadding) y = vPadding;
+                        }
+                        if (centerX >= screenWidth / 2 &&
+                            centerY > screenHeight / 2) {
+                          print('走了这里 右下为基准');
+                          scaleAlignment = Alignment.bottomRight;
+                          x = screenWidth - width - hPadding;
+                          if (y > screenHeight - originHeight - vPadding) {
+                            y = screenHeight - originHeight - vPadding;
+                          }
+                        }
+                      });
                     }
-                    if(y<=80)y=80;
+                    print(
+                        "screen 什么情况=$screenWidth,height=$screenHeight,x=$x,y=$y,videoHeight=$height,videoWidth=$width,maxHeight=$originHeight");
+
                     overlayEntryX.markNeedsBuild();
                   },
                   child: AnimatedBuilder(
@@ -138,28 +257,27 @@ class _MyAppState extends State<MyApp>
                     builder: (context, child) {
                       return Transform.scale(
                         scale: _animationScale.value,
-                        alignment: Alignment.topLeft,
+                        alignment: scaleAlignment,
                         child: Material(
                           color: Colors.transparent,
                           child: Container(
                             decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(16)
-                            ),
+                                color: Colors.black,
+                                borderRadius: BorderRadius.circular(16)),
                             width: MediaQuery.of(context).size.width - 32,
                             height: (MediaQuery.of(context).size.width - 32) *
                                 9 /
                                 16,
-                            
-                            child:Stack(
+                            child: Stack(
                               children: [
                                 FlutterFloatWindowView(
-                                  videoUrl:videoUrl,
+                                  videoUrl: videoUrl,
                                   title: "flutterWindow",
                                   artist: "videoTest",
                                   position: 10000,
                                   duration: 180000,
-                                  coverUrl: "https://t7.baidu.com/it/u=2621658848,3952322712&fm=193&f=GIF",
+                                  coverUrl:
+                                      "https://t7.baidu.com/it/u=2621658848,3952322712&fm=193&f=GIF",
                                 ),
                                 // Center(
                                 //   child: Row(
@@ -272,7 +390,7 @@ class _MyAppState extends State<MyApp>
         print("paused");
         Map<String, String> params = {
           "videoUrl":
-          'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
+              'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
         };
         // FlutterFloatWindow.showFloatWindowWithInit(params);
         debugPrint("hello");
@@ -290,7 +408,7 @@ class _MyAppState extends State<MyApp>
   Widget build(BuildContext context) {
     var fW = MediaQuery.of(context).size.width;
     var fH = MediaQuery.of(context).size.height;
-    debugPrint('fw=$fW,fh=$fH,${window.devicePixelRatio}');
+    // debugPrint('fw=$fW,fh=$fH,${window.devicePixelRatio}');
     return MaterialApp(
       home: Scaffold(
           appBar: AppBar(
@@ -315,7 +433,7 @@ class _MyAppState extends State<MyApp>
                       onPressed: () {
                         Map<String, String> params = {
                           "videoUrl":
-                          'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
+                              'http://vfx.mtime.cn/Video/2019/03/18/mp4/190318231014076505.mp4'
                         };
                         FlutterFloatWindow.initFloatWindow(params);
                       },
@@ -542,15 +660,20 @@ class _MyAppState extends State<MyApp>
                         // overlayEntryX.markNeedsBuild();
                       },
                       child: Text('缩放overlay操作返回')),
-                  ElevatedButton(onPressed: (){
-                    setState(() {
-                      videoUrl=videoUrlMp4;
-                    });
-                  }, child: Text('切换VideoUrl')),
-                  ElevatedButton(onPressed: () async{
-                   var canShowFloatWindow = await FlutterFloatWindow.canShowFloatWindow();
-                   print("canShowFloatWindow=$canShowFloatWindow");
-                  }, child: Text('canShow for ios')),
+                  ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          videoUrl = videoUrlMp4;
+                        });
+                      },
+                      child: Text('切换VideoUrl')),
+                  ElevatedButton(
+                      onPressed: () async {
+                        var canShowFloatWindow =
+                            await FlutterFloatWindow.canShowFloatWindow();
+                        print("canShowFloatWindow=$canShowFloatWindow");
+                      },
+                      child: Text('canShow for ios')),
                 ],
               ),
             ),
