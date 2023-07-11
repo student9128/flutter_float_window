@@ -300,7 +300,7 @@ class FloatWindowService : Service() {
                     player.play()
                     ivPlay.setImageResource(R.drawable.ic_pause)
                     listener?.onPlayClick(true)
-                    handler.postDelayed(runnable, 2000)
+                    handler.postDelayed(runnable, 3000)
                 }
             }
         }
@@ -745,7 +745,7 @@ class FloatWindowService : Service() {
                     }
                 }
                 if (player.isPlaying) {
-                    handler.postDelayed(runnable, 2000)
+                    handler.postDelayed(runnable, 3000)
                 }
 //                openApp(context)
 //                else {
