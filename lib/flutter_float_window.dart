@@ -4,31 +4,31 @@ import 'package:flutter/services.dart';
 
 enum FloatWindowGravity {
   ///left
-  LEFT,
+  left,
 
   ///top
-  TOP,
+  top,
 
   ///right
-  RIGHT,
+  right,
 
   ///bottom
-  BOTTOM,
+  bottom,
 
   ///center
-  CENTER,
+  center,
 
   ///top and left
-  TL,
+  topLeft,
 
   ///top and right
-  TR,
+  topRight,
 
   ///bottom and right
-  BR,
+  bottomRight,
 
   ///bottom and left
-  BL
+  bottomLeft
 }
 
 class FlutterFloatWindow {
@@ -123,39 +123,39 @@ class FlutterFloatWindow {
   ///设置位置
   static setGravity(FloatWindowGravity gravity,{isLive = false}) async {
     switch (gravity) {
-      case FloatWindowGravity.LEFT:
+      case FloatWindowGravity.left:
         Map<String,dynamic> params = {'gravity':"left",'isLive':isLive};
         await _channel.invokeMethod('setGravity',params);
         break;
-      case FloatWindowGravity.TOP:
+      case FloatWindowGravity.top:
         Map<String,dynamic> params = {'gravity':"top",'isLive':isLive};
         await _channel.invokeMethod('setGravity',params);
         break;
-      case FloatWindowGravity.RIGHT:
+      case FloatWindowGravity.right:
         Map<String,dynamic> params = {'gravity':"right",'isLive':isLive};
         await _channel.invokeMethod('setGravity', params);
         break;
-      case FloatWindowGravity.BOTTOM:
+      case FloatWindowGravity.bottom:
         Map<String,dynamic> params = {'gravity':"bottom",'isLive':isLive};
         await _channel.invokeMethod('setGravity', params);
         break;
-      case FloatWindowGravity.CENTER:
+      case FloatWindowGravity.center:
         Map<String,dynamic> params = {'gravity':"center",'isLive':isLive};
         await _channel.invokeMethod('setGravity', params);
         break;
-      case FloatWindowGravity.TL:
+      case FloatWindowGravity.topLeft:
         Map<String,dynamic> params = {'gravity':"tl",'isLive':isLive};
         await _channel.invokeMethod('setGravity', params);
         break;
-      case FloatWindowGravity.TR:
+      case FloatWindowGravity.topRight:
         Map<String,dynamic> params = {'gravity':"tr",'isLive':isLive};
         await _channel.invokeMethod('setGravity', params);
         break;
-      case FloatWindowGravity.BL:
+      case FloatWindowGravity.bottomLeft:
         Map<String,dynamic> params = {'gravity':"bl",'isLive':isLive};
         await _channel.invokeMethod('setGravity', params);
         break;
-      case FloatWindowGravity.BR:
+      case FloatWindowGravity.bottomRight:
         Map<String,dynamic> params = {'gravity':"br",'isLive':isLive};
         await _channel.invokeMethod('setGravity', params);
         break;

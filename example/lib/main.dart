@@ -518,23 +518,23 @@ class _MyAppState extends State<MyApp>
                         switch (count % 5) {
                           case 1:
                             FlutterFloatWindow.setGravity(
-                                FloatWindowGravity.LEFT);
+                                FloatWindowGravity.left);
                             break;
                           case 2:
                             FlutterFloatWindow.setGravity(
-                                FloatWindowGravity.TOP);
+                                FloatWindowGravity.top);
                             break;
                           case 3:
                             FlutterFloatWindow.setGravity(
-                                FloatWindowGravity.RIGHT);
+                                FloatWindowGravity.right);
                             break;
                           case 4:
                             FlutterFloatWindow.setGravity(
-                                FloatWindowGravity.BOTTOM);
+                                FloatWindowGravity.bottom);
                             break;
                           case 0:
                             FlutterFloatWindow.setGravity(
-                                FloatWindowGravity.CENTER);
+                                FloatWindowGravity.center);
                             break;
                         }
                       },
