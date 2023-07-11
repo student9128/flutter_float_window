@@ -140,11 +140,7 @@ class _MyAppState extends State<MyApp>
                     var height = width * 9 / 16;
                     var centerX = x + width / 2;
                     var centerY = y + height / 2;
-                    print(
-                        "screenHeight=$screenHeight,y=$y,x=$x,alignment=$scaleAlignment,isScaled=$isScaled");
-
                     if (isScaled) {
-                      //   print("screenHeight12=$screenHeight,y=$y,x=$x");
                       if (scaleAlignment == Alignment.topLeft) {
                         centerX = x + width / 2;
                         centerY = y + height / 2;
@@ -168,88 +164,43 @@ class _MyAppState extends State<MyApp>
                             x + width / 2 + screenWidth * (1 - scaleFactor);
                         centerY = y + height / 2;
                       }
-                      print(
-                          "screenHeight=$screenHeight,y=$y,x=$x,alignment=$scaleAlignment,isScaled=$isScaled,centerX=$centerX,centerY=$centerY");
-                      print(
-                          "screen=$screenWidth,height=$screenHeight,x=$x,y=$y,screenW/2=${screenWidth / 2},screenH/2=${screenHeight / 2}");
-
-                      setState(() {
-                        if (centerX < screenWidth / 2 &&
-                            centerY < screenHeight / 2) {
-                          scaleAlignment = Alignment.topLeft; //左上为基准
-                          print('走了这里 左上为基准');
-                          x = hPadding;
-                          if (y <= vPadding) y = vPadding;
-                        }
-                        if (centerX < screenWidth / 2 &&
-                            centerY > screenHeight / 2) {
-                          print('走了这里 左下为基准');
-                          scaleAlignment = Alignment.bottomLeft;
-                          if (x <= hPadding) x = hPadding;
-                          print(
-                              "走了吗,值是${screenHeight - originHeight - vPadding}");
-                          if (y > screenHeight - originHeight - vPadding) {
-                            y = screenHeight - originHeight - vPadding;
-                          }
-                        }
-                        if (centerX >= screenWidth / 2 &&
-                            centerY < screenHeight / 2) {
-                          scaleAlignment = Alignment.topRight; //右上为基准
-                          print('走了这里 右上为基准');
-                          x = screenWidth * scaleFactor - width;
-                          if (y <= vPadding) y = vPadding;
-                        }
-                        if (centerX >= screenWidth / 2 &&
-                            centerY > screenHeight / 2) {
-                          print('走了这里 右下为基准');
-                          scaleAlignment = Alignment.bottomRight;
-                          x = screenWidth * scaleFactor - width;
-                          if (y > screenHeight - originHeight - vPadding) {
-                            y = screenHeight - originHeight - vPadding;
-                          }
-                        }
-                      });
-                    } else {
-                      print(
-                          "screenHeight=$screenHeight,y=$y,x=$x,alignment=$scaleAlignment,isScaled=$isScaled,centerX=$centerX,centerY=$centerY");
-                      setState(() {
-                        if (centerX < screenWidth / 2 &&
-                            centerY < screenHeight / 2) {
-                          scaleAlignment = Alignment.topLeft; //左上为基准
-                          print('走了这里 左上为基准');
-                          x = hPadding;
-                          if (y <= vPadding) y = vPadding;
-                        }
-                        if (centerX < screenWidth / 2 &&
-                            centerY > screenHeight / 2) {
-                          print('走了这里 左下为基准');
-                          scaleAlignment = Alignment.bottomLeft;
-                          if (x <= hPadding) x = hPadding;
-                          if (y > screenHeight - originHeight - vPadding) {
-                            y = screenHeight - originHeight - vPadding;
-                          }
-                        }
-                        if (centerX >= screenWidth / 2 &&
-                            centerY < screenHeight / 2) {
-                          scaleAlignment = Alignment.topRight; //右上为基准
-                          print('走了这里 右上为基准');
-                          x = screenWidth - width - hPadding;
-                          if (y <= vPadding) y = vPadding;
-                        }
-                        if (centerX >= screenWidth / 2 &&
-                            centerY > screenHeight / 2) {
-                          print('走了这里 右下为基准');
-                          scaleAlignment = Alignment.bottomRight;
-                          x = screenWidth - width - hPadding;
-                          if (y > screenHeight - originHeight - vPadding) {
-                            y = screenHeight - originHeight - vPadding;
-                          }
-                        }
-                      });
                     }
-                    print(
-                        "screen 什么情况=$screenWidth,height=$screenHeight,x=$x,y=$y,videoHeight=$height,videoWidth=$width,maxHeight=$originHeight");
-
+                      print(
+                          "screenHeight=$screenHeight,y=$y,x=$x,alignment=$scaleAlignment,isScaled=$isScaled,centerX=$centerX,centerY=$centerY");
+                      setState(() {
+                        if (centerX < screenWidth / 2 &&
+                            centerY < screenHeight / 2) {
+                          scaleAlignment = Alignment.topLeft; //左上为基准
+                          print('走了这里 左上为基准');
+                          x = hPadding;
+                          if (y <= vPadding) y = vPadding;
+                        }
+                        if (centerX < screenWidth / 2 &&
+                            centerY > screenHeight / 2) {
+                          print('走了这里 左下为基准');
+                          scaleAlignment = Alignment.bottomLeft;
+                          if (x <= hPadding) x = hPadding;
+                          if (y > screenHeight - originHeight - vPadding) {
+                            y = screenHeight - originHeight - vPadding;
+                          }
+                        }
+                        if (centerX >= screenWidth / 2 &&
+                            centerY < screenHeight / 2) {
+                          scaleAlignment = Alignment.topRight; //右上为基准
+                          print('走了这里 右上为基准');
+                          x =isScaled? screenWidth * scaleFactor - width:screenWidth - width - hPadding;
+                          if (y <= vPadding) y = vPadding;
+                        }
+                        if (centerX >= screenWidth / 2 &&
+                            centerY > screenHeight / 2) {
+                          print('走了这里 右下为基准');
+                          scaleAlignment = Alignment.bottomRight;
+                           x =isScaled? screenWidth * scaleFactor - width:screenWidth - width - hPadding;
+                          if (y > screenHeight - originHeight - vPadding) {
+                            y = screenHeight - originHeight - vPadding;
+                          }
+                        }
+                      });
                     overlayEntryX.markNeedsBuild();
                   },
                   child: AnimatedBuilder(
