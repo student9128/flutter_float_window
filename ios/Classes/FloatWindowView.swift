@@ -28,7 +28,6 @@ class FloatWindowView : NSObject,FlutterPlatformView{
             self.handle(call, result: result)
         }
         // iOS views can be created here
-        printW("args=\(String(describing: args))")
         //          if let paragms = args as? [String:Any]{
         //              let text =  paragms["text"]
         //              printI("flutter传参\(text)")
@@ -260,7 +259,6 @@ class FloatVideoView:UIView{
     override func layoutSubviews() {
         FloatWindowManager.shared.playerLayerX?.frame=frame
         super.layoutSubviews()
-        printE("layoutSubviews")
         
         self.addSubview(pipExitContainer)
         self.addSubview(closeContainer)
@@ -379,7 +377,6 @@ class FloatVideoView:UIView{
     }
     
     @objc func onCurrentViewClick(){
-        printE("onCurrentViewClick")
         mTimer?.invalidate()
         toggleButton()
         

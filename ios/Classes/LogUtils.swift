@@ -6,24 +6,24 @@
 //
 
 import Foundation
-func printV(_ message:String){
+public func printV(_ message:String){
     debugPrint("✈️ \(message)")
 }
-func printE(_ message:String){
+public func printE(_ message:String){
     debugPrint("🈲 \(message)")
 }
-func printI(_ message:String){
+public func printI(_ message:String){
     debugPrint("🌿 \(message)")
 }
-func printW(_ message:String){
+public func printW(_ message:String){
     debugPrint("⚠️ \(message)")
 }
-func printD(_ message:String){
+public func printD(_ message:String){
     debugPrint("🐬📘 \(message)")
 }
-func printPurple(_ message:String){
+public func printPurple(_ message:String){
     debugPrint("🟣 \(message)")
 }
-func printCyan(_ message:String){
+public func printCyan(_ message:String){
     debugPrint("🗳️ \(message)")
 }

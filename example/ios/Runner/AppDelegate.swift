@@ -31,21 +31,15 @@ import Foundation
     override func applicationWillEnterForeground(_ application: UIApplication) {
     }
     override func applicationDidEnterBackground(_ application: UIApplication) {
-        printW("application===applicationDidEnterBackground")
         do {
             try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
 //            try AVAudioSession.sharedInstance().setActive(true,options:.notifyOthersOnDeactivation)
         } catch {
             printE("进入后台的时候Failed to enable background audio.")
         }
-//        FloatWindowManager.shared.play()
-                FloatWindowManager.shared.startPip()
-        printI("application===applicationDidEnterBackgroundXXX")
     }
     override func applicationDidBecomeActive(_ application: UIApplication) {
-        printD("application===applicationDidBecomeActive")
     }
     override func applicationWillTerminate(_ application: UIApplication) {
-        printE("application===applicationWillTerminate")
     }
 }

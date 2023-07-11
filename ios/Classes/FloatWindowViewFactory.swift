@@ -20,8 +20,6 @@ class FloatWindowViewFactory: NSObject,FlutterPlatformViewFactory{
         viewIdentifier viewId: Int64,
         arguments args: Any?
     ) -> FlutterPlatformView {
-        printE("怎么走的")
-        printW("args=12\(String(describing: args))")
         return FloatWindowView(
             frame: frame,
             viewIdentifier: viewId,

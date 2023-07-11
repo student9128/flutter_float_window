@@ -55,7 +55,7 @@ public class FloatWindowManager:NSObject{
     
     
     func initFloatWindowManager(videoUrl:String,title:String = "",artist:String = "",coverUrl:String = "",position:Int = 0,duration:Int = 0){
-        printD("title=\(title),artist=\(artist),coverUrl=\(coverUrl),currentPosition=\(position)")
+//        printD("title=\(title),artist=\(artist),coverUrl=\(coverUrl),currentPosition=\(position)")
         let videoURL = URL(string: videoUrl)!
         let player = AVPlayer(url: videoURL)
         playerLayerX = AVPlayerLayer(player: player)
@@ -132,7 +132,6 @@ public class FloatWindowManager:NSObject{
         var isOn = true;
         if let pip = pipController{
             isOn = pip.isPictureInPicturePossible
-            printE("isOn=\(isOn)")
         }
         return isOn
     }
