@@ -229,6 +229,7 @@ class _MyAppState extends State<MyApp>
                                   duration: 180000,
                                   coverUrl:
                                       "https://t7.baidu.com/it/u=2621658848,3952322712&fm=193&f=GIF",
+                                  speed: 2.0,
                                 ),
                                 // Center(
                                 //   child: Row(

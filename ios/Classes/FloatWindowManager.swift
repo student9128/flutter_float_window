@@ -54,13 +54,14 @@ public class FloatWindowManager:NSObject{
     }
     
     
-    func initFloatWindowManager(videoUrl:String,title:String = "",artist:String = "",coverUrl:String = "",position:Int = 0,duration:Int = 0){
+    func initFloatWindowManager(videoUrl:String,title:String = "",artist:String = "",coverUrl:String = "",position:Int = 0,duration:Int = 0,speed:Float = 1.0){
 //        printD("title=\(title),artist=\(artist),coverUrl=\(coverUrl),currentPosition=\(position)")
         let videoURL = URL(string: videoUrl)!
         let player = AVPlayer(url: videoURL)
         playerLayerX = AVPlayerLayer(player: player)
         player.seek(to: CMTimeMake(value: Int64(position/1000), timescale: 1))
         player.play()
+        player.rate=speed
         isPlaying=true
         if #available(iOS 15.0, *) {
             player.audiovisualBackgroundPlaybackPolicy = AVPlayerAudiovisualBackgroundPlaybackPolicy.continuesIfPossible

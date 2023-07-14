@@ -18,7 +18,7 @@ import Foundation
         //      } catch {
         //          printE("Error setting category or activating audio session: \(error.localizedDescription)")
         //      }
-//                 UIApplication.shared.beginReceivingRemoteControlEvents()
+                 UIApplication.shared.beginReceivingRemoteControlEvents()
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
     override func applicationWillResignActive(_ application: UIApplication) {
@@ -41,5 +41,9 @@ import Foundation
     override func applicationDidBecomeActive(_ application: UIApplication) {
     }
     override func applicationWillTerminate(_ application: UIApplication) {
+    }
+    override func remoteControlReceived(with event: UIEvent?) {
+        printE("event=\(String(describing: event?.type.rawValue))")
+        printI("event=\(String(describing: event?.subtype.rawValue))")
     }
 }

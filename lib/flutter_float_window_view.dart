@@ -10,7 +10,8 @@ class FlutterFloatWindowView extends StatelessWidget {
       this.artist = "",
       this.coverUrl = "",
       this.position = 0,
-      this.duration=0})
+      this.duration=0,
+      this.speed=1.0})
       : super(key: key);
   static var channel = FlutterFloatWindow.channel;
   final String videoUrl;
@@ -19,6 +20,7 @@ class FlutterFloatWindowView extends StatelessWidget {
   final String coverUrl;
   final int position;
   final int duration;
+  final double speed;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +32,8 @@ class FlutterFloatWindowView extends StatelessWidget {
           "artist": artist,
           "coverUrl": coverUrl,
           "position": position,
-          "duration":duration
+          "duration":duration,
+          "speed":speed
         },
         creationParamsCodec: const StandardMessageCodec(),
         onPlatformViewCreated: (viewId) {

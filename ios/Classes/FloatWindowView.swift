@@ -45,7 +45,8 @@ class FloatWindowView : NSObject,FlutterPlatformView{
                 let coverUrl = dic["coverUrl"] as? String
                 let currentPosition = dic["position"] as? Int
                 let duration = dic["duration"] as? Int
-                FloatWindowManager.shared.initFloatWindowManager(videoUrl: videoUlr,title: title ?? "",artist: artist ?? "",coverUrl:coverUrl ?? "",position:currentPosition ?? 0,duration: duration ?? 0)
+                let speed = dic["speed"] as? Float
+                FloatWindowManager.shared.initFloatWindowManager(videoUrl: videoUlr,title: title ?? "",artist: artist ?? "",coverUrl:coverUrl ?? "",position:currentPosition ?? 0,duration: duration ?? 0,speed: speed ?? 1.0)
                 _view.layer.addSublayer(FloatWindowManager.shared.playerLayerX!)
                 
             }
@@ -103,6 +104,7 @@ class FloatVideoView:UIView{
     let playPauseContainer = UIView()
     let closeContainer = UIView()
     let pipExitContainer = UIView()
+    
     let forwardImageView = UIImageView(image: UIImage(systemName:"goforward.15"))
     let backwardImageView = UIImageView(image: UIImage(systemName:"gobackward.15"))
     let pauseImage = UIImage(systemName:"pause.fill")
