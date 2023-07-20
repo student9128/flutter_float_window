@@ -30,10 +30,10 @@ import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DefaultDataSource
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSource
-import io.agora.rtc.Constants
-import io.agora.rtc.IRtcEngineEventHandler
-import io.agora.rtc.RtcEngine
-import io.agora.rtc.video.VideoCanvas
+import io.agora.rtc2.Constants
+import io.agora.rtc2.IRtcEngineEventHandler
+import io.agora.rtc2.RtcEngine
+import io.agora.rtc2.video.VideoCanvas
 
 
 class FloatWindowLiveService : Service() {
@@ -141,7 +141,7 @@ class FloatWindowLiveService : Service() {
                 tvStatus.visibility=View.VISIBLE
                 flContainer.addView(surfaceView)
                 mRtcEngine.setupRemoteVideo(
-                    VideoCanvas(surfaceView, VideoCanvas.RENDER_MODE_FILL, uid)
+                    VideoCanvas(surfaceView, VideoCanvas.RENDER_MODE_FIT, uid)
                 )
             }
         }
@@ -183,11 +183,6 @@ class FloatWindowLiveService : Service() {
         override fun onFirstRemoteVideoFrame(uid: Int, width: Int, height: Int, elapsed: Int) {
             super.onFirstRemoteVideoFrame(uid, width, height, elapsed)
             Log.d(TAG, "onFirstRemoteVideoFrame====$uid")
-        }
-
-        override fun onFirstLocalVideoFrame(width: Int, height: Int, elapsed: Int) {
-            super.onFirstLocalVideoFrame(width, height, elapsed)
-            Log.d(TAG, "onFirstLocalVideoFrame")
         }
     }
 
