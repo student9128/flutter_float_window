@@ -1,3 +1,7 @@
+## 0.1.8
+support ios show float window when use Agora SDK.
+upgrade android Agora native sdk to 4.2.1.
+add lost code in 0.1.7.
 ## 0.1.7
 support iOS show float window inside app by Overlay, it can show picture in picture when app in background mode.
 ## 0.1.6
