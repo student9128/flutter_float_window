@@ -7,6 +7,7 @@
 
 import Foundation
 import AgoraRtcKit
+import MediaPlayer
 public class FloatLiveWindowManager:NSObject{
     public static let shared = FloatLiveWindowManager()
     var mAppId : String = ""
@@ -18,6 +19,12 @@ public class FloatLiveWindowManager:NSObject{
     var pipController: AgoraPictureInPictureController?
     var hasInitPip=false
     var isRestore = false
+    var nowPlayingInfo = [String : Any]()
+    var mImageUrl    : String?
+    var mAudioTitle  : String?
+    var mArtist      : String?
+    var mAlbumTitle  : String?
+    
     private override init() {
     }
     func initPip(view:AgoraSampleBufferRender){
@@ -60,7 +67,7 @@ public class FloatLiveWindowManager:NSObject{
         printI("deinit走了吗")
         pipController?.releasePIP()
     }
-    func initFloatLiveWindowManager(appId:String,token:String,channelName:String,optionalUid:Int = -1){
+    func initFloatLiveWindowManager(appId:String,token:String,channelName:String,optionalUid:Int = -1,title:String = "",artist:String = "",coverUrl:String = ""){
         printI("initFloatLiveWindowManager")
         mAppId = appId
         mToken = token
@@ -77,6 +84,14 @@ public class FloatLiveWindowManager:NSObject{
         agoraKit?.enableLocalVideo(false)
         agoraKit?.joinChannel(byToken: mToken, channelId: mChannelName, info: nil, uid: UInt(mOptionalUid))
         
+        mImageUrl = coverUrl
+        mAudioTitle = title
+        mArtist = artist
+        mAlbumTitle = title
+        
+        initRemoteCommand()
+        initNowPlayingCenter()
+        
     }
     func joinChannel(){
 //        let option = AgoraRtcChannelMediaOptions()
@@ -90,8 +105,74 @@ public class FloatLiveWindowManager:NSObject{
             printW("duration=\(result.duration)")
         }
         AgoraRtcEngineKit.destroy()
+
         pipController?.releasePIP()
+        resetNowingPlayCenter()
         
+    }
+    func initRemoteCommand(){
+        let commondCenter: MPRemoteCommandCenter = MPRemoteCommandCenter.shared()
+        commondCenter.playCommand.isEnabled=false
+        commondCenter.pauseCommand.isEnabled=false
+        commondCenter.skipForwardCommand.isEnabled=false
+        commondCenter.skipBackwardCommand.isEnabled=false
+        commondCenter.togglePlayPauseCommand.isEnabled=false
+        // 将按钮颜色设置为灰色
+        commondCenter.playCommand.addTarget { _ in
+            return .commandFailed
+        }
+
+        commondCenter.pauseCommand.addTarget { _ in
+            return .commandFailed
+        }
+        commondCenter.togglePlayPauseCommand.addTarget{_ in
+            return .commandFailed
+        }
+        commondCenter.skipForwardCommand.addTarget{_ in
+            return .commandFailed
+        }
+        commondCenter.skipBackwardCommand.addTarget{_ in
+            return .commandFailed
+        }
+    }
+    func initNowPlayingCenter(){
+        if let url = URL(string: mImageUrl ?? "") {
+            downloadImage(url:url) { image in
+                self.nowPlayingInfo[MPMediaItemPropertyArtwork] =
+                MPMediaItemArtwork(boundsSize: image.size) { size in
+                    return image
+                }
+                MPNowPlayingInfoCenter.default().nowPlayingInfo = self.nowPlayingInfo
+            }
+        }
+        
+        nowPlayingInfo[MPMediaItemPropertyTitle] = mAudioTitle
+        nowPlayingInfo[MPMediaItemPropertyArtist] = mArtist
+        nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = mAudioTitle
+        nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackRate] = 1
+        
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    func resetNowingPlayCenter(){
+        let nowPlayingInfo = [String : Any]()
+        MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
+    }
+    func downloadImage(url: URL, callback: @escaping  (UIImage)->() ) {
+        getDataFromUrl(url: url) { (data, response, error)  in
+            guard let data = data, error == nil else {
+                return
+            }
+            DispatchQueue.main.async() { () -> Void in
+                callback(UIImage(data: data) ?? UIImage())
+            }
+        }
+    }
+    
+    func getDataFromUrl(url: URL, completion: @escaping (_ data: Data?, _  response: URLResponse?, _ error: Error?) -> Void) {
+        URLSession.shared.dataTask(with: url) {
+            (data, response, error) in
+            completion(data, response, error)
+        }.resume()
     }
 }
 extension FloatLiveWindowManager:AgoraRtcEngineDelegate{

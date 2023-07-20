@@ -290,7 +290,7 @@ public class FloatWindowManager:NSObject{
         }
         commondCenter.skipForwardCommand.addTarget{[unowned self] event in
             forward()
-            return .commandFailed
+            return .success
         }
         commondCenter.playCommand.addTarget{[unowned self]event in
             playPause()

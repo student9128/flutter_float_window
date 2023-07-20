@@ -33,9 +33,12 @@ class FloatLiveWindowView: NSObject,FlutterPlatformView{
             let token = dic["token"] as? String
             let channelName = dic["channelName"] as? String
             let optionalUid = dic["optionalUid"] as? Int
+            let title = dic["title"] as? String
+            let artist = dic["artist"] as? String
+            let coverUrl = dic["coverUrl"] as? String
             if let id = appId,let t = token,let cn = channelName,let oUid = optionalUid{
                 printI("zou le ma")
-                FloatLiveWindowManager.shared.initFloatLiveWindowManager(appId: id, token: t, channelName: cn,optionalUid: oUid)
+                FloatLiveWindowManager.shared.initFloatLiveWindowManager(appId: id, token: t, channelName: cn,optionalUid: oUid,title: title ?? "",artist: artist ?? "",coverUrl:coverUrl ?? "")
                 FloatLiveWindowManager.shared.joinChannel()
             }
         }
@@ -282,7 +285,7 @@ class FloatLiveView: UIView{
                 windowLiveView.isHidden = true
                 break
             case "pipWillStart":
-                if let window = UIApplication.shared.windows.first{   
+                if let window = UIApplication.shared.windows.first{
                     window.addSubview(windowLeaveChannelView)
                     windowLeaveChannelView.translatesAutoresizingMaskIntoConstraints = false
                     NSLayoutConstraint.activate([
