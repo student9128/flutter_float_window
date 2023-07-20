@@ -10,5 +10,7 @@ public class SwiftFlutterFloatWindowPlugin: NSObject, FlutterPlugin,AVPictureInP
         registrar.addMethodCallDelegate(instance, channel: channel)
         let factory = FloatWindowViewFactory(messenger: registrar.messenger())
         registrar.register(factory, withId: "flutter_float_window")
+        let liveFactory = FloatLiveWindowViewFactory(messenger: registrar.messenger())
+        registrar.register(liveFactory, withId: "flutter_float_live_window")
     }
 }

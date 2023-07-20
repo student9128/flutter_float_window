@@ -140,10 +140,8 @@ public class FloatWindowManager:NSObject{
         pipController?.startPictureInPicture()
     }
     public func stopPip(){
-        if let pc = pipController{
-            if(pc.isPictureInPictureActive){
+        if let pc = pipController,pc.isPictureInPictureActive{
                 pc.stopPictureInPicture()
-            }
         }
     }
     public func updateForwardAndBackwardBtnStatus(){

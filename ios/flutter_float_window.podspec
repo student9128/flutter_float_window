@@ -15,7 +15,10 @@ A new Flutter plugin.
   s.source           = { :path => '.' }
   s.source_files = 'Classes/**/*'
   s.dependency 'Flutter'
+  s.dependency 'AgoraRtcEngine_iOS', '4.2.1'
+  s.dependency 'AgoraIrisRTC_iOS', '4.2.1-build.1'
   s.platform = :ios, '13.0'
+  s.libraries = 'stdc++'
 
   # Flutter.framework does not contain a i386 slice.
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
