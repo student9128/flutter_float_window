@@ -7,6 +7,7 @@ import 'package:flutter_float_window/flutter_agora_live_event_handler.dart';
 import 'package:flutter_float_window/flutter_agora_live_engine.dart';
 export 'package:flutter_float_window/flutter_agora_live_event_handler.dart';
 export 'package:flutter_float_window/flutter_agora_live_engine.dart';
+export 'package:flutter_float_window/flutter_agora_constants.dart';
 
 enum FloatWindowGravity {
   ///left
