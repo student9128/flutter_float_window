@@ -1,6 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:flutter_float_window/flutter_agora_constants.dart';
+import 'package:flutter_float_window/flutter_agora_live_event_handler.dart';
+import 'package:flutter_float_window/flutter_agora_live_engine.dart';
+export 'package:flutter_float_window/flutter_agora_live_event_handler.dart';
+export 'package:flutter_float_window/flutter_agora_live_engine.dart';
 
 enum FloatWindowGravity {
   ///left
@@ -33,8 +39,14 @@ enum FloatWindowGravity {
 
 class FlutterFloatWindow {
   static const MethodChannel _channel = MethodChannel('flutter_float_window');
+  static const EventChannel _eventChannel =
+      EventChannel('flutter_agora_live/events');
 
   static MethodChannel get channel => _channel;
+  static EventChannel get eventChannel => _eventChannel;
+
+  static const MethodChannel _channelAgoraIOS = MethodChannel('flutter_agora_live');
+  static MethodChannel get channelAgoraIOS => _channelAgoraIOS;
 
   static Future<String?> get platformVersion async {
     final String? version = await _channel.invokeMethod('getPlatformVersion');
@@ -121,42 +133,42 @@ class FlutterFloatWindow {
   }
 
   ///设置位置
-  static setGravity(FloatWindowGravity gravity,{isLive = false}) async {
+  static setGravity(FloatWindowGravity gravity, {isLive = false}) async {
     switch (gravity) {
       case FloatWindowGravity.left:
-        Map<String,dynamic> params = {'gravity':"left",'isLive':isLive};
-        await _channel.invokeMethod('setGravity',params);
+        Map<String, dynamic> params = {'gravity': "left", 'isLive': isLive};
+        await _channel.invokeMethod('setGravity', params);
         break;
       case FloatWindowGravity.top:
-        Map<String,dynamic> params = {'gravity':"top",'isLive':isLive};
-        await _channel.invokeMethod('setGravity',params);
+        Map<String, dynamic> params = {'gravity': "top", 'isLive': isLive};
+        await _channel.invokeMethod('setGravity', params);
         break;
       case FloatWindowGravity.right:
-        Map<String,dynamic> params = {'gravity':"right",'isLive':isLive};
+        Map<String, dynamic> params = {'gravity': "right", 'isLive': isLive};
         await _channel.invokeMethod('setGravity', params);
         break;
       case FloatWindowGravity.bottom:
-        Map<String,dynamic> params = {'gravity':"bottom",'isLive':isLive};
+        Map<String, dynamic> params = {'gravity': "bottom", 'isLive': isLive};
         await _channel.invokeMethod('setGravity', params);
         break;
       case FloatWindowGravity.center:
-        Map<String,dynamic> params = {'gravity':"center",'isLive':isLive};
+        Map<String, dynamic> params = {'gravity': "center", 'isLive': isLive};
         await _channel.invokeMethod('setGravity', params);
         break;
       case FloatWindowGravity.topLeft:
-        Map<String,dynamic> params = {'gravity':"tl",'isLive':isLive};
+        Map<String, dynamic> params = {'gravity': "tl", 'isLive': isLive};
         await _channel.invokeMethod('setGravity', params);
         break;
       case FloatWindowGravity.topRight:
-        Map<String,dynamic> params = {'gravity':"tr",'isLive':isLive};
+        Map<String, dynamic> params = {'gravity': "tr", 'isLive': isLive};
         await _channel.invokeMethod('setGravity', params);
         break;
       case FloatWindowGravity.bottomLeft:
-        Map<String,dynamic> params = {'gravity':"bl",'isLive':isLive};
+        Map<String, dynamic> params = {'gravity': "bl", 'isLive': isLive};
         await _channel.invokeMethod('setGravity', params);
         break;
       case FloatWindowGravity.bottomRight:
-        Map<String,dynamic> params = {'gravity':"br",'isLive':isLive};
+        Map<String, dynamic> params = {'gravity': "br", 'isLive': isLive};
         await _channel.invokeMethod('setGravity', params);
         break;
     }
@@ -206,13 +218,14 @@ class FlutterFloatWindow {
   }
 
   /// agora SDK appId
-  static Future<String> initFloatLive(String appId, String token,
-      String channelName, int optionalUid) async {
+  static Future<String> initFloatLive(
+      String appId, String token, String channelName, int optionalUid) async {
     Map<String, dynamic> params = {
       'appId': appId,
       'token': token,
       'channelName': channelName,
-      'optionalUid': optionalUid};
+      'optionalUid': optionalUid
+    };
     return await _channel.invokeMethod('initFloatLive', params);
   }
 
@@ -231,11 +244,13 @@ class FlutterFloatWindow {
   static Future<String> leaveChannel() async {
     return await _channel.invokeMethod('leaveChannel');
   }
+
   /// is show live float window
-  static isLive(bool isLive) async{
+  static isLive(bool isLive) async {
     Map<String, bool> params = {'isLive': isLive};
-    await _channel.invokeMethod("isLive",params);
+    await _channel.invokeMethod("isLive", params);
   }
+
   ///* channelId:  Notification channel id
   ///* channelName:  Notification channel name
   static setNotificationChannelIdAndName(
@@ -257,12 +272,108 @@ class FlutterFloatWindow {
   static goSettingNotificationPage() async {
     await _channel.invokeMethod("goSettingPage");
   }
-  static showPlaybackNotification(String title,String content) async{
+
+  static showPlaybackNotification(String title, String content) async {
     Map<String, String> params = {"title": title, "content": content};
-    await _channel.invokeMethod('showPlaybackNotification',params);
+    await _channel.invokeMethod('showPlaybackNotification', params);
   }
-  static showLiveNotification(String title,String content) async{
+
+  static showLiveNotification(String title, String content) async {
     Map<String, String> params = {"title": title, "content": content};
-    await _channel.invokeMethod('showLiveNotification',params);
+    await _channel.invokeMethod('showLiveNotification', params);
+  }
+
+  /// only iOS
+  static initAgora(String appId,String token, String channelName, int optionalUid,{String title='',String artist='',String coverUrl=''}) async{
+    Map<String, dynamic> params = {
+      'appId':appId,
+      'token': token,
+      'channelName': channelName,
+      'optionalUid': optionalUid,
+      'title':title,
+      'artist':artist,
+      'coverUrl':coverUrl
+    };
+    var handler = FlutterAgoraLiveEngine.instance.mHandler;
+    EventChannel _eventChannel = EventChannel("flutter_agora_live/agora_events");
+    _eventChannel.receiveBroadcastStream().listen((event) {
+      print("initAgora::eventChannel======******====$event");
+      var map = Map<String,dynamic>.from(event);
+      handleAgoraEvent(map, handler);
+    });
+    return await _channelAgoraIOS.invokeMethod('initAgora', params);
+  }
+  static destroyAgora() async{
+    await _channelAgoraIOS.invokeMethod("destroyAgora");
+  }
+  static enablePipIOS(bool enable) async {
+    assert(Platform.isIOS==true);
+    Map<String, dynamic> params = {
+      'enablePipIOS': enable,
+    };
+    await _channelAgoraIOS.invokeMethod('enablePipIOS', params);
+  }
+  static initPipIOS() async{
+    await _channelAgoraIOS.invokeMethod('initPipIOS');
+
+  }
+  static startPipIOS() async{
+    await _channelAgoraIOS.invokeMethod('startPipIOS');
+  }
+  static stopPipIOS() async{
+    await _channelAgoraIOS.invokeMethod('stopPipIOS');
+  }
+  static mutedRemoteAudio(bool mute) async{
+    Map<String, dynamic> params = {
+      'mutedRemoteAudio': mute,
+    };
+    await _channelAgoraIOS.invokeMethod("mutedRemoteAudio",params);
+  }
+  static showNowPlaying({String title='',String artist='',String coverUrl=''}) async{
+    assert(Platform.isIOS==true);
+    Map<String,dynamic> params ={
+      'title':title,
+      'artist':artist,
+      'coverUrl':coverUrl
+    };
+    await _channelAgoraIOS.invokeMethod('showNowPlaying',params);
+  }
+
+  static handleAgoraEvent(Map<String, dynamic> event, FlutterAgoraLiveEventHandler? handler) {
+    var method = event['method'];
+    int uid = event['uid'] ?? -1;
+    switch (method) {
+      case FlutterAgoraConstants.onError:
+        handler?.onError?.call(event['error']);
+        break;
+      case FlutterAgoraConstants.onConnectionChanged:
+        handler?.onConnectionChanged?.call(event['state'], event['reason']);
+        break;
+      case FlutterAgoraConstants.onJoinChannelSuccess:
+        handler?.onJoinChannelSuccess?.call(uid);
+        break;
+      case FlutterAgoraConstants.onLeaveChannel:
+        handler?.onLeaveChannel;
+        break;
+      case FlutterAgoraConstants.onUserJoined:
+        handler?.onUserJoined?.call(uid);
+        break;
+      case FlutterAgoraConstants.onUserOffline:
+        handler?.onUserOffline?.call(uid, event['reason'] ?? -1);
+        break;
+      case FlutterAgoraConstants.onFirstRemoteVideoFrame:
+        handler?.onFirstRemoteVideoFrame?.call(uid);
+        break;
+      case FlutterAgoraConstants.onFirstRemoteVideoDecoded:
+        handler?.onFirstRemoteVideoDecoded?.call(uid);
+        break;
+      case FlutterAgoraConstants.onRemoteVideoStateChanged:
+        handler?.onRemoteVideoStateChanged?.call(uid);
+        break;
+      case FlutterAgoraConstants.onRemoteVideoMuted:
+        handler?.onRemoteVideoMuted?.call(uid);
+        break;
+      default:
+    }
   }
 }

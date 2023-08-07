@@ -23,7 +23,7 @@ class FloatWindowView : NSObject,FlutterPlatformView{
         super.init()
         _view.layer.cornerRadius=14
         _view.clipsToBounds=true
-        let channel = FlutterMethodChannelManager.shared.registerMethodChannel(name:"flutter_float_window",binaryMessenger: messenger!)
+        let channel = FlutterMethodChannelManager.shared.registerMethodChannel(binaryMessenger: messenger!)
         channel.setMethodCallHandler { call, result in
             self.handle(call, result: result)
         }
