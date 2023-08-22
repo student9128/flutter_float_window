@@ -308,7 +308,7 @@ extension FlutterAgoraLiveManager:AVPictureInPictureControllerDelegate{
     public func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void) {
         isRestore = true
         onFullScreenClick()
-//        printE("pictureInPictureControllerDidStopPictureInPicture")
+        printE("restoreUserInterfaceForPictureInPictureStopWithCompletionHandler")
         completionHandler(true)
     }
 }

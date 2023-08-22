@@ -21,5 +21,8 @@ public class SwiftFlutterFloatWindowPlugin: NSObject, FlutterPlugin,AVPictureInP
         
         let agoraLiveFactory = FlutterAgoraLiveViewFactory(messenger: registrar.messenger())
         registrar.register(agoraLiveFactory, withId: "flutter_agora_live_view")
+        
+        let videoPlayerFactory = FlutterVideoPlayerFactory(messenger: registrar.messenger())
+        registrar.register(videoPlayerFactory, withId: "flutter_video_player_view")
     }
 }

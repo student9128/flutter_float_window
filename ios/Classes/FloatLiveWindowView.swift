@@ -335,7 +335,7 @@ extension FloatLiveView: AgoraVideoFrameDelegate{
         true
     }
     func onRenderVideoFrame(_ videoFrame: AgoraOutputVideoFrame, uid: UInt, channelId: String) -> Bool {
-        printI("onRenderVideoFrame")
+//        printI("onRenderVideoFrame")
         remoteView.renderVideoPixelBuffer(videoFrame)
         return true
     }

@@ -44,10 +44,17 @@ class FlutterFloatWindow {
       EventChannel('flutter_agora_live/events');
 
   static MethodChannel get channel => _channel;
+
   static EventChannel get eventChannel => _eventChannel;
 
-  static const MethodChannel _channelAgoraIOS = MethodChannel('flutter_agora_live');
+  static const MethodChannel _channelAgoraIOS =
+      MethodChannel('flutter_agora_live');
+
   static MethodChannel get channelAgoraIOS => _channelAgoraIOS;
+  static const MethodChannel _channelVideoPlayerIOS =
+      MethodChannel('flutter_video_player');
+
+  static MethodChannel get channelVideoPlayerIOS => _channelVideoPlayerIOS;
 
   static Future<String?> get platformVersion async {
     final String? version = await _channel.invokeMethod('getPlatformVersion');
@@ -285,62 +292,73 @@ class FlutterFloatWindow {
   }
 
   /// only iOS
-  static initAgora(String appId,String token, String channelName, int optionalUid,{String title='',String artist='',String coverUrl=''}) async{
+  static initAgora(
+      String appId, String token, String channelName, int optionalUid,
+      {String title = '', String artist = '', String coverUrl = ''}) async {
     Map<String, dynamic> params = {
-      'appId':appId,
+      'appId': appId,
       'token': token,
       'channelName': channelName,
       'optionalUid': optionalUid,
-      'title':title,
-      'artist':artist,
-      'coverUrl':coverUrl
+      'title': title,
+      'artist': artist,
+      'coverUrl': coverUrl
     };
     var handler = FlutterAgoraLiveEngine.instance.mHandler;
-    EventChannel _eventChannel = EventChannel("flutter_agora_live/agora_events");
+    EventChannel _eventChannel =
+        EventChannel("flutter_agora_live/agora_events");
     _eventChannel.receiveBroadcastStream().listen((event) {
       print("initAgora::eventChannel======******====$event");
-      var map = Map<String,dynamic>.from(event);
+      var map = Map<String, dynamic>.from(event);
       handleAgoraEvent(map, handler);
     });
     return await _channelAgoraIOS.invokeMethod('initAgora', params);
   }
-  static destroyAgora() async{
+
+  static destroyAgora() async {
     await _channelAgoraIOS.invokeMethod("destroyAgora");
   }
+
   static enablePipIOS(bool enable) async {
-    assert(Platform.isIOS==true);
+    assert(Platform.isIOS == true);
     Map<String, dynamic> params = {
       'enablePipIOS': enable,
     };
     await _channelAgoraIOS.invokeMethod('enablePipIOS', params);
   }
-  static initPipIOS() async{
-    await _channelAgoraIOS.invokeMethod('initPipIOS');
 
+  static initPipIOS() async {
+    await _channelAgoraIOS.invokeMethod('initPipIOS');
   }
-  static startPipIOS() async{
+
+  static startPipIOS() async {
     await _channelAgoraIOS.invokeMethod('startPipIOS');
   }
-  static stopPipIOS() async{
+
+  static stopPipIOS() async {
     await _channelAgoraIOS.invokeMethod('stopPipIOS');
   }
-  static mutedRemoteAudio(bool mute) async{
+
+  static mutedRemoteAudio(bool mute) async {
     Map<String, dynamic> params = {
       'mutedRemoteAudio': mute,
     };
-    await _channelAgoraIOS.invokeMethod("mutedRemoteAudio",params);
-  }
-  static showNowPlaying({String title='',String artist='',String coverUrl=''}) async{
-    assert(Platform.isIOS==true);
-    Map<String,dynamic> params ={
-      'title':title,
-      'artist':artist,
-      'coverUrl':coverUrl
-    };
-    await _channelAgoraIOS.invokeMethod('showNowPlaying',params);
+    await _channelAgoraIOS.invokeMethod("mutedRemoteAudio", params);
   }
 
-  static handleAgoraEvent(Map<String, dynamic> event, FlutterAgoraLiveEventHandler? handler) {
+  static showNowPlaying(
+      {String title = '', String artist = '', String coverUrl = ''}) async {
+    assert(Platform.isIOS == true);
+    Map<String, dynamic> params = {
+      'title': title,
+      'artist': artist,
+      'coverUrl': coverUrl
+    };
+    await _channelAgoraIOS.invokeMethod('showNowPlaying', params);
+  }
+
+  static handleAgoraEvent(
+      Map<String, dynamic> event, FlutterAgoraLiveEventHandler? handler) {
     var method = event['method'];
     int uid = event['uid'] ?? -1;
     switch (method) {
@@ -376,5 +394,43 @@ class FlutterFloatWindow {
         break;
       default:
     }
+  }
+
+  static initVideoPlayerIOS() async {
+    await _channelVideoPlayerIOS.invokeMethod("initVideoPlayerIOS");
+  }
+
+  ///播放
+  static playVideoIOS() async {
+    await _channelVideoPlayerIOS.invokeMethod('playVideoIOS');
+  }
+
+  ///暂停
+  static pauseVideoIOS() async {
+    await _channelVideoPlayerIOS.invokeMethod('pauseVideoIOS');
+  }
+
+  static destroyVideoPlayerIOS() async {
+    await _channelVideoPlayerIOS.invokeMethod('destroyVideoPlayerIOS');
+  }
+
+  static seekVideoIOS(Map<String,int> position) async {
+    await _channelVideoPlayerIOS.invokeMethod('seekVideoIOS',position);
+  }
+
+  static enablePipVideoIOS(bool enable) async {
+    assert(Platform.isIOS == true);
+    Map<String, dynamic> params = {
+      'enablePipIOS': enable,
+    };
+    await _channelVideoPlayerIOS.invokeMethod('enablePipVideoIOS', params);
+  }
+
+  static startPipVideoIOS() async {
+    await _channelVideoPlayerIOS.invokeMethod('startPipVideoIOS');
+  }
+
+  static stopPipVideoIOS() async {
+    await _channelVideoPlayerIOS.invokeMethod('stopPipVideoIOS');
   }
 }
