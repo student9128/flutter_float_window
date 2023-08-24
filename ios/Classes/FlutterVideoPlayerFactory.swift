@@ -83,6 +83,9 @@ class FlutterVideoPlayerFactory : NSObject,FlutterPlatformViewFactory{
         case "durationAndPosition":
             FlutterVideoPlayerManager.shared.durationAndPosition(result: result)
             break
+        case "isVideoPlayingIOS":
+            result(FlutterVideoPlayerManager.shared.isPlaying)
+            break
         default:
             break
         }

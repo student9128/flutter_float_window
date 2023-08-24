@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ffi';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
@@ -398,24 +399,29 @@ class FlutterFloatWindow {
   }
 
   static initVideoPlayerIOS() async {
+    assert(Platform.isIOS == true);
     await _channelVideoPlayerIOS.invokeMethod("initVideoPlayerIOS");
   }
 
   ///播放
   static playVideoIOS() async {
+    assert(Platform.isIOS == true);
     await _channelVideoPlayerIOS.invokeMethod('playVideoIOS');
   }
 
   ///暂停
   static pauseVideoIOS() async {
+    assert(Platform.isIOS == true);
     await _channelVideoPlayerIOS.invokeMethod('pauseVideoIOS');
   }
 
   static destroyVideoPlayerIOS() async {
+    assert(Platform.isIOS == true);
     await _channelVideoPlayerIOS.invokeMethod('destroyVideoPlayerIOS');
   }
 
   static seekVideoIOS(Map<String, int> position) async {
+    assert(Platform.isIOS == true);
     await _channelVideoPlayerIOS.invokeMethod('seekVideoIOS', position);
   }
 
@@ -428,22 +434,29 @@ class FlutterFloatWindow {
   }
 
   static startPipVideoIOS() async {
+    assert(Platform.isIOS == true);
     await _channelVideoPlayerIOS.invokeMethod('startPipVideoIOS');
   }
 
   static stopPipVideoIOS() async {
+    assert(Platform.isIOS == true);
     await _channelVideoPlayerIOS.invokeMethod('stopPipVideoIOS');
   }
   static Future<Map<String,dynamic>> getDurationAndPosition() async{
-    var future =await _channelVideoPlayerIOS.invokeMethod('durationAndPosition');
+    assert(Platform.isIOS == true);
+    var future = await _channelVideoPlayerIOS.invokeMethod('durationAndPosition');
     var map = {'position':future['position'],'duration':future['duration']};
     return map;
+  }
+  static Future<bool> isPlaying() async{
+    assert(Platform.isIOS == true);
+    return await _channelVideoPlayerIOS.invokeMethod("isVideoPlayingIOS");
   }
 
   static initVideoPlayerListener() {
     var handler = FlutterVideoPlayerEngine.instance.mHandler;
     EventChannel _eventChannel =
-        EventChannel("flutter_video_player/video_events");
+        const EventChannel("flutter_video_player/video_events");
     _eventChannel.receiveBroadcastStream().listen((event) {
       var map = Map<String, dynamic>.from(event);
       var method = map['method'];
