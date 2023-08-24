@@ -42,10 +42,9 @@ class FlutterVideoPlayerFactory : NSObject,FlutterPlatformViewFactory{
                     let artist = dic["artist"] as? String
                     let coverUrl = dic["coverUrl"] as? String
                     let currentPosition = dic["position"] as? Int
-                    let duration = dic["duration"] as? Int
                     let speed = dic["speed"] as? Float
                     printE("initVideoPlayer======")
-                    FlutterVideoPlayerManager.shared.initVideoPlayer(videoUrl: videoUlr,title: title ?? "",artist: artist ?? "",coverUrl:coverUrl ?? "",position:currentPosition ?? 0,duration: duration ?? 0,speed: speed ?? 1.0)}}
+                    FlutterVideoPlayerManager.shared.initVideoPlayer(videoUrl: videoUlr,title: title ?? "",artist: artist ?? "",coverUrl:coverUrl ?? "",position:currentPosition ?? 0,speed: speed ?? 1.0)}}
             break
         case "destroyVideoPlayerIOS":
             FlutterVideoPlayerManager.shared.destroyVideoPlayer()

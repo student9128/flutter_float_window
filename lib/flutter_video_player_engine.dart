@@ -14,7 +14,7 @@ class FlutterVideoPlayerEngine{
   }
 
   FlutterVideoPlayerEventHandler? mHandler;
-  void setVideoPlayerEventHandler(FlutterVideoPlayerEventHandler handler) {
+  void setVideoPlayerEventHandler(FlutterVideoPlayerEventHandler? handler) {
     mHandler = handler;
   }
 }

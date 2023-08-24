@@ -55,11 +55,12 @@ public class FlutterVideoPlayerManager : NSObject{
         NotificationCenter.default.post(name: NSNotification.Name("videoPlayerNotification"), object: method,userInfo:args )
     }
     
-    func initVideoPlayer(videoUrl:String,title:String = "",artist:String = "",coverUrl:String = "",position:Int = 0,duration:Int = 0,speed:Float = 1.0){
+    func initVideoPlayer(videoUrl:String,title:String = "",artist:String = "",coverUrl:String = "",position:Int = 0,speed:Float = 1.0){
         if(hasInit){
             printE("hasInit==========@@@@@@@@@@@@@@@@@@@@@@@@@@@@✈️")
             pipController?.stopPictureInPicture()
             avPlayerLayer?.player?.play()
+            self.postNotification(method: "onInitialized", args: [String : Any]())
             avPlayerLayer?.player?.addObserver(self, forKeyPath: #keyPath(AVPlayer.status), context: nil)
             return
         }
@@ -95,25 +96,11 @@ public class FlutterVideoPlayerManager : NSObject{
             // Fallback on earlier versions
         }
         NotificationCenter.default.addObserver(self, selector: #selector(playerDidFinishPlaying), name: .AVPlayerItemDidPlayToEndTime, object: player.currentItem)
-        if(position>15000){
-            NotificationCenter.default.post(name: NSNotification.Name("forwardAndBackwardBtnEnable"), object: "backwardEnabled")
-        }else{
-            NotificationCenter.default.post(name: NSNotification.Name("forwardAndBackwardBtnEnable"), object: "backwardDisabled")
-        }
-        if(duration-position>15000){
-            NotificationCenter.default.post(name: NSNotification.Name("forwardAndBackwardBtnEnable"), object: "forwardEnabled")
-        }else{
-            NotificationCenter.default.post(name: NSNotification.Name("forwardAndBackwardBtnEnable"), object: "forwardDisabled")
-        }
         
         mImageUrl = coverUrl
         mAudioTitle = title
         mArtist = artist
         mAlbumTitle = title
-        let durationX = CMTimeGetSeconds(player.currentItem?.duration ?? CMTime.zero)
-        let progress = CMTimeGetSeconds(player.currentTime())
-        printI("duration=\(durationX),\(progress)")
-        
         
 //        mDuration = duration/1000
         mPosition = position/1000
@@ -145,8 +132,8 @@ public class FlutterVideoPlayerManager : NSObject{
                 initNowPlayingCenter()
                 if let playerLayer = avPlayerLayer{
                     if let player = playerLayer.player{
+                        self.postNotification(method: "onInitialized", args: [String : Any]())
                         player.play()
-                        playerItem.addObserver(self, forKeyPath:#keyPath(AVPlayerItem.status),options:[.new], context: nil)
                         timerObserverToken = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 1, preferredTimescale: CMTimeScale(NSEC_PER_SEC)), queue:DispatchQueue.main){time in
                             let currentTime = CMTimeGetSeconds(time)
                             let timeRanges = playerItem.loadedTimeRanges

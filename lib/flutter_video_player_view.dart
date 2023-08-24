@@ -10,7 +10,6 @@ class FlutterVideoPlayerView extends StatelessWidget {
         this.artist = "",
         this.coverUrl = "",
         this.position = 0,
-        this.duration=0,
         this.speed=1.0})
       : super(key: key);
   final String videoUrl;
@@ -18,7 +17,6 @@ class FlutterVideoPlayerView extends StatelessWidget {
   final String artist;
   final String coverUrl;
   final int position;
-  final int duration;
   final double speed;
 
   @override
@@ -31,7 +29,6 @@ class FlutterVideoPlayerView extends StatelessWidget {
           "artist": artist,
           "coverUrl": coverUrl,
           "position": position,
-          "duration":duration,
           "speed":speed
         },
         creationParamsCodec: const StandardMessageCodec(),

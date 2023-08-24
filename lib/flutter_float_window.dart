@@ -6,10 +6,14 @@ import 'package:flutter/services.dart';
 import 'package:flutter_float_window/flutter_agora_constants.dart';
 import 'package:flutter_float_window/flutter_agora_live_event_handler.dart';
 import 'package:flutter_float_window/flutter_agora_live_engine.dart';
+import 'package:flutter_float_window/flutter_video_player_constants.dart';
 import 'package:flutter_float_window/flutter_video_player_engine.dart';
+import 'package:flutter_float_window/flutter_video_player_event_handler.dart';
 export 'package:flutter_float_window/flutter_agora_live_event_handler.dart';
 export 'package:flutter_float_window/flutter_agora_live_engine.dart';
 export 'package:flutter_float_window/flutter_agora_constants.dart';
+export 'package:flutter_float_window/flutter_video_player_engine.dart';
+export 'package:flutter_float_window/flutter_video_player_progress_bar_colors.dart';
 
 enum FloatWindowGravity {
   ///left
@@ -43,18 +47,18 @@ enum FloatWindowGravity {
 class FlutterFloatWindow {
   static const MethodChannel _channel = MethodChannel('flutter_float_window');
   static const EventChannel _eventChannel =
-      EventChannel('flutter_agora_live/events');
+  EventChannel('flutter_agora_live/events');
 
   static MethodChannel get channel => _channel;
 
   static EventChannel get eventChannel => _eventChannel;
 
   static const MethodChannel _channelAgoraIOS =
-      MethodChannel('flutter_agora_live');
+  MethodChannel('flutter_agora_live');
 
   static MethodChannel get channelAgoraIOS => _channelAgoraIOS;
   static const MethodChannel _channelVideoPlayerIOS =
-      MethodChannel('flutter_video_player');
+  MethodChannel('flutter_video_player');
 
   static MethodChannel get channelVideoPlayerIOS => _channelVideoPlayerIOS;
 
@@ -228,8 +232,8 @@ class FlutterFloatWindow {
   }
 
   /// agora SDK appId
-  static Future<String> initFloatLive(
-      String appId, String token, String channelName, int optionalUid) async {
+  static Future<String> initFloatLive(String appId, String token,
+      String channelName, int optionalUid) async {
     Map<String, dynamic> params = {
       'appId': appId,
       'token': token,
@@ -240,8 +244,8 @@ class FlutterFloatWindow {
   }
 
   /// join channel
-  static Future<String> joinChannel(
-      String token, String channelName, int optionalUid) async {
+  static Future<String> joinChannel(String token, String channelName,
+      int optionalUid) async {
     Map<String, dynamic> params = {
       'token': token,
       'channelName': channelName,
@@ -263,8 +267,8 @@ class FlutterFloatWindow {
 
   ///* channelId:  Notification channel id
   ///* channelName:  Notification channel name
-  static setNotificationChannelIdAndName(
-      String channelId, String channelName) async {
+  static setNotificationChannelIdAndName(String channelId,
+      String channelName) async {
     Map<String, String> params = {
       "channelId": channelId,
       "channelName": channelName
@@ -294,8 +298,8 @@ class FlutterFloatWindow {
   }
 
   /// only iOS
-  static initAgora(
-      String appId, String token, String channelName, int optionalUid,
+  static initAgora(String appId, String token, String channelName,
+      int optionalUid,
       {String title = '', String artist = '', String coverUrl = ''}) async {
     Map<String, dynamic> params = {
       'appId': appId,
@@ -308,7 +312,7 @@ class FlutterFloatWindow {
     };
     var handler = FlutterAgoraLiveEngine.instance.mHandler;
     EventChannel _eventChannel =
-        EventChannel("flutter_agora_live/agora_events");
+    EventChannel("flutter_agora_live/agora_events");
     _eventChannel.receiveBroadcastStream().listen((event) {
       print("initAgora::eventChannel======******====$event");
       var map = Map<String, dynamic>.from(event);
@@ -359,8 +363,8 @@ class FlutterFloatWindow {
     await _channelAgoraIOS.invokeMethod('showNowPlaying', params);
   }
 
-  static handleAgoraEvent(
-      Map<String, dynamic> event, FlutterAgoraLiveEventHandler? handler) {
+  static handleAgoraEvent(Map<String, dynamic> event,
+      FlutterAgoraLiveEventHandler? handler) {
     var method = event['method'];
     int uid = event['uid'] ?? -1;
     switch (method) {
@@ -398,9 +402,22 @@ class FlutterFloatWindow {
     }
   }
 
-  static initVideoPlayerIOS() async {
+  static initVideoPlayerIOS({required String url,
+    String title = '',
+    String artist = "",
+    String coverUrl = "",
+    int position = 0,
+    double speed = 1.0}) async {
     assert(Platform.isIOS == true);
-    await _channelVideoPlayerIOS.invokeMethod("initVideoPlayerIOS");
+    Map<String, dynamic> params = {
+      "videoUrl": url,
+      "title": title,
+      "artist": artist,
+      "coverUrl": coverUrl,
+      "position": position,
+      "speed": speed
+    };
+    await _channelVideoPlayerIOS.invokeMethod("initVideoPlayerIOS", params);
   }
 
   ///播放
@@ -442,31 +459,52 @@ class FlutterFloatWindow {
     assert(Platform.isIOS == true);
     await _channelVideoPlayerIOS.invokeMethod('stopPipVideoIOS');
   }
-  static Future<Map<String,dynamic>> getDurationAndPosition() async{
+
+  static Future<Map<String, dynamic>> getDurationAndPosition() async {
     assert(Platform.isIOS == true);
-    var future = await _channelVideoPlayerIOS.invokeMethod('durationAndPosition');
-    var map = {'position':future['position'],'duration':future['duration']};
+    var future =
+    await _channelVideoPlayerIOS.invokeMethod('durationAndPosition');
+    var map = {'position': future['position'], 'duration': future['duration']};
     return map;
   }
-  static Future<bool> isPlaying() async{
+
+  static Future<bool> isPlaying() async {
     assert(Platform.isIOS == true);
     return await _channelVideoPlayerIOS.invokeMethod("isVideoPlayingIOS");
   }
 
-  static initVideoPlayerListener() {
-    var handler = FlutterVideoPlayerEngine.instance.mHandler;
+  static initVideoPlayerListener(FlutterVideoPlayerEventHandler handler) {
+    // var handler = FlutterVideoPlayerEngine.instance.mHandler;
     EventChannel _eventChannel =
-        const EventChannel("flutter_video_player/video_events");
+    const EventChannel("flutter_video_player/video_events");
     _eventChannel.receiveBroadcastStream().listen((event) {
       var map = Map<String, dynamic>.from(event);
-      var method = map['method'];
-      if (method == 'onVideoProgress') {
-        var position = map['position'];
-        var duration = map['duration'];
-        var start = map['bufferedStart'];
-        var end = map['bufferedEnd'];
-        handler?.onVideoProgress?.call(position, duration, start, end);
-      }
+      // var method = map['method'];
+      // if (method == 'onVideoProgress') {
+      //   var position = map['position'];
+      //   var duration = map['duration'];
+      //   var start = map['bufferedStart'];
+      //   var end = map['bufferedEnd'];
+      //   handler?.onVideoProgress?.call(position, duration, start, end);
+      // }
+      handleVideoPlayerEvent(map, handler);
     });
+  }
+
+  static handleVideoPlayerEvent(Map<String, dynamic> event,
+      FlutterVideoPlayerEventHandler? handler) {
+    var method = event['method'];
+    switch (method) {
+      case FlutterVideoPlayerConstants.onInitialized:
+        handler?.onInitialized?.call();
+        break;
+      case FlutterVideoPlayerConstants.onVideoProgress:
+        var position = event['position'];
+        var duration = event['duration'];
+        var start = event['bufferedStart'];
+        var end = event['bufferedEnd'];
+        handler?.onVideoProgress?.call(position, duration, start, end);
+        break;
+    }
   }
 }

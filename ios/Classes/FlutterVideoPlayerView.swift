@@ -14,33 +14,33 @@ class FlutterVideoPlayerView : NSObject,FlutterPlatformView{
     func view() -> UIView {
         return _view
     }
-   init( frame: CGRect,
-         viewIdentifier viewId: Int64,
-         arguments args: Any?,
-         binaryMessenger messenger: FlutterBinaryMessenger?){
-       _view = VideoPlayerView.shared
-       super.init()
-//       VideoPlayerView.shared.layoutSubviews()
-       printE("initVideoPlayer======\(args)")
-       printE("initVideoPlayer======\(frame)")
-       if args is Dictionary<String,Any>?{
-           let dic = args as! Dictionary<String,Any>
-           let url = dic["videoUrl"] as? String
-           if let videoUlr=url{
-               let title = dic["title"] as? String
-               let artist = dic["artist"] as? String
-               let coverUrl = dic["coverUrl"] as? String
-               let currentPosition = dic["position"] as? Int
-               let duration = dic["duration"] as? Int
-               let speed = dic["speed"] as? Float
-               printE("initVideoPlayer======")
-               FlutterVideoPlayerManager.shared.initVideoPlayer(videoUrl: videoUlr,title: title ?? "",artist: artist ?? "",coverUrl:coverUrl ?? "",position:currentPosition ?? 0,duration: duration ?? 0,speed: speed ?? 1.0)
-               _view.layer.addSublayer(FlutterVideoPlayerManager.shared.avPlayerLayer!)
-               
-           }
-           
-       }
-   }
+    init( frame: CGRect,
+          viewIdentifier viewId: Int64,
+          arguments args: Any?,
+          binaryMessenger messenger: FlutterBinaryMessenger?){
+        _view = VideoPlayerView.shared
+        super.init()
+        VideoPlayerView.shared.layoutSubviews()
+        //       if args is Dictionary<String,Any>?{
+        //           let dic = args as! Dictionary<String,Any>
+        //           let url = dic["videoUrl"] as? String
+        //           if let videoUlr=url{
+        //               let title = dic["title"] as? String
+        //               let artist = dic["artist"] as? String
+        //               let coverUrl = dic["coverUrl"] as? String
+        //               let currentPosition = dic["position"] as? Int
+        //               let duration = dic["duration"] as? Int
+        //               let speed = dic["speed"] as? Float
+        //               printE("initVideoPlayer======")
+        //               FlutterVideoPlayerManager.shared.initVideoPlayer(videoUrl: videoUlr,title: title ?? "",artist: artist ?? "",coverUrl:coverUrl ?? "",position:currentPosition ?? 0,speed: speed ?? 1.0)
+            _view.layer.addSublayer(FlutterVideoPlayerManager.shared.avPlayerLayer!)
+        //
+        //           }
+        
+    }
+    @objc func handleNotification(notification:Notification){
+        printW("video notification=\(notification)")
+    }
     
     
 }
@@ -50,7 +50,7 @@ class VideoPlayerView : UIView{
         super.init(frame: frame)
         
         printE("initVideoPlayer=====VideoPlayerView=")
-//        self.layer.addSublayer(FlutterVideoPlayerManager.shared.avPlayerLayer!)
+        //        self.layer.addSublayer(FlutterVideoPlayerManager.shared.avPlayerLayer!)
     }
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
