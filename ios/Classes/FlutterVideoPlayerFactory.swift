@@ -18,6 +18,11 @@ class FlutterVideoPlayerFactory : NSObject,FlutterPlatformViewFactory{
         }
         let event = FlutterEventChannel(name: "flutter_video_player/video_events", binaryMessenger: messenger)
         event.setStreamHandler(self)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleNotification), name:NSNotification.Name.init("videoPlayerNotification") , object: nil)
+    }
+    deinit{
+        NotificationCenter.default.removeObserver(self)
+        printE("FlutterVideoPlayerFactory==deinit")
     }
     func create(withFrame frame: CGRect, viewIdentifier viewId: Int64, arguments args: Any?) -> FlutterPlatformView {
         printE("FlutterVideoPlayerFactory")
@@ -75,10 +80,26 @@ class FlutterVideoPlayerFactory : NSObject,FlutterPlatformViewFactory{
         case "stopPipVideoIOS":
             FlutterVideoPlayerManager.shared.stopPip()
             break
+        case "durationAndPosition":
+            FlutterVideoPlayerManager.shared.durationAndPosition(result: result)
+            break
         default:
             break
         }
         
+    }
+    @objc func handleNotification(notification:Notification){
+        printD("notification==\(notification)")
+        if let result = notification.object as? String{
+            var arguments:[String:Any]=["method":result]
+            if let userInfo = notification.userInfo as? [String:Any]{
+                for(key,value) in userInfo{
+                    arguments[key]=value
+                }
+            }
+            printI("arguments=\(arguments)")
+            self.eventSink?(arguments)
+        }
     }
 }
 extension FlutterVideoPlayerFactory : FlutterStreamHandler{

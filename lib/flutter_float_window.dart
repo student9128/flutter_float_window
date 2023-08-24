@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_float_window/flutter_agora_constants.dart';
 import 'package:flutter_float_window/flutter_agora_live_event_handler.dart';
 import 'package:flutter_float_window/flutter_agora_live_engine.dart';
+import 'package:flutter_float_window/flutter_video_player_engine.dart';
 export 'package:flutter_float_window/flutter_agora_live_event_handler.dart';
 export 'package:flutter_float_window/flutter_agora_live_engine.dart';
 export 'package:flutter_float_window/flutter_agora_constants.dart';
@@ -414,8 +415,8 @@ class FlutterFloatWindow {
     await _channelVideoPlayerIOS.invokeMethod('destroyVideoPlayerIOS');
   }
 
-  static seekVideoIOS(Map<String,int> position) async {
-    await _channelVideoPlayerIOS.invokeMethod('seekVideoIOS',position);
+  static seekVideoIOS(Map<String, int> position) async {
+    await _channelVideoPlayerIOS.invokeMethod('seekVideoIOS', position);
   }
 
   static enablePipVideoIOS(bool enable) async {
@@ -432,5 +433,27 @@ class FlutterFloatWindow {
 
   static stopPipVideoIOS() async {
     await _channelVideoPlayerIOS.invokeMethod('stopPipVideoIOS');
+  }
+  static Future<Map<String,dynamic>> getDurationAndPosition() async{
+    var future =await _channelVideoPlayerIOS.invokeMethod('durationAndPosition');
+    var map = {'position':future['position'],'duration':future['duration']};
+    return map;
+  }
+
+  static initVideoPlayerListener() {
+    var handler = FlutterVideoPlayerEngine.instance.mHandler;
+    EventChannel _eventChannel =
+        EventChannel("flutter_video_player/video_events");
+    _eventChannel.receiveBroadcastStream().listen((event) {
+      var map = Map<String, dynamic>.from(event);
+      var method = map['method'];
+      if (method == 'onVideoProgress') {
+        var position = map['position'];
+        var duration = map['duration'];
+        var start = map['bufferedStart'];
+        var end = map['bufferedEnd'];
+        handler?.onVideoProgress?.call(position, duration, start, end);
+      }
+    });
   }
 }

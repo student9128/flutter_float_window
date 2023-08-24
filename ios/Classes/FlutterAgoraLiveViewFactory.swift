@@ -30,6 +30,7 @@ class FlutterAgoraLiveViewFactory: NSObject,FlutterPlatformViewFactory{
         return FlutterStandardMessageCodec.sharedInstance()
     }
     deinit{
+        NotificationCenter.default.removeObserver(self)
         printE("FlutterAgoraLiveViewFactory==deinit")
     }
     

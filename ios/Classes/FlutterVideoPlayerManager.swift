@@ -25,6 +25,7 @@ public class FlutterVideoPlayerManager : NSObject{
     var mPosition    : Int = 0
     var isRestore = false
     var hasInit = false
+    var timerObserverToken: Any?//监听播放进度
     
     var isPlaying   : Bool = false {
         didSet {
@@ -50,12 +51,16 @@ public class FlutterVideoPlayerManager : NSObject{
     func onProgressChanged(_ progressChanged : @escaping ((Int)->Void)){
         _progressChanged = progressChanged
     }
+    private func postNotification(method:String,args:Dictionary<String,Any>?){
+        NotificationCenter.default.post(name: NSNotification.Name("videoPlayerNotification"), object: method,userInfo:args )
+    }
     
     func initVideoPlayer(videoUrl:String,title:String = "",artist:String = "",coverUrl:String = "",position:Int = 0,duration:Int = 0,speed:Float = 1.0){
         if(hasInit){
-            avPlayerLayer?.player?.play()
+            printE("hasInit==========@@@@@@@@@@@@@@@@@@@@@@@@@@@@✈️")
             pipController?.stopPictureInPicture()
-            avPlayerLayer?.player?.addObserver(self, forKeyPath: "status",options:[.new], context: nil)
+            avPlayerLayer?.player?.play()
+            avPlayerLayer?.player?.addObserver(self, forKeyPath: #keyPath(AVPlayer.status), context: nil)
             return
         }
         hasInit = true
@@ -64,8 +69,8 @@ public class FlutterVideoPlayerManager : NSObject{
         let player = AVPlayer(url: videoURL)
         avPlayerLayer = AVPlayerLayer(player: player)
         player.seek(to: CMTimeMake(value: Int64(position/1000), timescale: 1))
-        player.addObserver(self, forKeyPath: "status",options:[.new], context: nil)
-//        player.play()
+        player.addObserver(self, forKeyPath: #keyPath(AVPlayer.status),options:[.new], context: nil)
+        player.currentItem?.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), context: nil)
         player.rate=speed
         isPlaying=true
         if #available(iOS 15.0, *) {
@@ -111,15 +116,16 @@ public class FlutterVideoPlayerManager : NSObject{
         
         
 //        mDuration = duration/1000
-//        mPosition = position/1000
+        mPosition = position/1000
         printD("hahahahaha")
         
-        initRemoteCommand()
-        initNowPlayingCenter()
+//        initRemoteCommand()
+//        initNowPlayingCenter()
         
     }
     public override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
-        if keyPath == "status", let player = object as? AVPlayer {
+        printD("keypath=\(keyPath),object=\(object),change\(change)")
+        if keyPath == #keyPath(AVPlayer.status), let player = object as? AVPlayer {
              if player.status == .readyToPlay {
                  // AVPlayer loaded successfully
                  player.play()
@@ -131,7 +137,30 @@ public class FlutterVideoPlayerManager : NSObject{
                  // AVPlayer loading status unknown
                  print("AVPlayer loading status unknown")
              }
-         }
+        }else if keyPath == #keyPath(AVPlayerItem.status),let playerItem = object as? AVPlayerItem{
+            if playerItem.status == .readyToPlay{
+                let duration = CMTimeGetSeconds(playerItem.duration)
+                self.mDuration = Int(duration)
+                initRemoteCommand()
+                initNowPlayingCenter()
+                if let playerLayer = avPlayerLayer{
+                    if let player = playerLayer.player{
+                        player.play()
+                        playerItem.addObserver(self, forKeyPath:#keyPath(AVPlayerItem.status),options:[.new], context: nil)
+                        timerObserverToken = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 1, preferredTimescale: CMTimeScale(NSEC_PER_SEC)), queue:DispatchQueue.main){time in
+                            let currentTime = CMTimeGetSeconds(time)
+                            let timeRanges = playerItem.loadedTimeRanges
+                            let first = timeRanges.first as? CMTimeRange
+                            let start = CMTimeGetSeconds(first?.start ?? CMTime.zero)
+                            let end = CMTimeGetSeconds(first?.end ?? CMTime.zero)
+                            
+                            let args:[String : Any] = ["duration":duration,"position":currentTime,"bufferedStart":start,"bufferedEnd":end]
+                            self.postNotification(method: "onVideoProgress", args: args)
+                        }
+                    }
+                }
+            }
+        }
     }
     @objc func playerDidFinishPlaying(notification:Notification){
         isPlayEnd=true;
@@ -145,7 +174,12 @@ public class FlutterVideoPlayerManager : NSObject{
             if let player = playerLayer.player{
                 player.pause()
                 player.removeObserver(self, forKeyPath: "status")
+                player.currentItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status))
             }
+        }
+        if let token = timerObserverToken{
+            avPlayerLayer?.player?.removeTimeObserver(token)
+            timerObserverToken = nil
         }
         avPlayerLayer = nil
         pipController?.delegate = nil
@@ -168,6 +202,18 @@ public class FlutterVideoPlayerManager : NSObject{
             pipController?.delegate = nil
             pipController = nil
         }
+    }
+    func durationAndPosition(result:@escaping FlutterResult){
+        if let playerLayer = avPlayerLayer{
+            if let player = playerLayer.player{
+                let progress = CMTimeGetSeconds(player.currentTime())
+                let duration = CMTimeGetSeconds(player.currentItem?.duration ?? CMTime.zero)
+                let args : [String:Any] = ["duration":duration,"position":progress]
+                result(args)
+            }}else{
+                let args : [String:Any] = ["duration":0,"position":0]
+                result(args)
+            }
     }
     func startPip(){
         pipController?.startPictureInPicture()
