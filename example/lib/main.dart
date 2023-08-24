@@ -9,11 +9,16 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_float_window/flutter_float_window.dart';
 import 'package:flutter_float_window/flutter_float_window_view.dart';
+import 'package:flutter_float_window_example/navigation_util.dart';
+import 'package:flutter_float_window_example/test_flutter_video_view.dart';
 import 'package:flutter_float_window_example/test_page.dart';
 
 void main() {
-  runApp(const MaterialApp(
+  runApp(MaterialApp(
     home: MyApp(),
+    navigatorObservers: [NavigationUtil.getInstance()],
+    initialRoute: 'main',
+    routes: NavigationUtil.configRoutes,
   ));
 }
 
@@ -73,6 +78,23 @@ class _MyAppState extends State<MyApp>
           overlayEntryX.remove();
           break;
         default:
+          break;
+      }
+    });
+      var videoChannel = FlutterFloatWindow.channelVideoPlayerIOS;
+    videoChannel.setMethodCallHandler((call) async {
+      switch (call.method) {
+        case 'onVideoCloseClick':
+          FlutterFloatWindow.destroyVideoPlayerIOS();
+          break;
+        case 'onVideoFullScreenClick':
+          List<String> routeNames = NavigationUtil.getInstance().routeNames;
+          debugPrint("onVideoFullScreenClick=====${routeNames}");
+          if (routeNames.last != 'testFlutterVideoView') {
+            NavigationUtil.getInstance().pushPage(
+                context, "testFlutterVideoView",
+                widget: TestFlutterVideoViewPage(isFromPip: true,));
+          }
           break;
       }
     });
@@ -375,7 +397,9 @@ class _MyAppState extends State<MyApp>
                   Center(
                     child: Text('Running on: $_platformVersion\n'),
                   ),
-                  ElevatedButton(
+                  Platform.isAndroid?Wrap(
+                    spacing: 10,
+                    children: [ElevatedButton(
                       onPressed: () {
                         Map<String, dynamic> params = {"position": 5000};
                         FlutterFloatWindow.seekTo(params);
@@ -566,7 +590,11 @@ class _MyAppState extends State<MyApp>
                         FlutterFloatWindow.showPlaybackNotification(
                             "qeubee", "你猜猜~~~~~");
                       },
-                      child: Text('test Push')),
+                      child: Text('test Push'))],
+                  ):Wrap(
+                    spacing: 10,
+                    children: [
+
                   ElevatedButton(
                     onPressed: () {
                       Overlay.of(context)?.insert(overlayEntry);
@@ -626,6 +654,72 @@ class _MyAppState extends State<MyApp>
                         print("canShowFloatWindow=$canShowFloatWindow");
                       },
                       child: Text('canShow for ios')),
+                  ElevatedButton(
+                    onPressed: () {
+                      Overlay.of(context)?.insert(overlayEntry);
+                    },
+                    child: Text('test overlay'),
+                  ),
+                  ElevatedButton(
+                      onPressed: () {
+                        overlayEntry.remove();
+                      },
+                      child: Text('remove overlay')),
+                  ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).push(CupertinoPageRoute(
+                            builder: (context) => TestPage()));
+                      },
+                      child: Text('go next')),
+                  ElevatedButton(
+                      onPressed: () {
+                        FlutterFloatWindow.showFloatWindow();
+                      },
+                      child: Text('弹画中画')),
+                  ElevatedButton(
+                      onPressed: () {
+                        Overlay.of(context).insert(overlayEntryX);
+                      },
+                      child: Text('添加overaly')),
+                  ElevatedButton(
+                      onPressed: () {
+                        FlutterFloatWindow.pause();
+                        overlayEntryX.remove();
+                      },
+                      child: Text('移除overaly')),
+                  ElevatedButton(
+                      onPressed: () {
+                        _animationController.forward();
+                        // overlayEntryX.markNeedsBuild();
+                      },
+                      child: Text('缩放overlay操作')),
+                  ElevatedButton(
+                      onPressed: () {
+                        _animationController.reverse();
+                        // overlayEntryX.markNeedsBuild();
+                      },
+                      child: Text('缩放overlay操作返回')),
+                  ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          videoUrl = videoUrlMp4;
+                        });
+                      },
+                      child: Text('切换VideoUrl')),
+                  ElevatedButton(
+                      onPressed: () async {
+                        var canShowFloatWindow =
+                            await FlutterFloatWindow.canShowFloatWindow();
+                        print("canShowFloatWindow=$canShowFloatWindow");
+                      },
+                      child: Text('canShow for ios')),
+                    ElevatedButton(
+                      onPressed: () async {
+                       NavigationUtil.getInstance().pushPage(context, 'testFlutterVideoView', widget: TestFlutterVideoViewPage());
+                      },
+                      child: Text('testFlutterVideoView')),
+                  ],),
+                  
                 ],
               ),
             ),

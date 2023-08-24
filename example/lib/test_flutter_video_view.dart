@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_float_window/flutter_float_window.dart';
 import 'package:flutter_float_window/flutter_video_player_engine.dart';
 import 'package:flutter_float_window/flutter_video_player_event_handler.dart';
+import 'package:flutter_float_window/flutter_video_player_progress_bar.dart';
 import 'package:flutter_float_window/flutter_video_player_view.dart';
-import 'package:flutter_float_window_example/bottom_progress_bar.dart';
 
 class TestFlutterVideoViewPage extends StatefulWidget {
-  const TestFlutterVideoViewPage({Key? key}) : super(key: key);
+  const TestFlutterVideoViewPage({Key? key,this.isFromPip = false}) : super(key: key);
+  final bool isFromPip;
 
   @override
   State<TestFlutterVideoViewPage> createState() =>
@@ -21,7 +22,9 @@ class _TestFlutterVideoViewPageState extends State<TestFlutterVideoViewPage> {
   @override
   void initState() {
     super.initState();
+    if(!widget.isFromPip){
     FlutterFloatWindow.destroyVideoPlayerIOS();
+    }
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       final String videoUrl = videoUrlMp4;
       final String title = 'test';
@@ -77,7 +80,7 @@ class _TestFlutterVideoViewPageState extends State<TestFlutterVideoViewPage> {
                       color: Colors.black,
                       child: const FlutterVideoPlayerView(),
                     ),
-                    BottomVideoProgressBar(FlutterVideoPlayerEngine.create(),
+                    FlutterVideoPlayerProgressBar(FlutterVideoPlayerEngine.create(),
                         barHeight: 5, handleHeight: 10, drawShadow: false),
                   ],
                 )
