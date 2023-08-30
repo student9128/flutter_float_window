@@ -58,7 +58,6 @@ class _FlutterVideoPlayerProgressBarState extends State<FlutterVideoPlayerProgre
     var handler = FlutterVideoPlayerEventHandler(onVideoProgress:
         (double position, double duration, double bufferedStart,
             double bufferedEnd) {
-      print("hello====================");
       if (mounted) {
         setState(() {
           this.position = position;
@@ -74,7 +73,6 @@ class _FlutterVideoPlayerProgressBarState extends State<FlutterVideoPlayerProgre
 
   @override
   void dispose() {
-    print("dispose====");
     engine.setVideoPlayerEventHandler(null);
     super.dispose();
   }

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ffi';
 import 'dart:io';
 
 import 'package:flutter/services.dart';
@@ -7,13 +6,13 @@ import 'package:flutter_float_window/flutter_agora_constants.dart';
 import 'package:flutter_float_window/flutter_agora_live_event_handler.dart';
 import 'package:flutter_float_window/flutter_agora_live_engine.dart';
 import 'package:flutter_float_window/flutter_video_player_constants.dart';
-import 'package:flutter_float_window/flutter_video_player_engine.dart';
 import 'package:flutter_float_window/flutter_video_player_event_handler.dart';
 export 'package:flutter_float_window/flutter_agora_live_event_handler.dart';
 export 'package:flutter_float_window/flutter_agora_live_engine.dart';
 export 'package:flutter_float_window/flutter_agora_constants.dart';
 export 'package:flutter_float_window/flutter_video_player_engine.dart';
 export 'package:flutter_float_window/flutter_video_player_progress_bar_colors.dart';
+export 'package:flutter_float_window/flutter_video_player_progress_bar.dart';
 
 enum FloatWindowGravity {
   ///left
