@@ -20,7 +20,6 @@ class FloatLiveWindowView: NSObject,FlutterPlatformView{
          binaryMessenger messenger: FlutterBinaryMessenger?){
         _view = FloatLiveView()
         super.init();
-        printE("FloatLiveWindowView")
         _view.layer.cornerRadius=14
         _view.clipsToBounds=true
         let channel = FlutterMethodChannelManager.shared.registerMethodChannel(binaryMessenger: messenger!)
@@ -37,7 +36,6 @@ class FloatLiveWindowView: NSObject,FlutterPlatformView{
             let artist = dic["artist"] as? String
             let coverUrl = dic["coverUrl"] as? String
             if let id = appId,let t = token,let cn = channelName,let oUid = optionalUid{
-                printI("zou le ma")
                 FloatLiveWindowManager.shared.initFloatLiveWindowManager(appId: id, token: t, channelName: cn,optionalUid: oUid,title: title ?? "",artist: artist ?? "",coverUrl:coverUrl ?? "")
                 FloatLiveWindowManager.shared.joinChannel()
             }
@@ -261,19 +259,6 @@ class FloatLiveView: UIView{
                 windowLeaveChannelView.isHidden = true
                 windowLiveView.isHidden = false
                 remoteView.reset()
-                //                if let userInfo = notification.userInfo{
-                //                    if userInfo["uid"] is UInt{
-                ////                        let videoCanvas = AgoraRtcVideoCanvas()
-                ////                        videoCanvas.uid = uid
-                ////                        videoCanvas.renderMode = .hidden
-                ////                        videoCanvas.view = remoteView
-                ////                        FloatLiveWindowManager.shared.agoraKit?.setupRemoteVideo(videoCanvas)
-                ////                        printD("uid====\(uid)")
-                ////
-                //
-                //                    }
-                //
-                //                }
                 break
             case "remoteUserLeaveChannel":
                 printE("remoteUserLeaveChannel")

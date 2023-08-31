@@ -379,7 +379,7 @@ public class FloatWindowManager:NSObject{
 extension FloatWindowManager:AVPictureInPictureControllerDelegate{
     
     public func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, failedToStartPictureInPictureWithError error: Error) {
-        printE("error=\(error)")
+//        printE("error=\(error)")
     }
     public func pictureInPictureControllerWillStartPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
         //        printI("pictureInPictureControllerWillStartPictureInPicture")
@@ -394,13 +394,13 @@ extension FloatWindowManager:AVPictureInPictureControllerDelegate{
         //        printI("pictureInPictureControllerWillStopPictureInPicture")
     }
     public func pictureInPictureControllerDidStopPictureInPicture(_ pictureInPictureController: AVPictureInPictureController) {
-        printI("pictureInPictureControllerDidStopPictureInPicture")
+//        printI("pictureInPictureControllerDidStopPictureInPicture")
         if(!isRestore){
             onCloseClick()
         }
     }
     public func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void) {
-        printE("pictureInPictureControllerDidStopPictureInPicture")
+//        printE("pictureInPictureControllerDidStopPictureInPicture")
         isRestore = true
         onFullScreenClick()
         completionHandler(true)

@@ -11,39 +11,7 @@ import Foundation
     ) -> Bool {
 
         GeneratedPluginRegistrant.register(with: self)
-        //      let audioSession = AVAudioSession.sharedInstance()
-        //      do {
-        //          try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default,options: [.allowAirPlay, .allowBluetooth])
-        //          try AVAudioSession.sharedInstance().setActive(true)
-        //      } catch {
-        //          printE("Error setting category or activating audio session: \(error.localizedDescription)")
-        //      }
-                 UIApplication.shared.beginReceivingRemoteControlEvents()
         return super.application(application, didFinishLaunchingWithOptions: launchOptions)
     }
-    override func applicationWillResignActive(_ application: UIApplication) {
-        printI("application===applicationWillResignActive")
-        //        DispatchQueue.main.asyncAfter(deadline: .now()+1){
-        //            FloatWindowManager.shared.startPip()
-        //        }
-        
-    }
-    override func applicationWillEnterForeground(_ application: UIApplication) {
-    }
-    override func applicationDidEnterBackground(_ application: UIApplication) {
-        do {
-            try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
-//            try AVAudioSession.sharedInstance().setActive(true,options:.notifyOthersOnDeactivation)
-        } catch {
-            printE("进入后台的时候Failed to enable background audio.")
-        }
-    }
-    override func applicationDidBecomeActive(_ application: UIApplication) {
-    }
-    override func applicationWillTerminate(_ application: UIApplication) {
-    }
-    override func remoteControlReceived(with event: UIEvent?) {
-        printE("event=\(String(describing: event?.type.rawValue))")
-        printI("event=\(String(describing: event?.subtype.rawValue))")
-    }
+
 }

@@ -64,7 +64,7 @@ public class FloatLiveWindowManager:NSObject{
         channel.invokeMethod("onLiveFullScreenClick", arguments: nil)
     }
     deinit{
-        printI("deinit走了吗")
+//        printI("deinit走了吗")
         pipController?.releasePIP()
     }
     func initFloatLiveWindowManager(appId:String,token:String,channelName:String,optionalUid:Int = -1,title:String = "",artist:String = "",coverUrl:String = ""){
@@ -102,7 +102,6 @@ public class FloatLiveWindowManager:NSObject{
     func leavelChannel(){
         hasInitPip = false
         agoraKit?.leaveChannel{result in
-            printW("duration=\(result.duration)")
         }
         AgoraRtcEngineKit.destroy()
 
@@ -183,11 +182,6 @@ extension FloatLiveWindowManager:AgoraRtcEngineDelegate{
     public func rtcEngine(_ engine: AgoraRtcEngineKit, didJoinedOfUid uid: UInt, elapsed: Int) {
         //远端用户（通信场景）/主播（直播场景）加入当前频道回调
         printD("didJoinedOfUid,\(uid)")
-//        let videoCanvas = AgoraRtcVideoCanvas()
-//        videoCanvas.uid = uid
-//        videoCanvas.renderMode = .hidden
-//        videoCanvas.view = remoteView
-//        agoraKit?.setupRemoteVideo(videoCanvas)
         NotificationCenter.default.post(name: NSNotification.Name("agoraNotification"), object: "didJoinedOfUid",userInfo:["uid":uid] )
         
     }

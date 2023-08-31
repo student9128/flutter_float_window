@@ -48,9 +48,6 @@ class VideoPlayerView : UIView{
     static let shared = VideoPlayerView()
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
-        printE("initVideoPlayer=====VideoPlayerView=")
-        //        self.layer.addSublayer(FlutterVideoPlayerManager.shared.avPlayerLayer!)
     }
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -58,7 +55,6 @@ class VideoPlayerView : UIView{
     override func layoutSubviews() {
         FlutterVideoPlayerManager.shared.avPlayerLayer?.frame = frame
         super.layoutSubviews()
-        
-        printE("initVideoPlayer=====VideoPlayerView12=\(frame)")
+//        printE("initVideoPlayer=====VideoPlayerView12=\(frame)")
     }
 }
