@@ -8,29 +8,42 @@ import 'package:flutter_float_window/flutter_video_player_event_handler.dart';
 
 class FlutterVideoPlayerProgressBar extends StatefulWidget {
   FlutterVideoPlayerProgressBar(
-    this.engine, {
-    FlutterVideoPlayerProgressBarColors? colors,
-    this.onDragEnd,
-    this.onDragStart,
-    this.onDragUpdate,
-    Key? key,
-    // required this.barWidth,
-    required this.barHeight,
-    required this.handleHeight,
-    required this.drawShadow,
-  })  : colors = colors ?? FlutterVideoPlayerProgressBarColors(),
+      {Key? key,
+      required this.barHeight,
+      required this.handleHeight,
+      required this.drawShadow,
+      required this.position,
+      required this.duration,
+      required this.bufferedStart,
+      required this.bufferedEnd,
+      FlutterVideoPlayerProgressBarColors? colors,
+      this.onDragEnd,
+      this.onDragStart,
+      this.onDragUpdate,
+      this.onSeek,
+      // required this.barWidth,
+      this.drawHandle = true,
+      this.drawBuffer = true})
+      : colors = colors ?? FlutterVideoPlayerProgressBarColors(),
         super(key: key);
 
   final FlutterVideoPlayerProgressBarColors colors;
-  final FlutterVideoPlayerEngine engine;
   final Function()? onDragStart;
   final Function()? onDragEnd;
   final Function()? onDragUpdate;
+  final Function(double position)? onSeek;
 
   // final double barWidth;
   final double barHeight;
   final double handleHeight;
   final bool drawShadow;
+  final bool drawHandle;
+  final bool drawBuffer;
+
+  final double position;
+  final double duration;
+  final double bufferedStart;
+  final double bufferedEnd;
 
   @override
   _FlutterVideoPlayerProgressBarState createState() {
@@ -38,7 +51,8 @@ class FlutterVideoPlayerProgressBar extends StatefulWidget {
   }
 }
 
-class _FlutterVideoPlayerProgressBarState extends State<FlutterVideoPlayerProgressBar> {
+class _FlutterVideoPlayerProgressBarState
+    extends State<FlutterVideoPlayerProgressBar> {
   void listener() {
     if (!mounted) return;
     setState(() {});
@@ -46,34 +60,27 @@ class _FlutterVideoPlayerProgressBarState extends State<FlutterVideoPlayerProgre
 
   bool isPlaying = true;
 
-  FlutterVideoPlayerEngine get engine => widget.engine;
-  double position = 0;
-  double duration = 0;
-  double bufferedStart = 0;
-  double bufferedEnd = 0;
-
   @override
   void initState() {
     super.initState();
-    var handler = FlutterVideoPlayerEventHandler(onVideoProgress:
-        (double position, double duration, double bufferedStart,
-            double bufferedEnd) {
-      if (mounted) {
-        setState(() {
-          this.position = position;
-          this.duration = duration;
-          this.bufferedStart = bufferedStart;
-          this.bufferedEnd = bufferedEnd;
-        });
-      }
-    });
-    engine.setVideoPlayerEventHandler(handler);
-    FlutterFloatWindow.initVideoPlayerListener(engine.mHandler!);
+    // var handler = FlutterVideoPlayerEventHandler(onVideoProgress:
+    //     (double position, double duration, double bufferedStart,
+    //         double bufferedEnd) {
+    //   if (mounted) {
+    //     setState(() {
+    //       this.position = position;
+    //       this.duration = duration;
+    //       this.bufferedStart = bufferedStart;
+    //       this.bufferedEnd = bufferedEnd;
+    //     });
+    //   }
+    // });
+    // engine.setVideoPlayerEventHandler(handler);
+    // FlutterFloatWindow.initVideoPlayerListener(engine.mHandler!);
   }
 
   @override
   void dispose() {
-    engine.setVideoPlayerEventHandler(null);
     super.dispose();
   }
 
@@ -102,13 +109,14 @@ class _FlutterVideoPlayerProgressBarState extends State<FlutterVideoPlayerProgre
     final box = context.findRenderObject()! as RenderBox;
     final Offset tapPos = box.globalToLocal(globalPosition);
     final double relative = tapPos.dx / box.size.width;
-    var position = duration * relative;
-    setState(() {
-      this.position = position;
-      this.bufferedStart = 0;
-      this.bufferedEnd = 0;
-    });
-    FlutterFloatWindow.seekVideoIOS({'position': position.toInt()});
+    // var position = duration * relative;
+    widget.onSeek?.call(relative);
+    // setState(() {
+    //   this.position = position;
+    //   this.bufferedStart = 0;
+    //   this.bufferedEnd = 0;
+    // });
+    // FlutterFloatWindow.seekVideoIOS({'position': position.toInt()});
   }
 
   @override
@@ -121,9 +129,9 @@ class _FlutterVideoPlayerProgressBarState extends State<FlutterVideoPlayerProgre
       },
       onHorizontalDragUpdate: (DragUpdateDetails details) {
         print("onHorizontalDragUpdate");
-        if (duration == 0) {
-          return;
-        }
+        // if (duration == 0) {
+        //   return;
+        // }
         _seekToRelativePosition(details.globalPosition);
 
         widget.onDragUpdate?.call();
@@ -134,9 +142,9 @@ class _FlutterVideoPlayerProgressBarState extends State<FlutterVideoPlayerProgre
         widget.onDragEnd?.call();
       },
       onTapDown: (TapDownDetails details) {
-        if (duration == 0) {
-          return;
-        }
+        // if (duration == 0) {
+        //   return;
+        // }
         _seekToRelativePosition(details.globalPosition);
       },
       child: Center(
@@ -146,15 +154,16 @@ class _FlutterVideoPlayerProgressBarState extends State<FlutterVideoPlayerProgre
           color: Colors.transparent,
           child: CustomPaint(
             painter: _ProgressBarPainter(
-              position: position,
-              duration: duration,
-              bufferedStart: bufferedStart,
-              bufferedEnd: bufferedEnd,
-              colors: widget.colors,
-              barHeight: widget.barHeight,
-              handleHeight: widget.handleHeight,
-              drawShadow: widget.drawShadow,
-            ),
+                position: widget.position,
+                duration: widget.duration,
+                bufferedStart: widget.bufferedStart,
+                bufferedEnd: widget.bufferedEnd,
+                colors: widget.colors,
+                barHeight: widget.barHeight,
+                handleHeight: widget.handleHeight,
+                drawShadow: widget.drawShadow,
+                drawHandle: widget.drawHandle,
+                drawBuffer: widget.drawBuffer),
           ),
         ),
       ),
@@ -163,16 +172,17 @@ class _FlutterVideoPlayerProgressBarState extends State<FlutterVideoPlayerProgre
 }
 
 class _ProgressBarPainter extends CustomPainter {
-  _ProgressBarPainter({
-    required this.position,
-    required this.duration,
-    required this.bufferedStart,
-    required this.bufferedEnd,
-    required this.colors,
-    required this.barHeight,
-    required this.handleHeight,
-    required this.drawShadow,
-  });
+  _ProgressBarPainter(
+      {required this.position,
+      required this.duration,
+      required this.bufferedStart,
+      required this.bufferedEnd,
+      required this.colors,
+      required this.barHeight,
+      required this.handleHeight,
+      required this.drawShadow,
+      required this.drawHandle,
+      required this.drawBuffer});
 
   FlutterVideoPlayerProgressBarColors colors;
   final double position;
@@ -182,6 +192,8 @@ class _ProgressBarPainter extends CustomPainter {
   final double barHeight;
   final double handleHeight;
   final bool drawShadow;
+  final bool drawHandle;
+  final bool drawBuffer;
 
   @override
   bool shouldRepaint(CustomPainter painter) {
@@ -210,16 +222,18 @@ class _ProgressBarPainter extends CustomPainter {
         playedPartPercent > 1 ? size.width : playedPartPercent * size.width;
     final double start = bufferedStart / duration * size.width;
     final double end = bufferedEnd / duration * size.width;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromPoints(
-          Offset(start, baseOffset),
-          Offset(end, baseOffset + barHeight),
+    if (drawBuffer) {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromPoints(
+            Offset(start, baseOffset),
+            Offset(end, baseOffset + barHeight),
+          ),
+          const Radius.circular(4.0),
         ),
-        const Radius.circular(4.0),
-      ),
-      colors.bufferedPaint,
-    );
+        colors.bufferedPaint,
+      );
+    }
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromPoints(
@@ -243,10 +257,19 @@ class _ProgressBarPainter extends CustomPainter {
       canvas.drawShadow(shadowPath, Colors.black, 0.2, false);
     }
 
-    canvas.drawCircle(
-      Offset(playedPart, baseOffset + barHeight / 2),
-      handleHeight,
-      colors.handlePaint,
-    );
+    if (drawHandle) {
+      double offsetX = playedPart;
+      if(playedPart+handleHeight/2>=size.width){
+        offsetX = size.width-handleHeight/2;
+      }else if(playedPart-handleHeight/2<=0){
+        offsetX = handleHeight/2;
+      }
+      canvas.drawCircle(
+        Offset(offsetX, baseOffset + barHeight / 2),
+        handleHeight/2,
+        colors.handlePaint,
+      );
+      canvas.drawLine(Offset(playedPart, 0),Offset(playedPart, handleHeight),colors.playedPaint);
+    }
   }
 }

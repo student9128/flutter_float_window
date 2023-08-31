@@ -18,6 +18,10 @@ class _TestFlutterVideoViewPageState extends State<TestFlutterVideoViewPage> {
   String videoUrlMp4 =
       "https://v-cdn.zjol.com.cn/277001.mp4";
   bool hasInitialized = false;
+  double position = 0;
+  double duration = 0;
+  double bufferedStart = 0;
+  double bufferedEnd = 0;
   FlutterVideoPlayerEngine? create;
   @override
   void initState() {
@@ -31,13 +35,13 @@ class _TestFlutterVideoViewPageState extends State<TestFlutterVideoViewPage> {
       final String artist = 'testArtist';
       final String coverUrl =
           'https://t7.baidu.com/it/u=2621658848,3952322712&fm=193&f=GIF';
-      final int position = 0;
+      final int positionX = 0;
       FlutterFloatWindow.initVideoPlayerIOS(
           url: videoUrlMp4,
           title: title,
           artist: artist,
           coverUrl: coverUrl,
-          position: position);
+          position: positionX);
       create = FlutterVideoPlayerEngine.create();
       create?.setVideoPlayerEventHandler(
           FlutterVideoPlayerEventHandler(onInitialized: () {
@@ -45,7 +49,18 @@ class _TestFlutterVideoViewPageState extends State<TestFlutterVideoViewPage> {
         setState(() {
           hasInitialized = true;
         });
-      }));
+      },onVideoProgress:
+        (double position, double duration, double bufferedStart,
+            double bufferedEnd) {
+      if (mounted) {
+        setState(() {
+          this.position = position;
+          this.duration = duration;
+          this.bufferedStart = bufferedStart;
+          this.bufferedEnd = bufferedEnd;
+        });
+      }
+    }));
       FlutterFloatWindow.initVideoPlayerListener(create!.mHandler!);
     });
   }
@@ -80,8 +95,48 @@ class _TestFlutterVideoViewPageState extends State<TestFlutterVideoViewPage> {
                       color: Colors.black,
                       child: const FlutterVideoPlayerView(),
                     ),
-                    FlutterVideoPlayerProgressBar(FlutterVideoPlayerEngine.create(),
-                        barHeight: 5, handleHeight: 10, drawShadow: false),
+                    Container(
+                      margin: EdgeInsets.symmetric(horizontal: 16,vertical: 10),
+                      child: Column(
+                        children: [
+                    FlutterVideoPlayerProgressBar(
+                        position: position,
+                        duration: duration,
+                        bufferedStart: bufferedStart,
+                        bufferedEnd: bufferedEnd,
+                        barHeight: 5,
+                        handleHeight: 16,
+                        drawShadow: false,onSeek: (barPosition){
+                          if(duration==0)return;
+                          var pos = barPosition*duration;
+                          setState(() {
+                            this.position = pos;
+                            this.bufferedStart = 0;
+                            this.bufferedEnd = 0;
+                          });
+                          print("pos===$pos,$barPosition");
+                          FlutterFloatWindow.seekVideoIOS({'position': pos.toInt()});
+                          
+                        },),
+                    Container(
+                      margin: EdgeInsets.only(top: 10),
+                      child: FlutterVideoPlayerProgressBar(
+                        position: position,
+                        duration: duration,
+                        bufferedStart: bufferedStart,
+                        bufferedEnd: bufferedEnd,
+                        barHeight: 5,
+                        handleHeight: 10,
+                        drawShadow: false,
+                        drawHandle: false,
+                        drawBuffer: false,
+                        colors: FlutterVideoPlayerProgressBarColors(playedColor: Colors.blue,backgroundColor: Colors.green),
+                      ),
+                    )
+
+                        ],
+                      ),
+                    )
                   ],
                 )
               : Container(

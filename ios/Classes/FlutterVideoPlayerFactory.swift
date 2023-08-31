@@ -91,7 +91,7 @@ class FlutterVideoPlayerFactory : NSObject,FlutterPlatformViewFactory{
         
     }
     @objc func handleNotification(notification:Notification){
-        printD("notification==\(notification)")
+//        printD("notification==\(notification)")
         if let result = notification.object as? String{
             var arguments:[String:Any]=["method":result]
             if let userInfo = notification.userInfo as? [String:Any]{
@@ -99,7 +99,7 @@ class FlutterVideoPlayerFactory : NSObject,FlutterPlatformViewFactory{
                     arguments[key]=value
                 }
             }
-            printI("arguments=\(arguments)")
+//            printI("arguments=\(arguments)")
             self.eventSink?(arguments)
         }
     }
