@@ -1,3 +1,5 @@
+## 0.1.9
+add FlutterVideoPlayerView(only iOS),now can add this videoPlayer if need picture in picture on iOS.
 ## 0.1.8
 support ios show float window when use Agora SDK.
 upgrade android Agora native sdk to 4.2.1.
