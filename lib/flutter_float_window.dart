@@ -376,7 +376,7 @@ class FlutterFloatWindow {
         handler?.onJoinChannelSuccess?.call(uid);
         break;
       case FlutterAgoraConstants.onLeaveChannel:
-        handler?.onLeaveChannel;
+        handler?.onLeaveChannel?.call();
         break;
       case FlutterAgoraConstants.onUserJoined:
         handler?.onUserJoined?.call(uid);
