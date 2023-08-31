@@ -269,7 +269,6 @@ class _ProgressBarPainter extends CustomPainter {
         handleHeight/2,
         colors.handlePaint,
       );
-      canvas.drawLine(Offset(playedPart, 0),Offset(playedPart, handleHeight),colors.playedPaint);
     }
   }
 }
