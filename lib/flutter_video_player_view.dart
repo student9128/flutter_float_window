@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_float_window/flutter_float_window.dart';
 
 class FlutterVideoPlayerView extends StatelessWidget {
   const FlutterVideoPlayerView(

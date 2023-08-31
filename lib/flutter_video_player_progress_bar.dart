@@ -1,10 +1,6 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_float_window/flutter_float_window.dart';
-import 'package:flutter_float_window/flutter_video_player_engine.dart';
-import 'package:flutter_float_window/flutter_video_player_event_handler.dart';
 
 class FlutterVideoPlayerProgressBar extends StatefulWidget {
   FlutterVideoPlayerProgressBar(
@@ -123,12 +119,10 @@ class _FlutterVideoPlayerProgressBarState
   Widget build(BuildContext context) {
     return GestureDetector(
       onHorizontalDragStart: (DragStartDetails details) {
-        print("onHorizontalDragStart");
         savePlayingStatus();
         widget.onDragStart?.call();
       },
       onHorizontalDragUpdate: (DragUpdateDetails details) {
-        print("onHorizontalDragUpdate");
         // if (duration == 0) {
         //   return;
         // }
@@ -137,7 +131,6 @@ class _FlutterVideoPlayerProgressBarState
         widget.onDragUpdate?.call();
       },
       onHorizontalDragEnd: (DragEndDetails details) {
-        print("onHorizontalDragEnd");
         restorePlayingStatus();
         widget.onDragEnd?.call();
       },

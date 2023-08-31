@@ -311,9 +311,8 @@ class FlutterFloatWindow {
     };
     var handler = FlutterAgoraLiveEngine.instance.mHandler;
     EventChannel _eventChannel =
-    EventChannel("flutter_agora_live/agora_events");
+    const EventChannel("flutter_agora_live/agora_events");
     _eventChannel.receiveBroadcastStream().listen((event) {
-      print("initAgora::eventChannel======******====$event");
       var map = Map<String, dynamic>.from(event);
       handleAgoraEvent(map, handler);
     });
