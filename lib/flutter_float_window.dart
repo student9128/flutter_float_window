@@ -459,6 +459,12 @@ class FlutterFloatWindow {
     await _channelVideoPlayerIOS.invokeMethod('stopPipVideoIOS');
   }
 
+  static setVideoSpeedIOS(double speed) async {
+    assert(Platform.isIOS == true);
+    var params = {'speed':speed};
+    await _channelVideoPlayerIOS.invokeMethod('setVideoSpeedIOS',params);
+  }
+  
   static Future<Map<String, dynamic>> getDurationAndPosition() async {
     assert(Platform.isIOS == true);
     var future =

@@ -84,13 +84,22 @@ class FlutterVideoPlayerFactory : NSObject,FlutterPlatformViewFactory{
         case "isVideoPlayingIOS":
             result(FlutterVideoPlayerManager.shared.isPlaying)
             break
+        case "setVideoSpeedIOS":
+            if(call.arguments) is Dictionary<String,Any>?{
+                let dic = call.arguments as! Dictionary<String,Any>
+                let speedIOS = dic["speed"] as? Float
+                if let speed = speedIOS{
+                    FlutterVideoPlayerManager.shared.setVideoSpeed(speed: speed)
+                }
+            }
+            break
         default:
             break
         }
         
     }
     @objc func handleNotification(notification:Notification){
-//        printD("notification==\(notification)")
+        //        printD("notification==\(notification)")
         if let result = notification.object as? String{
             var arguments:[String:Any]=["method":result]
             if let userInfo = notification.userInfo as? [String:Any]{
@@ -98,7 +107,7 @@ class FlutterVideoPlayerFactory : NSObject,FlutterPlatformViewFactory{
                     arguments[key]=value
                 }
             }
-//            printI("arguments=\(arguments)")
+            //            printI("arguments=\(arguments)")
             self.eventSink?(arguments)
         }
     }
