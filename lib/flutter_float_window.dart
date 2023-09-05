@@ -490,8 +490,8 @@ class FlutterFloatWindow {
     });
   }
 
-  static handleVideoPlayerEvent(Map<String, dynamic> event,
-      FlutterVideoPlayerEventHandler? handler) {
+  static handleVideoPlayerEvent(
+      Map<String, dynamic> event, FlutterVideoPlayerEventHandler? handler) {
     var method = event['method'];
     switch (method) {
       case FlutterVideoPlayerConstants.onInitialized:
@@ -503,6 +503,15 @@ class FlutterFloatWindow {
         var start = event['bufferedStart'];
         var end = event['bufferedEnd'];
         handler?.onVideoProgress?.call(position, duration, start, end);
+        break;
+      case FlutterVideoPlayerConstants.onVideoPlayEnd:
+        handler?.onVideoPlayEnd?.call();
+        break;
+      case FlutterVideoPlayerConstants.onVideoInterruptionBegan:
+        handler?.onVideoInterruptionBegan?.call();
+        break;
+      case FlutterVideoPlayerConstants.onVideoInterruptionEnded:
+        handler?.onVideoInterruptionEnded?.call();
         break;
     }
   }

@@ -96,6 +96,7 @@ public class FlutterVideoPlayerManager : NSObject{
             // Fallback on earlier versions
         }
         NotificationCenter.default.addObserver(self, selector: #selector(playerDidFinishPlaying), name: .AVPlayerItemDidPlayToEndTime, object: player.currentItem)
+        NotificationCenter.default.addObserver(self, selector: #selector(handleAudioSessionInterruption), name: AVAudioSession.interruptionNotification, object: nil)
         
         mImageUrl = coverUrl
         mAudioTitle = title
@@ -152,8 +153,29 @@ public class FlutterVideoPlayerManager : NSObject{
     @objc func playerDidFinishPlaying(notification:Notification){
         isPlayEnd=true;
         isPlaying=false;
-        NotificationCenter.default.post(name: NSNotification.Name("PlayPause"), object: "pause")
+        self.postNotification(method: "onVideoPlayEnd", args: [String : Any]())
         
+    }
+    @objc func handleAudioSessionInterruption(notification:Notification){
+        guard let userInfo = notification.userInfo,
+              let interruptionTypeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
+              let interruptionType = AVAudioSession.InterruptionType(rawValue: interruptionTypeValue) else {
+            return
+        }
+        switch interruptionType {
+            case .began: // 中断开始，例如来电
+            self.postNotification(method: "onVideoInterruptionBegan", args: [String : Any]())
+            case .ended: // 中断结束，例如电话挂断
+            guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else {
+                return
+            }
+            let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
+            if options.contains(.shouldResume) {
+                self.postNotification(method: "onVideoInterruptionEnded", args: [String : Any]())
+            }
+            default:
+                break
+            }
     }
     func destroyVideoPlayer(){
         hasInit = false
@@ -219,8 +241,19 @@ public class FlutterVideoPlayerManager : NSObject{
     public func seekTo(position:Int){
         if let playerLayer = avPlayerLayer{
             if let player = playerLayer.player{
-                player.seek(to:CMTimeMake(value: Int64(position), timescale: 1))
-                updateNowPlayingInfoProgress(Float(position))
+               let duration =  player.currentItem?.duration ?? CMTime.zero
+                if(position<Int(CMTimeGetSeconds(duration))){
+                    isPlayEnd = false
+                    player.seek(to: CMTimeMake(value: Int64(position), timescale: 1), toleranceBefore: CMTimeMake(value: 8, timescale: 10), toleranceAfter: CMTimeMake(value: 8, timescale: 10)){ isFinished in
+                        printI("isFinished=\(isFinished)")
+                    }
+                    updateNowPlayingInfoProgress(Float(position))
+                }else{
+                    isPlayEnd = true
+                    player.seek(to: CMTimeMake(value: Int64(0), timescale: 1))
+                    updateNowPlayingInfoProgress(Float(0))
+                }
+            
             }
         }
     }
