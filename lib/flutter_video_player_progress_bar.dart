@@ -17,7 +17,6 @@ class FlutterVideoPlayerProgressBar extends StatefulWidget {
       this.onDragStart,
       this.onDragUpdate,
       this.onSeek,
-      // required this.barWidth,
       this.drawHandle = true,
       this.drawBuffer = true})
       : colors = colors ?? FlutterVideoPlayerProgressBarColors(),
@@ -56,30 +55,6 @@ class _FlutterVideoPlayerProgressBarState
 
   bool isPlaying = true;
 
-  @override
-  void initState() {
-    super.initState();
-    // var handler = FlutterVideoPlayerEventHandler(onVideoProgress:
-    //     (double position, double duration, double bufferedStart,
-    //         double bufferedEnd) {
-    //   if (mounted) {
-    //     setState(() {
-    //       this.position = position;
-    //       this.duration = duration;
-    //       this.bufferedStart = bufferedStart;
-    //       this.bufferedEnd = bufferedEnd;
-    //     });
-    //   }
-    // });
-    // engine.setVideoPlayerEventHandler(handler);
-    // FlutterFloatWindow.initVideoPlayerListener(engine.mHandler!);
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-  }
-
   void savePlayingStatus() async {
     var bool = await FlutterFloatWindow.isPlaying();
     setState(() {
@@ -105,14 +80,8 @@ class _FlutterVideoPlayerProgressBarState
     final box = context.findRenderObject()! as RenderBox;
     final Offset tapPos = box.globalToLocal(globalPosition);
     final double relative = tapPos.dx / box.size.width;
-    // var position = duration * relative;
+    if(relative>=1)return;
     widget.onSeek?.call(relative);
-    // setState(() {
-    //   this.position = position;
-    //   this.bufferedStart = 0;
-    //   this.bufferedEnd = 0;
-    // });
-    // FlutterFloatWindow.seekVideoIOS({'position': position.toInt()});
   }
 
   @override
@@ -123,11 +92,7 @@ class _FlutterVideoPlayerProgressBarState
         widget.onDragStart?.call();
       },
       onHorizontalDragUpdate: (DragUpdateDetails details) {
-        // if (duration == 0) {
-        //   return;
-        // }
         _seekToRelativePosition(details.globalPosition);
-
         widget.onDragUpdate?.call();
       },
       onHorizontalDragEnd: (DragEndDetails details) {
@@ -135,9 +100,6 @@ class _FlutterVideoPlayerProgressBarState
         widget.onDragEnd?.call();
       },
       onTapDown: (TapDownDetails details) {
-        // if (duration == 0) {
-        //   return;
-        // }
         _seekToRelativePosition(details.globalPosition);
       },
       child: Center(
