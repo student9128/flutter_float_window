@@ -60,7 +60,7 @@ public class FlutterAgoraLiveManager:NSObject{
             pipController.stopPictureInPicture()
         }
     }
-    func enablePipBackgroundMode(enable:Bool = true){
+    func enablePipBackgroundMode(enable:Bool = true,result:@escaping FlutterResult){
         if(enable){
             postNotification(method: "initPiP", args: nil)
             
@@ -68,6 +68,7 @@ public class FlutterAgoraLiveManager:NSObject{
             hasInitPip = false
             pipController?.releasePIP()
         }
+        result(true)
     }
     func onCloseClick(){
 //        leavelChannel()

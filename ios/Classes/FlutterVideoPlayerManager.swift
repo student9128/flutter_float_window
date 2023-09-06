@@ -198,7 +198,7 @@ public class FlutterVideoPlayerManager : NSObject{
         resetNowingPlayCenter()
     }
     
-    func enablePipBackgroundMode(enable:Bool = true){
+    func enablePipBackgroundMode(enable:Bool = true,result:@escaping FlutterResult){
         if(enable){
             if let playerLayer = avPlayerLayer{
                 pipController = AVPictureInPictureController(playerLayer: playerLayer)
@@ -214,6 +214,7 @@ public class FlutterVideoPlayerManager : NSObject{
             pipController?.delegate = nil
             pipController = nil
         }
+        result(true)
     }
     
     func setVideoSpeed(speed:Float){

@@ -324,12 +324,12 @@ class FlutterFloatWindow {
     await _channelAgoraIOS.invokeMethod("destroyAgora");
   }
 
-  static enablePipIOS(bool enable) async {
+  static Future<bool> enablePipIOS(bool enable) async {
     assert(Platform.isIOS == true);
     Map<String, dynamic> params = {
       'enablePipIOS': enable,
     };
-    await _channelAgoraIOS.invokeMethod('enablePipIOS', params);
+   return await _channelAgoraIOS.invokeMethod('enablePipIOS', params);
   }
 
   static initPipIOS() async {
@@ -441,12 +441,12 @@ class FlutterFloatWindow {
     await _channelVideoPlayerIOS.invokeMethod('seekVideoIOS', position);
   }
 
-  static enablePipVideoIOS(bool enable) async {
+  static Future<bool> enablePipVideoIOS(bool enable) async {
     assert(Platform.isIOS == true);
     Map<String, dynamic> params = {
       'enablePipIOS': enable,
     };
-    await _channelVideoPlayerIOS.invokeMethod('enablePipVideoIOS', params);
+  return await _channelVideoPlayerIOS.invokeMethod('enablePipVideoIOS', params);
   }
 
   static startPipVideoIOS() async {
@@ -464,7 +464,7 @@ class FlutterFloatWindow {
     var params = {'speed':speed};
     await _channelVideoPlayerIOS.invokeMethod('setVideoSpeedIOS',params);
   }
-  
+
   static Future<Map<String, dynamic>> getDurationAndPosition() async {
     assert(Platform.isIOS == true);
     var future =
