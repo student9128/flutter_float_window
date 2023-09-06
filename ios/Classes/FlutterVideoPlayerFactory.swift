@@ -68,7 +68,7 @@ class FlutterVideoPlayerFactory : NSObject,FlutterPlatformViewFactory{
                 let dic = call.arguments as! Dictionary<String,Any>
                 let enablePipIOS = dic["enablePipIOS"] as? Bool
                 if let enable = enablePipIOS{
-                    FlutterVideoPlayerManager.shared.enablePipBackgroundMode(enable: enable)
+                    FlutterVideoPlayerManager.shared.enablePipBackgroundMode(enable: enable,result: result)
                 }
             }
             break

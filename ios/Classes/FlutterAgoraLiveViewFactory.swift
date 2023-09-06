@@ -62,7 +62,7 @@ class FlutterAgoraLiveViewFactory: NSObject,FlutterPlatformViewFactory{
                 let enablePipIOS = dic["enablePipIOS"] as? Bool
                 if let enable = enablePipIOS{
                     printE("走了吗-======🚀")
-                    FlutterAgoraLiveManager.shared.enablePipBackgroundMode(enable: enable)
+                    FlutterAgoraLiveManager.shared.enablePipBackgroundMode(enable: enable,result: result)
                 }
             }
             break
