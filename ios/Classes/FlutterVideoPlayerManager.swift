@@ -57,11 +57,20 @@ public class FlutterVideoPlayerManager : NSObject{
     
     func initVideoPlayer(videoUrl:String,title:String = "",artist:String = "",coverUrl:String = "",position:Int = 0,speed:Float = 1.0){
         if(hasInit){
-            printE("hasInit==========@@@@@@@@@@@@@@@@@@@@@@@@@@@@✈️")
+            printE("hasInit==========@@@@@@@@@@@@@@@@@@@@@@@@@@@@✈️==")
             pipController?.stopPictureInPicture()
-            avPlayerLayer?.player?.play()
+//            avPlayerLayer?.player?.play()
+            if let playerLayer = avPlayerLayer{
+                if let player = playerLayer.player{
+                    printD("播放走了吗")
+                    player.play()
+                }
+            }else{
+                printD("播放 else")
+            }
             self.postNotification(method: "onInitialized", args: [String : Any]())
-            avPlayerLayer?.player?.addObserver(self, forKeyPath: #keyPath(AVPlayer.status), context: nil)
+            printD("播放 onInitialized")
+            avPlayerLayer?.player?.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), context: nil)
             return
         }
         hasInit = true
@@ -71,6 +80,7 @@ public class FlutterVideoPlayerManager : NSObject{
         avPlayerLayer = AVPlayerLayer(player: player)
         player.seek(to: CMTimeMake(value: Int64(position/1000), timescale: 1))
         player.addObserver(self, forKeyPath: #keyPath(AVPlayer.status),options:[.new], context: nil)
+        player.addObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus),options: [.new], context: nil)
         player.currentItem?.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), context: nil)
         player.rate=speed
         isPlaying=true
@@ -103,29 +113,51 @@ public class FlutterVideoPlayerManager : NSObject{
         mArtist = artist
         mAlbumTitle = title
         
-        //        mDuration = duration/1000
+//        mDuration = duration/1000
         mPosition = position/1000
         printD("hahahahaha")
         
-        //        initRemoteCommand()
-        //        initNowPlayingCenter()
+//        initRemoteCommand()
+//        initNowPlayingCenter()
         
     }
     public override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         printD("keypath=\(keyPath),object=\(object),change\(change)")
-        if keyPath == #keyPath(AVPlayer.status), let player = object as? AVPlayer {
-            if player.status == .readyToPlay {
-                // AVPlayer loaded successfully
+        if keyPath == #keyPath(AVPlayer.status),let player = object as? AVPlayer {
+            switch player.status{
+            case .readyToPlay:
                 player.play()
                 print("AVPlayer loaded successfully")
-            } else if player.status == .failed {
-                // AVPlayer failed to load
-                print("AVPlayer failed to load")
-            } else if player.status == .unknown {
-                // AVPlayer loading status unknown
+                break
+            case .failed:
                 print("AVPlayer loading status unknown")
+                break
+            case .unknown:
+                print("AVPlayer loading status unknown")
+                break
+            default:
+                break
             }
-        }else if keyPath == #keyPath(AVPlayerItem.status),let playerItem = object as? AVPlayerItem{
+        }else if keyPath == #keyPath(AVPlayer.timeControlStatus),let change = change, let newValue = change[NSKeyValueChangeKey.newKey] as? Int{
+            let newStatus = AVPlayer.TimeControlStatus(rawValue: newValue)
+            switch newStatus{
+            case .paused:
+                isPlaying=false
+                break
+            case .playing:
+                isPlaying=true
+                break
+            case .waitingToPlayAtSpecifiedRate:
+                if(isPlayEnd){
+                    isPlayEnd=false
+                    avPlayerLayer?.player?.seek(to:CMTimeMake(value:0, timescale: 1))
+                }
+                break
+            default:
+                break
+            }
+        }
+        else if keyPath == #keyPath(AVPlayerItem.status),let playerItem = object as? AVPlayerItem{
             if playerItem.status == .readyToPlay{
                 let duration = CMTimeGetSeconds(playerItem.duration)
                 self.mDuration = Int(duration)
@@ -133,8 +165,8 @@ public class FlutterVideoPlayerManager : NSObject{
                 initNowPlayingCenter()
                 if let playerLayer = avPlayerLayer{
                     if let player = playerLayer.player{
-                        self.postNotification(method: "onInitialized", args: [String : Any]())
                         player.play()
+                        self.postNotification(method: "onInitialized", args: [String : Any]())
                         timerObserverToken = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 1, preferredTimescale: CMTimeScale(NSEC_PER_SEC)), queue:DispatchQueue.main){time in
                             let currentTime = CMTimeGetSeconds(time)
                             let timeRanges = playerItem.loadedTimeRanges
@@ -154,9 +186,9 @@ public class FlutterVideoPlayerManager : NSObject{
         isPlayEnd=true;
         isPlaying=false;
         self.postNotification(method: "onVideoPlayEnd", args: [String : Any]())
+//        NotificationCenter.default.post(name: NSNotification.Name("PlayPause"), object: "pause")
         
     }
-    
     @objc func handleAudioSessionInterruption(notification:Notification){
         guard let userInfo = notification.userInfo,
               let interruptionTypeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
@@ -164,27 +196,32 @@ public class FlutterVideoPlayerManager : NSObject{
             return
         }
         switch interruptionType {
-        case .began: // 中断开始，例如来电
+            case .began: // 中断开始，例如来电
+//                player?.pause()
+            printE("began")
             self.postNotification(method: "onVideoInterruptionBegan", args: [String : Any]())
-        case .ended: // 中断结束，例如电话挂断
+            case .ended: // 中断结束，例如电话挂断
+            printE("end")
             guard let optionsValue = userInfo[AVAudioSessionInterruptionOptionKey] as? UInt else {
                 return
             }
             let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
             if options.contains(.shouldResume) {
+                //                    player?.play()
+                printI("end")
                 self.postNotification(method: "onVideoInterruptionEnded", args: [String : Any]())
             }
-        default:
-            break
-        }
+            default:
+                break
+            }
     }
-    
     func destroyVideoPlayer(){
         hasInit = false
         if let playerLayer = avPlayerLayer{
             if let player = playerLayer.player{
                 player.pause()
                 player.removeObserver(self, forKeyPath: "status")
+                player.removeObserver(self, forKeyPath: #keyPath(AVPlayer.timeControlStatus))
                 player.currentItem?.removeObserver(self, forKeyPath: #keyPath(AVPlayerItem.status))
             }
         }
@@ -192,12 +229,13 @@ public class FlutterVideoPlayerManager : NSObject{
             avPlayerLayer?.player?.removeTimeObserver(token)
             timerObserverToken = nil
         }
+        NotificationCenter.default.removeObserver(self, name: AVAudioSession.interruptionNotification, object: nil)
+        NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: nil)
         avPlayerLayer = nil
         pipController?.delegate = nil
         pipController = nil
         resetNowingPlayCenter()
     }
-    
     func enablePipBackgroundMode(enable:Bool = true,result:@escaping FlutterResult){
         if(enable){
             if let playerLayer = avPlayerLayer{
@@ -216,7 +254,6 @@ public class FlutterVideoPlayerManager : NSObject{
         }
         result(true)
     }
-    
     func setVideoSpeed(speed:Float){
         if let playerLayer = avPlayerLayer{
             if let player = playerLayer.player{
@@ -224,7 +261,6 @@ public class FlutterVideoPlayerManager : NSObject{
             }
         }
     }
-    
     func durationAndPosition(result:@escaping FlutterResult){
         if let playerLayer = avPlayerLayer{
             if let player = playerLayer.player{
@@ -237,60 +273,66 @@ public class FlutterVideoPlayerManager : NSObject{
                 result(args)
             }
     }
-    
     func startPip(){
+        if let p = pipController{
+            printE("startPip")
+            
+        }else{
+            printE("startPip else")
+        }
         pipController?.startPictureInPicture()
     }
-    
     func stopPip(){
         pipController?.stopPictureInPicture()
     }
-    
     func onCloseClick(){
         let channel = FlutterMethodChannelManager.shared.videoPlayerChannel()
         channel.invokeMethod("onVideoCloseClick", arguments: nil)
     }
-    
     func onFullScreenClick(){
         let channel = FlutterMethodChannelManager.shared.videoPlayerChannel()
         channel.invokeMethod("onVideoFullScreenClick", arguments: nil)
     }
-    
     public func seekTo(position:Int){
+        printE("seekTo===\(position)")
         if let playerLayer = avPlayerLayer{
             if let player = playerLayer.player{
                 if(position<self.mDuration){
                     isPlayEnd = false
-                    player.seek(to: CMTimeMake(value: Int64(position), timescale: 1), toleranceBefore: CMTimeMake(value: 8, timescale: 10), toleranceAfter: CMTimeMake(value: 8, timescale: 10)){ isFinished in
+                    player.seek(to: CMTimeMake(value: Int64(position), timescale: 1), toleranceBefore: CMTimeMake(value: 1, timescale: 2), toleranceAfter: CMTimeMake(value: 1, timescale: 2)){ isFinished in
                         printI("isFinished=\(isFinished)")
                     }
                     updateNowPlayingInfoProgress(Float(position))
                 }else{
-                    isPlayEnd = true
-                    player.seek(to: CMTimeMake(value: Int64(0), timescale: 1))
+                    isPlayEnd = false
+                    player.seek(to: CMTimeMake(value: Int64(0), timescale: 1), toleranceBefore: CMTimeMake(value: 0, timescale: 1), toleranceAfter: CMTimeMake(value: 0, timescale: 1)){ isFinished in
+                        printI("isFinished=\(isFinished)")
+                    }
                     updateNowPlayingInfoProgress(Float(0))
                 }
-                
+            
             }
         }
     }
-    
     public func play(){
         if(isPlayEnd){
+            printE("isPlayEnd")
+            isPlayEnd=false
             avPlayerLayer?.player?.seek(to:CMTimeMake(value:0, timescale: 1))
         }
         printI("play")
         isPlaying=true
         avPlayerLayer?.player?.play()
     }
-    
     public func pause(){
         isPlaying=false
         avPlayerLayer?.player?.pause()
+        printE("pause  pause pause")
     }
-    
     public func playPause(){
+        printE("playPause")
         if(isPlayEnd){
+            isPlayEnd=false
             avPlayerLayer?.player?.seek(to:CMTimeMake(value:0, timescale: 1))
         }
         if(isPlaying){
@@ -309,7 +351,6 @@ public class FlutterVideoPlayerManager : NSObject{
                 createTimers(true)
             }
         }}
-    
     public func backward(){
         if let playerLayer = avPlayerLayer{
             if let player = playerLayer.player{
@@ -335,7 +376,6 @@ public class FlutterVideoPlayerManager : NSObject{
         }
         
     }
-    
     public func forward(){
         if let playerLayer = avPlayerLayer{
             if let player = playerLayer.player{
@@ -358,7 +398,6 @@ public class FlutterVideoPlayerManager : NSObject{
             
         }
     }
-    
     func initRemoteCommand(){
         let commondCenter: MPRemoteCommandCenter = MPRemoteCommandCenter.shared()
         commondCenter.playCommand.isEnabled=true
@@ -385,7 +424,6 @@ public class FlutterVideoPlayerManager : NSObject{
             
         }
     }
-    
     func initNowPlayingCenter(){
         if let url = URL(string: mImageUrl ?? "") {
             downloadImage(url:url) { image in
@@ -406,11 +444,11 @@ public class FlutterVideoPlayerManager : NSObject{
         
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
-    
     func resetNowingPlayCenter(){
         let nowPlayingInfo = [String : Any]()
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
+    
     
     func createTimers(_ create: Bool) {
         if create {
