@@ -259,8 +259,7 @@ public class FlutterVideoPlayerManager : NSObject{
     public func seekTo(position:Int){
         if let playerLayer = avPlayerLayer{
             if let player = playerLayer.player{
-                let duration =  player.currentItem?.duration ?? CMTime.zero
-                if(position<Int(CMTimeGetSeconds(duration))){
+                if(position<self.mDuration){
                     isPlayEnd = false
                     player.seek(to: CMTimeMake(value: Int64(position), timescale: 1), toleranceBefore: CMTimeMake(value: 8, timescale: 10), toleranceAfter: CMTimeMake(value: 8, timescale: 10)){ isFinished in
                         printI("isFinished=\(isFinished)")
