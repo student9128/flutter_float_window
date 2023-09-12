@@ -3,11 +3,13 @@ class FlutterVideoPlayerEventHandler {
       {this.onInitialized,
       this.onVideoProgress,
       this.onVideoPlayEnd,
+      this.onVideoPlayPaused,
       this.onVideoInterruptionBegan,
       this.onVideoInterruptionEnded});
 
   final Function()? onInitialized;
   final Function()? onVideoPlayEnd;
+  final Function()? onVideoPlayPaused;
   final Function()? onVideoInterruptionBegan;
   final Function()? onVideoInterruptionEnded;
   final Function(double position, double duration, double bufferedStart,

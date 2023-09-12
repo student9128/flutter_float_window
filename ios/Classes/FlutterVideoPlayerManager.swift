@@ -63,7 +63,7 @@ public class FlutterVideoPlayerManager : NSObject{
             if let playerLayer = avPlayerLayer{
                 if let player = playerLayer.player{
                     printD("播放走了吗")
-                    player.play()
+                    player.playImmediately(atRate: speed)
                 }
             }else{
                 printD("播放 else")
@@ -327,7 +327,7 @@ public class FlutterVideoPlayerManager : NSObject{
     public func pause(){
         isPlaying=false
         avPlayerLayer?.player?.pause()
-        printE("pause  pause pause")
+        self.postNotification(method: "onVideoPlayPaused", args: [String : Any]())
     }
     public func playPause(){
         printE("playPause")

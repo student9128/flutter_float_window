@@ -513,6 +513,9 @@ class FlutterFloatWindow {
       case FlutterVideoPlayerConstants.onVideoPlayEnd:
         handler?.onVideoPlayEnd?.call();
         break;
+      case FlutterVideoPlayerConstants.onVideoPlayPaused:
+        handler?.onVideoPlayPaused?.call();
+        break;
       case FlutterVideoPlayerConstants.onVideoInterruptionBegan:
         handler?.onVideoInterruptionBegan?.call();
         break;
