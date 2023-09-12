@@ -250,6 +250,9 @@ public class FlutterVideoPlayerManager : NSObject{
         if let playerLayer = avPlayerLayer{
             if let player = playerLayer.player{
                 player.rate = speed
+                if(!isPlaying){
+                    player.pause()
+                }
             }
         }
     }
@@ -266,12 +269,6 @@ public class FlutterVideoPlayerManager : NSObject{
             }
     }
     func startPip(){
-        if let p = pipController{
-            printE("startPip")
-            
-        }else{
-            printE("startPip else")
-        }
         pipController?.startPictureInPicture()
     }
     func stopPip(){
