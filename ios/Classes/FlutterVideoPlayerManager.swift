@@ -59,22 +59,18 @@ public class FlutterVideoPlayerManager : NSObject{
         if(hasInit){
             printE("hasInit==========@@@@@@@@@@@@@@@@@@@@@@@@@@@@✈️==")
             pipController?.stopPictureInPicture()
-//            avPlayerLayer?.player?.play()
             if let playerLayer = avPlayerLayer{
                 if let player = playerLayer.player{
-                    printD("播放走了吗")
                     player.playImmediately(atRate: speed)
                 }
             }else{
                 printD("播放 else")
             }
             self.postNotification(method: "onInitialized", args: [String : Any]())
-            printD("播放 onInitialized")
             avPlayerLayer?.player?.addObserver(self, forKeyPath: #keyPath(AVPlayerItem.status), context: nil)
             return
         }
         hasInit = true
-        printE("initVideoPlayer=\(videoUrl)")
         let videoURL = URL(string: videoUrl)!
         let player = AVPlayer(url: videoURL)
         avPlayerLayer = AVPlayerLayer(player: player)
@@ -112,13 +108,8 @@ public class FlutterVideoPlayerManager : NSObject{
         mAudioTitle = title
         mArtist = artist
         mAlbumTitle = title
-        
-//        mDuration = duration/1000
         mPosition = position/1000
-        printD("hahahahaha")
         
-//        initRemoteCommand()
-//        initNowPlayingCenter()
         
     }
     public override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
@@ -186,7 +177,6 @@ public class FlutterVideoPlayerManager : NSObject{
         isPlayEnd=true;
         isPlaying=false;
         self.postNotification(method: "onVideoPlayEnd", args: [String : Any]())
-//        NotificationCenter.default.post(name: NSNotification.Name("PlayPause"), object: "pause")
         
     }
     @objc func handleAudioSessionInterruption(notification:Notification){
@@ -197,7 +187,6 @@ public class FlutterVideoPlayerManager : NSObject{
         }
         switch interruptionType {
             case .began: // 中断开始，例如来电
-//                player?.pause()
             printE("began")
             self.postNotification(method: "onVideoInterruptionBegan", args: [String : Any]())
             case .ended: // 中断结束，例如电话挂断
@@ -463,7 +452,6 @@ public class FlutterVideoPlayerManager : NSObject{
     }
     
     func updateNowPlayingInfoProgress(_ progress: Float) {
-        printI("progress====\(progress)")
         nowPlayingInfo[MPNowPlayingInfoPropertyElapsedPlaybackTime] = progress
         MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlayingInfo
     }
