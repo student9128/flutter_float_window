@@ -23,6 +23,7 @@ public class FlutterVideoPlayerManager : NSObject{
     var mAlbumTitle  : String?
     var mDuration    : Int = 0
     var mPosition    : Int = 0
+    var playerRate   : Float = 1.0
     var isRestore = false
     var hasInit = false
     var timerObserverToken: Any?//监听播放进度
@@ -56,6 +57,7 @@ public class FlutterVideoPlayerManager : NSObject{
     }
     
     func initVideoPlayer(videoUrl:String,title:String = "",artist:String = "",coverUrl:String = "",position:Int = 0,speed:Float = 1.0){
+        playerRate = speed
         if(hasInit){
             printE("hasInit==========@@@@@@@@@@@@@@@@@@@@@@@@@@@@✈️==")
             pipController?.stopPictureInPicture()
@@ -117,7 +119,7 @@ public class FlutterVideoPlayerManager : NSObject{
         if keyPath == #keyPath(AVPlayer.status),let player = object as? AVPlayer {
             switch player.status{
             case .readyToPlay:
-                player.play()
+                player.playImmediately(atRate: playerRate)
                 print("AVPlayer loaded successfully")
                 break
             case .failed:
@@ -156,7 +158,7 @@ public class FlutterVideoPlayerManager : NSObject{
                 initNowPlayingCenter()
                 if let playerLayer = avPlayerLayer{
                     if let player = playerLayer.player{
-                        player.play()
+                        player.playImmediately(atRate: playerRate)
                         self.postNotification(method: "onInitialized", args: [String : Any]())
                         timerObserverToken = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 1, preferredTimescale: CMTimeScale(NSEC_PER_SEC)), queue:DispatchQueue.main){time in
                             let currentTime = CMTimeGetSeconds(time)
@@ -196,7 +198,6 @@ public class FlutterVideoPlayerManager : NSObject{
             }
             let options = AVAudioSession.InterruptionOptions(rawValue: optionsValue)
             if options.contains(.shouldResume) {
-                //                    player?.play()
                 printI("end")
                 self.postNotification(method: "onVideoInterruptionEnded", args: [String : Any]())
             }
@@ -205,6 +206,7 @@ public class FlutterVideoPlayerManager : NSObject{
             }
     }
     func destroyVideoPlayer(){
+        playerRate = 1.0
         hasInit = false
         if let playerLayer = avPlayerLayer{
             if let player = playerLayer.player{
@@ -244,6 +246,7 @@ public class FlutterVideoPlayerManager : NSObject{
         result(true)
     }
     func setVideoSpeed(speed:Float){
+        playerRate = speed
         if let playerLayer = avPlayerLayer{
             if let player = playerLayer.player{
                 player.rate = speed
@@ -311,7 +314,7 @@ public class FlutterVideoPlayerManager : NSObject{
         }
         printI("play")
         isPlaying=true
-        avPlayerLayer?.player?.play()
+        avPlayerLayer?.player?.playImmediately(atRate: playerRate)
     }
     public func pause(){
         isPlaying=false
@@ -329,7 +332,7 @@ public class FlutterVideoPlayerManager : NSObject{
             isPlaying=false
             NotificationCenter.default.post(name: NSNotification.Name("PlayPause"), object: "pause")
         }else{
-            avPlayerLayer?.player?.play()
+            avPlayerLayer?.player?.playImmediately(atRate: playerRate)
             isPlaying=true
             NotificationCenter.default.post(name: NSNotification.Name("PlayPause"), object: "play")
         }
