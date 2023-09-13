@@ -1,6 +1,6 @@
 # flutter_float_window
 
-A Flutter plugin for Android show float window about video & agora Live.
+A Flutter plugin show float window on Android and show picture in picture on iOS.
 
 ## How to use
 
@@ -41,7 +41,7 @@ FlutterFloatWindow.setVideoUrl(params);
 
 > isPlayWhenScreenOff
 
-```dart
+```dart 
 FlutterFloatWindow.isPlayWhenScreenOff(true);
 
 ```
