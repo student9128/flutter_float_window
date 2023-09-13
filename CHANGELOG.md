@@ -1,3 +1,5 @@
+## 0.2.0
+add more logic code and perfect the scene,optimized code.
 ## 0.1.9
 add FlutterVideoPlayerView(only iOS),now can add this videoPlayer if need picture in picture on iOS.
 ## 0.1.8
