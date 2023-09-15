@@ -5,7 +5,9 @@ class FlutterVideoPlayerEventHandler {
       this.onVideoPlayEnd,
       this.onVideoPlayPaused,
       this.onVideoInterruptionBegan,
-      this.onVideoInterruptionEnded});
+      this.onVideoInterruptionEnded,
+      this.onVideoPipCloseClicked,
+      this.onVideoPipFullScreenClicked});
 
   final Function()? onInitialized;
   final Function()? onVideoPlayEnd;
@@ -14,4 +16,6 @@ class FlutterVideoPlayerEventHandler {
   final Function()? onVideoInterruptionEnded;
   final Function(double position, double duration, double bufferedStart,
       double bufferedEnd)? onVideoProgress;
+  final Function()? onVideoPipCloseClicked;
+  final Function()? onVideoPipFullScreenClicked;
 }

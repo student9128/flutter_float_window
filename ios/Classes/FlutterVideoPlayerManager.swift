@@ -269,10 +269,12 @@ public class FlutterVideoPlayerManager : NSObject{
         pipController?.stopPictureInPicture()
     }
     func onCloseClick(){
+        self.postNotification(method: "onVideoPipCloseClicked", args: [String : Any]())
         let channel = FlutterMethodChannelManager.shared.videoPlayerChannel()
         channel.invokeMethod("onVideoCloseClick", arguments: nil)
     }
     func onFullScreenClick(){
+        self.postNotification(method: "onVideoPipFullScreenClicked", args: [String : Any]())
         let channel = FlutterMethodChannelManager.shared.videoPlayerChannel()
         channel.invokeMethod("onVideoFullScreenClick", arguments: nil)
     }

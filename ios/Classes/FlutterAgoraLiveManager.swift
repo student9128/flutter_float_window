@@ -71,17 +71,16 @@ public class FlutterAgoraLiveManager:NSObject{
         result(true)
     }
     func onCloseClick(){
-//        leavelChannel()
+        self.postNotification(method: "onLivePipCloseClicked", args: [String : Any]())
         let channel = FlutterMethodChannelManager.shared.agoraChannel()
         channel.invokeMethod("onLiveCloseClick", arguments: nil)
     }
     func onFullScreenClick(){
-//        leavelChannel()
+        self.postNotification(method: "onLivePipFullScreenClicked", args: [String : Any]())
         let channel = FlutterMethodChannelManager.shared.agoraChannel()
         channel.invokeMethod("onLiveFullScreenClick", arguments: nil)
     }
     func initAgora(appId:String,token:String,channelName:String,optionalUid:Int = -1,title:String = "",artist:String = "",coverUrl:String = ""){
-        printD("initAgora============initAgora")
         mAppId = appId
         mToken = token
         mChannelName = channelName
@@ -112,7 +111,6 @@ public class FlutterAgoraLiveManager:NSObject{
         agoraKit?.muteAllRemoteAudioStreams(mute)
     }
     func leavelChannel(){
-        printW("agora leavelChannel")
         hasInitPip = false
         agoraKit?.leaveChannel{result in
             printW("duration=\(result.duration)")
@@ -183,7 +181,6 @@ public class FlutterAgoraLiveManager:NSObject{
         mAudioTitle = title
         mArtist = artist
         mAlbumTitle = title
-        printE("showNowPlaying=====\(title),\(artist),\(coverUrl)")
         initRemoteCommand()
         initNowPlayingCenter()
     }

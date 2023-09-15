@@ -9,4 +9,6 @@ class FlutterAgoraConstants {
   static const String onFirstRemoteVideoDecoded = "onFirstRemoteVideoDecoded";
   static const String onRemoteVideoStateChanged = "onRemoteVideoStateChanged";
   static const String onRemoteVideoMuted = "onRemoteVideoMuted";
+  static const String onLivePipCloseClicked = "onLivePipCloseClicked";
+  static const String onLivePipFullScreenClicked = "onLivePipFullScreenClicked";
 }

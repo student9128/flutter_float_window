@@ -9,7 +9,9 @@ class FlutterAgoraLiveEventHandler{
     this.onFirstRemoteVideoFrame,
     this.onFirstRemoteVideoDecoded,
     this.onRemoteVideoStateChanged,
-    this.onRemoteVideoMuted
+    this.onRemoteVideoMuted,
+    this.onLivePipCloseClicked,
+    this.onLivePipFullScreenClicked
   });
   final Function(int error)? onError;
   final Function(int state,int reason)? onConnectionChanged;
@@ -21,4 +23,6 @@ class FlutterAgoraLiveEventHandler{
   final Function(int uid)? onFirstRemoteVideoDecoded;
   final Function(int uid)? onRemoteVideoStateChanged;
   final Function(int uid)? onRemoteVideoMuted;
+  final Function()? onLivePipCloseClicked;
+  final Function()? onLivePipFullScreenClicked;
 }

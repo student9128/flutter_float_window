@@ -397,7 +397,14 @@ class FlutterFloatWindow {
       case FlutterAgoraConstants.onRemoteVideoMuted:
         handler?.onRemoteVideoMuted?.call(uid);
         break;
+      case FlutterAgoraConstants.onLivePipCloseClicked:
+        handler?.onLivePipCloseClicked?.call();
+        break;
+      case FlutterAgoraConstants.onLivePipFullScreenClicked:
+        handler?.onLivePipFullScreenClicked?.call();
+        break;
       default:
+        break;
     }
   }
 
@@ -521,6 +528,14 @@ class FlutterFloatWindow {
         break;
       case FlutterVideoPlayerConstants.onVideoInterruptionEnded:
         handler?.onVideoInterruptionEnded?.call();
+        break;
+      case FlutterVideoPlayerConstants.onVideoPipCloseClicked:
+        handler?.onVideoPipCloseClicked?.call();
+        break;
+      case FlutterVideoPlayerConstants.onVideoPipFullScreenClicked:
+        handler?.onVideoPipFullScreenClicked?.call();
+        break;
+      default:
         break;
     }
   }
