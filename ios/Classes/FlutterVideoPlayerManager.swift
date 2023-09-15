@@ -153,14 +153,16 @@ public class FlutterVideoPlayerManager : NSObject{
                     player.playImmediately(atRate: playerRate)
                     self.postNotification(method: "onInitialized", args: [String : Any]())
                     timerObserverToken = player.addPeriodicTimeObserver(forInterval: CMTime(seconds: 1, preferredTimescale: CMTimeScale(NSEC_PER_SEC)), queue:DispatchQueue.main){time in
-                        let currentTime = CMTimeGetSeconds(time)
-                        let timeRanges = playerItem.loadedTimeRanges
-                        let first = timeRanges.first as? CMTimeRange
-                        let start = CMTimeGetSeconds(first?.start ?? CMTime.zero)
-                        let end = CMTimeGetSeconds(first?.end ?? CMTime.zero)
-                        
-                        let args:[String : Any] = ["duration":duration,"position":currentTime,"bufferedStart":start,"bufferedEnd":end]
-                        self.postNotification(method: "onVideoProgress", args: args)
+                        if(self.isPlaying){
+                            let currentTime = CMTimeGetSeconds(time)
+                            let timeRanges = playerItem.loadedTimeRanges
+                            let first = timeRanges.first as? CMTimeRange
+                            let start = CMTimeGetSeconds(first?.start ?? CMTime.zero)
+                            let end = CMTimeGetSeconds(first?.end ?? CMTime.zero)
+                            
+                            let args:[String : Any] = ["duration":duration,"position":currentTime,"bufferedStart":start,"bufferedEnd":end]
+                            self.postNotification(method: "onVideoProgress", args: args)
+                        }
                     }
                 }
             }
