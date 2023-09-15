@@ -18,9 +18,9 @@ class FlutterVideoPlayerView : NSObject,FlutterPlatformView{
           viewIdentifier viewId: Int64,
           arguments args: Any?,
           binaryMessenger messenger: FlutterBinaryMessenger?){
-        _view = VideoPlayerView.shared
+        _view = VideoPlayerView()
         super.init()
-        VideoPlayerView.shared.layoutSubviews()
+
         //       if args is Dictionary<String,Any>?{
         //           let dic = args as! Dictionary<String,Any>
         //           let url = dic["videoUrl"] as? String
