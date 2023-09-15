@@ -15,6 +15,7 @@ class FlutterAgoraLiveEngine {
   }
 
   FlutterAgoraLiveEventHandler? mHandler;
+  ///设置直播间相关方法监听
   void setAgoraLiveEventHandler(FlutterAgoraLiveEventHandler handler) {
     mHandler = handler;
   }

@@ -15,6 +15,7 @@ export 'package:flutter_float_window/flutter_video_player_engine.dart';
 export 'package:flutter_float_window/flutter_video_player_progress_bar_colors.dart';
 export 'package:flutter_float_window/flutter_video_player_progress_bar.dart';
 export 'package:flutter_float_window/flutter_video_player_view.dart';
+
 enum FloatWindowGravity {
   ///left
   left,
@@ -47,18 +48,18 @@ enum FloatWindowGravity {
 class FlutterFloatWindow {
   static const MethodChannel _channel = MethodChannel('flutter_float_window');
   static const EventChannel _eventChannel =
-  EventChannel('flutter_agora_live/events');
+      EventChannel('flutter_agora_live/events');
 
   static MethodChannel get channel => _channel;
 
   static EventChannel get eventChannel => _eventChannel;
 
   static const MethodChannel _channelAgoraIOS =
-  MethodChannel('flutter_agora_live');
+      MethodChannel('flutter_agora_live');
 
   static MethodChannel get channelAgoraIOS => _channelAgoraIOS;
   static const MethodChannel _channelVideoPlayerIOS =
-  MethodChannel('flutter_video_player');
+      MethodChannel('flutter_video_player');
 
   static MethodChannel get channelVideoPlayerIOS => _channelVideoPlayerIOS;
 
@@ -232,8 +233,8 @@ class FlutterFloatWindow {
   }
 
   /// agora SDK appId
-  static Future<String> initFloatLive(String appId, String token,
-      String channelName, int optionalUid) async {
+  static Future<String> initFloatLive(
+      String appId, String token, String channelName, int optionalUid) async {
     Map<String, dynamic> params = {
       'appId': appId,
       'token': token,
@@ -244,8 +245,8 @@ class FlutterFloatWindow {
   }
 
   /// join channel
-  static Future<String> joinChannel(String token, String channelName,
-      int optionalUid) async {
+  static Future<String> joinChannel(
+      String token, String channelName, int optionalUid) async {
     Map<String, dynamic> params = {
       'token': token,
       'channelName': channelName,
@@ -267,8 +268,8 @@ class FlutterFloatWindow {
 
   ///* channelId:  Notification channel id
   ///* channelName:  Notification channel name
-  static setNotificationChannelIdAndName(String channelId,
-      String channelName) async {
+  static setNotificationChannelIdAndName(
+      String channelId, String channelName) async {
     Map<String, String> params = {
       "channelId": channelId,
       "channelName": channelName
@@ -298,8 +299,8 @@ class FlutterFloatWindow {
   }
 
   /// only iOS
-  static initAgora(String appId, String token, String channelName,
-      int optionalUid,
+  static initAgora(
+      String appId, String token, String channelName, int optionalUid,
       {String title = '', String artist = '', String coverUrl = ''}) async {
     Map<String, dynamic> params = {
       'appId': appId,
@@ -312,7 +313,7 @@ class FlutterFloatWindow {
     };
     var handler = FlutterAgoraLiveEngine.instance.mHandler;
     EventChannel _eventChannel =
-    const EventChannel("flutter_agora_live/agora_events");
+        const EventChannel("flutter_agora_live/agora_events");
     _eventChannel.receiveBroadcastStream().listen((event) {
       var map = Map<String, dynamic>.from(event);
       handleAgoraEvent(map, handler);
@@ -329,7 +330,7 @@ class FlutterFloatWindow {
     Map<String, dynamic> params = {
       'enablePipIOS': enable,
     };
-   return await _channelAgoraIOS.invokeMethod('enablePipIOS', params);
+    return await _channelAgoraIOS.invokeMethod('enablePipIOS', params);
   }
 
   static initPipIOS() async {
@@ -362,8 +363,8 @@ class FlutterFloatWindow {
     await _channelAgoraIOS.invokeMethod('showNowPlaying', params);
   }
 
-  static handleAgoraEvent(Map<String, dynamic> event,
-      FlutterAgoraLiveEventHandler? handler) {
+  static handleAgoraEvent(
+      Map<String, dynamic> event, FlutterAgoraLiveEventHandler? handler) {
     var method = event['method'];
     int uid = event['uid'] ?? -1;
     switch (method) {
@@ -408,12 +409,13 @@ class FlutterFloatWindow {
     }
   }
 
-  static initVideoPlayerIOS({required String url,
-    String title = '',
-    String artist = "",
-    String coverUrl = "",
-    int position = 0,
-    double speed = 1.0}) async {
+  static initVideoPlayerIOS(
+      {required String url,
+      String title = '',
+      String artist = "",
+      String coverUrl = "",
+      int position = 0,
+      double speed = 1.0}) async {
     assert(Platform.isIOS == true);
     Map<String, dynamic> params = {
       "videoUrl": url,
@@ -438,57 +440,67 @@ class FlutterFloatWindow {
     await _channelVideoPlayerIOS.invokeMethod('pauseVideoIOS');
   }
 
+  ///销毁视频播放器
   static destroyVideoPlayerIOS() async {
     assert(Platform.isIOS == true);
     await _channelVideoPlayerIOS.invokeMethod('destroyVideoPlayerIOS');
   }
 
+  ///拖动视频到某一进度
   static seekVideoIOS(Map<String, int> position) async {
     assert(Platform.isIOS == true);
     await _channelVideoPlayerIOS.invokeMethod('seekVideoIOS', position);
   }
 
+  ///画中画是否可用
   static Future<bool> enablePipVideoIOS(bool enable) async {
     assert(Platform.isIOS == true);
     Map<String, dynamic> params = {
       'enablePipIOS': enable,
     };
-  return await _channelVideoPlayerIOS.invokeMethod('enablePipVideoIOS', params);
+    return await _channelVideoPlayerIOS.invokeMethod(
+        'enablePipVideoIOS', params);
   }
 
+  ///开启画中画
   static startPipVideoIOS() async {
     assert(Platform.isIOS == true);
     await _channelVideoPlayerIOS.invokeMethod('startPipVideoIOS');
   }
 
+  ///关闭画中画
   static stopPipVideoIOS() async {
     assert(Platform.isIOS == true);
     await _channelVideoPlayerIOS.invokeMethod('stopPipVideoIOS');
   }
 
+  ///设置视频播放速度
   static setVideoSpeedIOS(double speed) async {
     assert(Platform.isIOS == true);
-    var params = {'speed':speed};
-    await _channelVideoPlayerIOS.invokeMethod('setVideoSpeedIOS',params);
+    var params = {'speed': speed};
+    await _channelVideoPlayerIOS.invokeMethod('setVideoSpeedIOS', params);
   }
 
+  ///获取当前视频播放位置和总时长
   static Future<Map<String, dynamic>> getDurationAndPosition() async {
     assert(Platform.isIOS == true);
     var future =
-    await _channelVideoPlayerIOS.invokeMethod('durationAndPosition');
+        await _channelVideoPlayerIOS.invokeMethod('durationAndPosition');
     var map = {'position': future['position'], 'duration': future['duration']};
     return map;
   }
 
+  ///判断视频是否在播放
   static Future<bool> isPlaying() async {
     assert(Platform.isIOS == true);
     return await _channelVideoPlayerIOS.invokeMethod("isVideoPlayingIOS");
   }
 
+  ///初始化视频播放器
   static initVideoPlayerListener(FlutterVideoPlayerEventHandler handler) {
     // var handler = FlutterVideoPlayerEngine.instance.mHandler;
     EventChannel _eventChannel =
-    const EventChannel("flutter_video_player/video_events");
+        const EventChannel("flutter_video_player/video_events");
     _eventChannel.receiveBroadcastStream().listen((event) {
       var map = Map<String, dynamic>.from(event);
       // var method = map['method'];
