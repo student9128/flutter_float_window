@@ -123,7 +123,8 @@ FlutterAgoraLiveView()
       }, onVideoPlayEnd: () {
       }, onVideoInterruptionBegan: () {
       }, onVideoInterruptionEnded: () {
-      }));
+      }, onVideoPipCloseClicked: (){
+      }, onVideoPipFullScreenClicked:(){}));
       FlutterFloatWindow.initVideoPlayerListener(playerEngine.mHandler!);
 ```
 > init agora
@@ -139,7 +140,8 @@ FlutterAgoraLiveView()
           },onRemoteVideoMuted: (uid) {
           },onRemoteVideoStateChanged: (uid) {
           },onLeaveChannel: () {
-          }));
+          },onLivePipCloseClicked:(){
+          },onLivePipFullScreenClicked:(){}));
       FlutterFloatWindow.initAgora(_, _, _, _,title:title, artist: artist, coverUrl:cover);
 ```
 > use picture in picture
