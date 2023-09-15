@@ -1,15 +1,16 @@
 import 'package:flutter_float_window/flutter_agora_live_event_handler.dart';
 
-class FlutterAgoraLiveEngine{
+class FlutterAgoraLiveEngine {
   FlutterAgoraLiveEngine._();
   static FlutterAgoraLiveEngine? _instance;
-  static FlutterAgoraLiveEngine get instance =>_getInstance();
-  static FlutterAgoraLiveEngine _getInstance(){
-    _instance??= FlutterAgoraLiveEngine._();
+  static FlutterAgoraLiveEngine get instance => _getInstance();
+  static FlutterAgoraLiveEngine _getInstance() {
+    _instance ??= FlutterAgoraLiveEngine._();
     return _instance!;
   }
+
   static FlutterAgoraLiveEngine create() {
-    _instance??= FlutterAgoraLiveEngine._();
+    _instance ??= FlutterAgoraLiveEngine._();
     return _instance!;
   }
 
