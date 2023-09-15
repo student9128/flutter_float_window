@@ -1,7 +1,9 @@
+## 0.2.1
+fix picture in picture can not show. optimized code.
 ## 0.2.0
-add more logic code and perfect the scene,optimized code.
+add more logic code and perfect the scene, optimized code.
 ## 0.1.9
-add FlutterVideoPlayerView(only iOS),now can add this videoPlayer if need picture in picture on iOS.
+add FlutterVideoPlayerView(only iOS), now can add this videoPlayer if need picture in picture on iOS.
 ## 0.1.8
 support ios show float window when use Agora SDK.
 upgrade android Agora native sdk to 4.2.1.
@@ -23,7 +25,7 @@ completed live float window ui and method.
 ## 0.1.0 
 add some flutter methods about live float window.
 ## 0.0.9
-add agora live float window,now you can show live float window if you use agora SDK. 
+add agora live float window, now you can show live float window if you use agora SDK. 
 ## 0.0.8
 add `setWidthAndHeight`,`setAspectRatio`,`setGravity`,`setBackgroundColor`,add double tap effect.
 ## 0.0.7
