@@ -97,6 +97,15 @@ class FlutterAgoraLiveViewFactory: NSObject,FlutterPlatformViewFactory{
                 }
             }
             break
+        case "mutedRemoteVideo":
+            if(call.arguments) is Dictionary<String,Any>?{
+                let dic = call.arguments as! Dictionary<String,Any>
+                let muteRemoteAudio = dic["mutedRemoteVideo"] as? Bool
+                if let mute = muteRemoteAudio{
+                    FlutterAgoraLiveManager.shared.mutedRemoteVideo(mute: mute)
+                }
+            }
+            break
         default:
             break
         }

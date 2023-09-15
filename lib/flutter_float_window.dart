@@ -352,6 +352,13 @@ class FlutterFloatWindow {
     await _channelAgoraIOS.invokeMethod("mutedRemoteAudio", params);
   }
 
+  static mutedRemoteVideo(bool mute) async {
+    Map<String, dynamic> params = {
+      'mutedRemoteVideo': mute,
+    };
+    await _channelAgoraIOS.invokeMethod("mutedRemoteVideo", params);
+  }
+
   static showNowPlaying(
       {String title = '', String artist = '', String coverUrl = ''}) async {
     assert(Platform.isIOS == true);

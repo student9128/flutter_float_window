@@ -110,6 +110,10 @@ public class FlutterAgoraLiveManager:NSObject{
     func mutedRemoteAudio(mute:Bool){
         agoraKit?.muteAllRemoteAudioStreams(mute)
     }
+    ///是否接收并播放所有远端视频流
+    func mutedRemoteVideo(mute:Bool){
+        agoraKit?.muteAllRemoteVideoStreams(mute)
+    }
     func leavelChannel(){
         hasInitPip = false
         agoraKit?.leaveChannel{result in
