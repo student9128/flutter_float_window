@@ -1,6 +1,6 @@
 name: flutter_float_window
 description: A  Flutter plugin show float window on Android and show picture in picture on iOS.
-version: 0.2.1
+version: 0.2.2
 homepage: https://github.com/student9128/flutter_float_window
 
 environment:

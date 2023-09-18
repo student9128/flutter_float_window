@@ -1,3 +1,5 @@
+## 0.2.2
+optimized code.
 ## 0.2.1
 fix picture in picture can not show. optimized code.
 ## 0.2.0
