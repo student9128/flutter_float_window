@@ -17,8 +17,9 @@ class FlutterAgoraLiveView: NSObject,FlutterPlatformView{
          viewIdentifier viewId: Int64,
          arguments args: Any?,
          binaryMessenger messenger: FlutterBinaryMessenger?){
-        _view = AgoraLiveView()
+        _view = AgoraLiveView.shared
         super.init()
+        AgoraLiveView.shared.layoutSubviews()
         
     }
     deinit{
